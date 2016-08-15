@@ -5,7 +5,7 @@
 
     <groupId>com.rrIndustries</groupId>
     <artifactId>sovietBot</artifactId>
-    <version>alpha</version>
+    <version>1.0.0</version>
     <packaging>jar</packaging>
     <repositories>
         <repository>
