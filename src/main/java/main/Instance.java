@@ -35,7 +35,7 @@ import static javax.sound.sampled.AudioSystem.getAudioInputStream;
 import static main.parsable.tryInt;
 import static sx.blah.discord.util.audio.AudioPlayer.getAudioPlayerForGuild;
 
-public class Instance {
+class Instance {
 
     /*public @interface command {
 
@@ -52,7 +52,7 @@ public class Instance {
     private final String[] sfxIndex;
     private final Random rn;
     private final String[] quotes;
-    private static final String version = "1.1.2";
+    private static final String version = "1.1.3";
     private static final String botName = "SovietBot";
     private static final String frameName = sx.blah.discord.Discord4J.NAME;
     private static final String frameVersion = sx.blah.discord.Discord4J.VERSION;
@@ -61,7 +61,7 @@ public class Instance {
     private final Map<String, Consumer<commContext>> commandsTest = new HashMap<>();
     private final String commChar;
 
-    public Instance(String token) {
+    Instance(String token) {
         this.commChar = ">";
         commandsTest.put("quote", this::defaultMessage);
         commandsTest.put("stop", this::terminate);
