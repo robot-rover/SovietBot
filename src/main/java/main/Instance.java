@@ -52,7 +52,7 @@ class Instance {
     private final String[] sfxIndex;
     private final Random rn;
     private final String[] quotes;
-    private static final String version = "1.1.3";
+    private static final String version = "1.1.5";
     private static final String botName = "SovietBot";
     private static final String frameName = sx.blah.discord.Discord4J.NAME;
     private static final String frameVersion = sx.blah.discord.Discord4J.VERSION;
@@ -78,6 +78,7 @@ class Instance {
         commandsTest.put("weather", this::weather);
         commandsTest.put("connect", this::connect);
         commandsTest.put("music", this::music);
+        //commandsTest.put("commChar", this::setChar);
         this.quotes = new String[17];
         this.sfxIndex = new String[6];
         rn = new Random();
@@ -118,8 +119,8 @@ class Instance {
         quotes[14] = "https://cdn.meme.am/instances/10678438.jpg";
         quotes[15] = "http://files.sharenator.com/in_soviet_russia_holy_crap_not_another_internet_meme_demotivational_poster_1247942328-s640x458-173710.jpg";
         quotes[16] = "http://ci.memecdn.com/689/2331689.jpg";
-        instSet = new String[15];
-        helpText = new String[15];
+        instSet = new String[16];
+        helpText = new String[16];
         instSet[0] = "quote";
         helpText[0] = "Triggers a memorable quote.";
         instSet[1] = "stop";
@@ -150,6 +151,8 @@ class Instance {
         helpText[13] = "Connects and Disconnects to voice channels.";
         instSet[14] = "music";
         helpText[14] = "Adds youtube link to queue.";
+        instSet[15] = "commChar";
+        helpText[15] = "[Coming Soon] Change the command character for the bot.";
     }
 
     void login() throws DiscordException {
@@ -186,6 +189,30 @@ class Instance {
             } catch (NullPointerException | IndexOutOfBoundsException ex) {
                 return;
             }
+            Thread thread = new Thread() {
+                @Override
+                public void run() {
+                    try {
+                        Thread.sleep(5000);
+                    } catch (InterruptedException ex) {
+                        threadInterrupted(ex, "onMessage");
+                    }
+                    try {
+                        e.getMessage().delete();
+                    } catch (MissingPermissionsException ex) {
+                        missingPermissions(e.getMessage().getChannel(), "onMessage", ex);
+                    } catch (RateLimitException ex) {
+                        try {
+                            Thread.sleep(ex.getRetryDelay());
+                        } catch (InterruptedException ex2) {
+                            threadInterrupted(ex2, "onMessage");
+                        }
+                    } catch (DiscordException ex) {
+                        error(e.getMessage().getGuild(), "onMessage", ex);
+                    }
+                }
+            };
+            thread.start();
             exec.accept(cont);
         }
     }
@@ -594,11 +621,17 @@ class Instance {
             sendMessage("Communism marches on!", cont.getMessage().getMessage().getChannel());
             return;
         }
+        try {
+            cont.getMessage().getMessage().delete();
+        } catch (MissingPermissionsException | RateLimitException | DiscordException ex) {
+            log.debug("Error while deleting stop command", ex);
+        }
         reconnect.set(false);
         try {
             client.logout();
         } catch (RateLimitException | DiscordException ex) {
-            log.warn("Logout failed", ex);
+            log.error("Logout failed", ex);
+            return;
         }
         log.info("\n------------------------------------------------------------------------\n"
                 + "Terminated\n"
@@ -616,6 +649,10 @@ class Instance {
         } catch (MissingPermissionsException ex) {
             missingPermissions(channel, "sendMessage(event)", ex);
         }
+    }
+
+    private void threadInterrupted(InterruptedException ex, String methodName) {
+        log.debug("The Method " + methodName + "'s Sleep was interrupted - ", ex);
     }
 
     private void notFound(MessageReceivedEvent e, String methodName, String type, String name) {
