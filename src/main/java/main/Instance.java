@@ -52,7 +52,7 @@ public class Instance {
     private final String[] sfxIndex;
     private final Random rn;
     private final String[] quotes;
-    private static final String version = "1.0.1";
+    private static final String version = "1.1.1";
     private static final String botName = "SovietBot";
     private static final String frameName = sx.blah.discord.Discord4J.NAME;
     private static final String frameVersion = sx.blah.discord.Discord4J.VERSION;
