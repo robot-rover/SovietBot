@@ -10,15 +10,13 @@ import sx.blah.discord.api.ClientBuilder;
 import sx.blah.discord.api.IDiscordClient;
 import sx.blah.discord.api.events.EventSubscriber;
 import sx.blah.discord.handle.audio.IAudioManager;
-import sx.blah.discord.handle.audio.impl.DefaultProvider;
-import sx.blah.discord.handle.impl.events.*;
+import sx.blah.discord.handle.impl.events.MessageReceivedEvent;
+import sx.blah.discord.handle.impl.events.ReadyEvent;
 import sx.blah.discord.handle.obj.IChannel;
 import sx.blah.discord.handle.obj.IGuild;
 import sx.blah.discord.handle.obj.IUser;
 import sx.blah.discord.handle.obj.IVoiceChannel;
 import sx.blah.discord.util.*;
-import sx.blah.discord.util.audio.events.TrackFinishEvent;
-import sx.blah.discord.util.audio.events.TrackQueueEvent;
 
 import javax.sound.sampled.AudioInputStream;
 import javax.sound.sampled.UnsupportedAudioFileException;
@@ -50,81 +48,59 @@ public class Instance {
     private final AtomicBoolean reconnect = new AtomicBoolean(true);
     private final String[] instSet;
     private final String[] helpText;
-    private final AudioInputStream[] Ohhs;
-    private final String[] OhhsIndex;
+    private final AudioInputStream[] sfx;
+    private final String[] sfxIndex;
     private final Random rn;
     private final String[] quotes;
-    private final String[] banWords;
-    private static final String version = "1.0.0";
+    private static final String version = "1.0.1";
     private static final String botName = "SovietBot";
     private static final String frameName = sx.blah.discord.Discord4J.NAME;
     private static final String frameVersion = sx.blah.discord.Discord4J.VERSION;
     private static final String helpCommand = "help";
     private static final String author = "robot_rover";
-    private final Map<String, Consumer<commContext>> commandsTest = new HashMap<String, Consumer<commContext>>();
-    private HashMap<String, String> commands = new HashMap<String, String>();
-    private String commChar;
+    private final Map<String, Consumer<commContext>> commandsTest = new HashMap<>();
+    private final String commChar;
 
     public Instance(String token) {
         this.commChar = ">";
-        commands.put("quote", "defaultMessage");
-        commands.put("stop", "terminate");
-        commands.put("help", "help");
-        commands.put("rekt", "rekt");
-        commands.put("unafk", "unafk");
-        commands.put("info", "info");
-        commands.put("bring", "bring");
-        commands.put("purge", "purge");
-        commands.put("disconnect", "disconnect");
-        commands.put("cat", "cat");
-        commands.put("roll", "roll");
-        commands.put("coin", "coin");
-        commands.put("weather", "weather");
-        commandsTest.put("quote", cont -> defaultMessage(cont));
-        commandsTest.put("stop", cont -> terminate(cont));
-        commandsTest.put("help", cont -> help(cont));
-        commandsTest.put("rekt", cont -> rekt(cont));
-        commandsTest.put("unafk", cont -> unafk(cont));
-        commandsTest.put("info", cont -> info(cont));
-        commandsTest.put("bring", cont -> bring(cont));
-        commandsTest.put("purge", cont -> purge(cont));
-        commandsTest.put("disconnect", cont -> disconnect(cont));
-        commandsTest.put("cat", cont -> cat(cont));
-        commandsTest.put("roll", cont -> roll(cont));
-        commandsTest.put("coin", cont -> coin(cont));
-        commandsTest.put("weather", cont -> weather(cont));
-        commandsTest.put("connect", cont -> connect(cont));
-        commandsTest.put("music", cont -> music(cont));
+        commandsTest.put("quote", this::defaultMessage);
+        commandsTest.put("stop", this::terminate);
+        commandsTest.put("help", this::help);
+        commandsTest.put("rekt", this::rekt);
+        commandsTest.put("unafk", this::unafk);
+        commandsTest.put("info", this::info);
+        commandsTest.put("bring", this::bring);
+        commandsTest.put("purge", this::purge);
+        commandsTest.put("disconnect", this::disconnect);
+        commandsTest.put("cat", this::cat);
+        commandsTest.put("roll", this::roll);
+        commandsTest.put("coin", this::coin);
+        commandsTest.put("weather", this::weather);
+        commandsTest.put("connect", this::connect);
+        commandsTest.put("music", this::music);
         this.quotes = new String[17];
-        this.banWords = new String[6];
-        this.OhhsIndex = new String[6];
+        this.sfxIndex = new String[6];
         rn = new Random();
         this.token = token;
         ClassLoader classLoader = this.getClass().getClassLoader();
-        this.Ohhs = new AudioInputStream[6];
+        this.sfx = new AudioInputStream[6];
         try {
-            Ohhs[0] = getAudioInputStream(classLoader.getResource("ohhs/womboCombo.mp3"));
-            Ohhs[1] = getAudioInputStream(classLoader.getResource("ohhs/wrongNumber.mp3"));
-            Ohhs[2] = getAudioInputStream(classLoader.getResource("ohhs/violinAirhorn.mp3"));
-            Ohhs[3] = getAudioInputStream(classLoader.getResource("ohhs/noOneHasEver.mp3"));
-            Ohhs[4] = getAudioInputStream(classLoader.getResource("ohhs/noscoped.mp3"));
-            Ohhs[5] = getAudioInputStream(classLoader.getResource("nopes/nopeSong.mp3"));
+            sfx[0] = getAudioInputStream(classLoader.getResource("ohs/womboCombo.mp3"));
+            sfx[1] = getAudioInputStream(classLoader.getResource("ohs/wrongNumber.mp3"));
+            sfx[2] = getAudioInputStream(classLoader.getResource("ohs/violinAirhorn.mp3"));
+            sfx[3] = getAudioInputStream(classLoader.getResource("ohs/noOneHasEver.mp3"));
+            sfx[4] = getAudioInputStream(classLoader.getResource("ohs/noscoped.mp3"));
+            sfx[5] = getAudioInputStream(classLoader.getResource("ohs/nopeSong.mp3"));
         } catch (IOException | UnsupportedAudioFileException ex) {
-            log.warn("Error initilizing audio streams", ex);
+            log.warn("Error initializing audio streams", ex);
         }
 
-        OhhsIndex[0] = "wombo";
-        OhhsIndex[1] = "wrong";
-        OhhsIndex[2] = "airhorn";
-        OhhsIndex[3] = "never";
-        OhhsIndex[4] = "scope";
-        OhhsIndex[5] = "nope";
-        banWords[0] = "rekt";
-        banWords[1] = "mlg";
-        banWords[2] = "rip";
-        banWords[3] = "noob";
-        banWords[4] = "fam";
-        banWords[5] = "bruh";
+        sfxIndex[0] = "wombo";
+        sfxIndex[1] = "wrong";
+        sfxIndex[2] = "airhorn";
+        sfxIndex[3] = "never";
+        sfxIndex[4] = "scope";
+        sfxIndex[5] = "nope";
         quotes[0] = "In Soviet Russia, command type you.";
         quotes[1] = "In Soviet Russia, the lowest rank in the military is Public, not Private";
         quotes[2] = "In soviet Russia, furball coughs up cat!";
@@ -147,11 +123,11 @@ public class Instance {
         instSet[0] = "quote";
         helpText[0] = "Triggers a memorable quote.";
         instSet[1] = "stop";
-        helpText[1] = "Shuts down Sovietbot.";
+        helpText[1] = "Shuts down SovietBot.";
         instSet[2] = "help";
         helpText[2] = "Displays this help Message.";
         instSet[3] = "rekt";
-        helpText[3] = "Plays a sound in the voicechat. Slightly Obnoxious...";
+        helpText[3] = "Plays a sound in the voice chat. Slightly Obnoxious...";
         instSet[4] = "unafk";
         helpText[4] = "Brings AFK players to your current channel.";
         instSet[5] = "info";
@@ -182,15 +158,7 @@ public class Instance {
     }
 
     @EventSubscriber
-    public void joinGuild(GuildCreateEvent e) {
-    }
-
-    @EventSubscriber
-    public void leaveGuild(GuildLeaveEvent e) {
-    }
-
-    @EventSubscriber
-    public void onReady(ReadyEvent event) throws DiscordException, RateLimitException {
+    public void onReady(ReadyEvent e) throws DiscordException, RateLimitException {
         log.info("*** Discord bot armed ***");
         if (!client.getOurUser().getName().equals("SovietBot")) {
             client.changeUsername("SovietBot");
@@ -199,60 +167,6 @@ public class Instance {
         log.info("\n------------------------------------------------------------------------\n"
                 + "*** Discord bot Ready ***\n"
                 + "------------------------------------------------------------------------");
-    }
-
-    @EventSubscriber
-    public void onDisconnect(DiscordDisconnectedEvent event) {
-        if (reconnect.get()) {
-            log.info("Reconnecting bot");
-            try {
-                login();
-            } catch (DiscordException e) {
-                log.warn("Failed to reconnect bot", e);
-            }
-        }
-    }
-
-    @EventSubscriber
-    public void trackFinishEvent(TrackFinishEvent e) {
-    }
-
-    @EventSubscriber
-    public void trackQueueEvent(TrackQueueEvent e) {
-    }
-
-    public List<String> parseArgs(String input) {
-        boolean next = true;
-        List<String> args = new ArrayList<String>();
-        Scanner parser = new Scanner(input);
-        while (next) {
-            try {
-                args.add(parser.next());
-            } catch (NoSuchElementException ex) {
-                next = false;
-            }
-        }
-        if (args.get(0).startsWith(commChar)) {
-            args.set(0, args.get(0).substring(commChar.length()));
-        }
-        return args;
-    }
-
-    private List<String> parseArgs(MessageReceivedEvent e) {
-        boolean next = true;
-        List<String> args = new ArrayList<String>();
-        Scanner parser = new Scanner(e.getMessage().getContent());
-        while (next) {
-            try {
-                args.add(parser.next());
-            } catch (NoSuchElementException ex) {
-                next = false;
-            }
-        }
-        if (args.get(0).startsWith(commChar)) {
-            args.set(0, args.get(0).substring(commChar.length()));
-        }
-        return args;
     }
 
     @EventSubscriber
@@ -294,7 +208,7 @@ public class Instance {
                     next.join();
                 }
             } catch (MissingPermissionsException ex) {
-                missingPermissions(cont.getMessage(), "connect", ex);
+                missingPermissions(cont.getMessage().getMessage().getChannel(), "connect", ex);
             } catch (NullPointerException | IndexOutOfBoundsException ex) {
                 log.debug("Could not connect: Channel called " + cont.getArgs().get(1) + " not found");
             }
@@ -305,7 +219,7 @@ public class Instance {
                     IVoiceChannel possible = null;
                     boolean disconnect = true;
                     try {
-                        possible = client.getConnectedVoiceChannels().stream().filter(v -> v.getGuild().equals(cont.getMessage().getMessage().getGuild())).findAny().orElseThrow(() -> new NullPointerException());
+                        possible = client.getConnectedVoiceChannels().stream().filter(v -> v.getGuild().equals(cont.getMessage().getMessage().getGuild())).findAny().orElseThrow(NullPointerException::new);
                     } catch (NullPointerException ex) {
                         disconnect = false;
                     }
@@ -315,7 +229,7 @@ public class Instance {
                     next.join();
                 }
             } catch (MissingPermissionsException ex) {
-                missingPermissions(cont.getMessage(), "connect", ex);
+                missingPermissions(cont.getMessage().getMessage().getChannel(), "connect", ex);
             } catch (NullPointerException | IndexOutOfBoundsException ex) {
                 log.debug("Could not connect: Author not in voice channel");
             }
@@ -326,19 +240,11 @@ public class Instance {
         log.info("starting music");
         IAudioManager manager = cont.getMessage().getMessage().getGuild().getAudioManager();
         MusicPlayer player;
-        if (manager.getAudioProvider() instanceof DefaultProvider) {
-            log.info("making new musicplayer");
             player = new MusicPlayer();
             player.setVolume(1);
             manager.setAudioProvider(player);
-        } else {
-            log.info("musicplayer looks good");
-            player = (MusicPlayer) manager.getAudioProvider();
-        }
-
-        String infoMsg = "";
         if (cont.getArgs().size() < 2) {
-            log.info("exiting... not enough args");
+            missingArgs(cont.getMessage(), "music", cont.getArgs());
             return;
         }
         String url = cont.getArgs().get(1);
@@ -404,7 +310,7 @@ public class Instance {
         } else {
             message = "Tails";
         }
-        sendMessage(message, cont.getMessage());
+        sendMessage(message, cont.getMessage().getMessage().getChannel());
     }
 
     private void roll(commContext cont) {
@@ -417,19 +323,14 @@ public class Instance {
         } catch (IndexOutOfBoundsException ex) {
             dnd = false;
         }
-        if (cont.getArgs().size() >= 2 && cont.getArgs().get(1).equals("help")) {
-            String message = "**Arguments: **\n"
-                    + "5 - rolls a number between 1 and 5\n"
-                    + "2d6 - rolls 2 dice with 6 sides each\n"
-                    + " - rolls a number between 1 and 100";
-        } else if (cont.getArgs().size() >= 2 && tryInt(cont.getArgs().get(1))) {
+        if (cont.getArgs().size() >= 2 && tryInt(cont.getArgs().get(1))) {
             roll = Integer.parseInt(cont.getArgs().get(1));
             if (roll < 1) {
-                sendMessage("Rolling 0 to 0: 0", cont.getMessage());
+                sendMessage("Rolling 0 to 0: 0", cont.getMessage().getMessage().getChannel());
                 return;
             }
             String message = "Rolling 1 to " + Integer.toString(roll) + ": " + (rn.nextInt(roll) + 1);
-            sendMessage(message, cont.getMessage());
+            sendMessage(message, cont.getMessage().getMessage().getChannel());
         } else if (cont.getArgs().size() >= 2 && dnd) {
             int reps = Integer.parseInt(cont.getArgs().get(1).substring(0, d));
             int value = Integer.parseInt(cont.getArgs().get(1).substring(d + 1));
@@ -442,9 +343,9 @@ public class Instance {
             }
             message = message.substring(0, message.length() - 2);
             message = message + "\n**Total: **" + total;
-            sendMessage(message, cont.getMessage());
+            sendMessage(message, cont.getMessage().getMessage().getChannel());
         } else {
-            sendMessage("Rolling 1 to 100: " + (rn.nextInt(100) + 1), cont.getMessage());
+            sendMessage("Rolling 1 to 100: " + (rn.nextInt(100) + 1), cont.getMessage().getMessage().getChannel());
         }
     }
 
@@ -453,7 +354,7 @@ public class Instance {
         try {
             url = new URL("http://random.cat/meow");
         } catch (MalformedURLException ex) {
-            log.error("Cat URL is Malformed", ex);
+            customException(cont.getMessage(), "cat", "Cat URL is Malformed", ex);
             return;
         }
         InputStream is;
@@ -461,7 +362,7 @@ public class Instance {
             URLConnection con = url.openConnection();
             is = con.getInputStream();
         } catch (IOException ex) {
-            log.warn("Cat input stream Exception", ex);
+            error(cont.getMessage().getMessage().getGuild(), "cat", ex);
             return;
         }
         BufferedReader br = new BufferedReader(new InputStreamReader(is));
@@ -469,19 +370,18 @@ public class Instance {
         try {
             message = br.readLine();
         } catch (IOException ex) {
-            log.warn("IOException in Cat", ex);
+            error(cont.getMessage().getMessage().getGuild(), "cat", ex);
             return;
         }
         message = message.substring(9, message.length() - 2);
         message = message.replace("\\/", "/");
         message = cont.getMessage().getMessage().getAuthor().mention() + " " + message;
-        sendMessage(message, cont.getMessage());
+        sendMessage(message, cont.getMessage().getMessage().getChannel());
     }
 
     private void disconnect(commContext cont) {
-        List<String> args = parseArgs(cont.getMessage());
-        if (args.size() < 2) {
-            missingArgs(cont.getMessage(), "disconnect", args);
+        if (cont.getArgs().size() < 2) {
+            missingArgs(cont.getMessage(), "disconnect", cont.getArgs());
         }
         IUser user;
         try {
@@ -495,43 +395,47 @@ public class Instance {
             remove = cont.getMessage().getMessage().getGuild().createVoiceChannel("Disconnect");
             try {
                 user.moveToVoiceChannel(remove);
-            } catch (DiscordException | RateLimitException ex) {
-                error(cont.getMessage(), "disconnect", ex);
+            } catch (DiscordException ex) {
+                error(cont.getMessage().getMessage().getGuild(), "disconnect", ex);
             } catch (MissingPermissionsException ex) {
-                missingPermissions(cont.getMessage(), "disconnect", ex);
+                missingPermissions(cont.getMessage().getMessage().getChannel(), "disconnect", ex);
+            } catch (RateLimitException ex) {
+                rateLimit(ex, this::disconnect, cont);
             }
             remove.delete();
-        } catch (DiscordException | RateLimitException ex) {
-            error(cont.getMessage(), "disconnect", ex);
+        } catch (DiscordException ex) {
+            error(cont.getMessage().getMessage().getGuild(), "disconnect", ex);
         } catch (MissingPermissionsException ex) {
-            missingPermissions(cont.getMessage(), "disconnect", ex);
+            missingPermissions(cont.getMessage().getMessage().getChannel(), "disconnect", ex);
+        } catch (RateLimitException ex) {
+            rateLimit(ex, this::disconnect, cont);
         }
     }
 
     private void purge(commContext cont) {
         MessageList clear;
-        List<String> args = parseArgs(cont.getMessage());
-        boolean parsable = true;
-        if (args.size() < 2) {
-            missingArgs(cont.getMessage(), "purge", args);
+        if (cont.getArgs().size() < 2) {
+            missingArgs(cont.getMessage(), "purge", cont.getArgs());
             return;
         }
-        if (tryInt(args.get(1))) {
-            missingArgs(cont.getMessage(), "purge", args);
+        if (!tryInt(cont.getArgs().get(1))) {
+            wrongArgs(cont.getMessage(), "purge", cont.getArgs());
             return;
         }
-        int number = Integer.parseInt(args.get(1)) + 1;
+        int number = Integer.parseInt(cont.getArgs().get(1)) + 1;
         if (number > 100) {
-            customException(cont.getMessage(), "purge", "You cannont delete more than 100 messages at a time (" + number + ")");
+            customException(cont.getMessage(), "purge", "You cannont delete more than 100 messages at a time (" + number + ")", null);
             return;
         }
         clear = new MessageList(this.client, cont.getMessage().getMessage().getChannel(), number);
         try {
             clear.bulkDelete(clear);
-        } catch (DiscordException | RateLimitException ex) {
-            error(cont.getMessage(), "purge", ex);
+        } catch (DiscordException ex) {
+            error(cont.getMessage().getMessage().getGuild(), "purge", ex);
         } catch (MissingPermissionsException ex) {
-            missingPermissions(cont.getMessage(), "purge", ex);
+            missingPermissions(cont.getMessage().getMessage().getChannel(), "purge", ex);
+        } catch (RateLimitException ex) {
+            rateLimit(ex, this::purge, cont);
         }
 
     }
@@ -561,38 +465,34 @@ public class Instance {
                 message = message + "Moving " + user.getName() + " to " + back.toString();
                 try {
                     user.moveToVoiceChannel(back);
-                } catch (DiscordException | RateLimitException ex) {
-                    error(cont.getMessage(), "bring", ex);
+                } catch (DiscordException ex) {
+                    error(cont.getMessage().getMessage().getGuild(), "bring", ex);
                 } catch (MissingPermissionsException ex) {
-                    missingPermissions(cont.getMessage(), "bring", ex);
+                    missingPermissions(cont.getMessage().getMessage().getChannel(), "bring", ex);
                     return;
+                } catch (RateLimitException ex) {
+                    rateLimit(ex, this::bring, cont);
                 }
             }
         }
         if (!found) {
-            sendMessage("No Users found in Outside of your Channel", cont.getMessage());
+            sendMessage("No Users found in Outside of your Channel", cont.getMessage().getMessage().getChannel());
         } else {
-            sendMessage(message, cont.getMessage());
+            sendMessage(message, cont.getMessage().getMessage().getChannel());
         }
     }
 
     private void info(commContext cont) {
         String message = "```" + botName + " version " + version + "\n" + "Created with " + frameName + " version " + frameVersion + "\n" + "For help type: " + commChar + helpCommand + "\n" + "This bot was created by " + author + "```";
-        sendMessage(message, cont.getMessage());
-    }
-
-    public void banned(MessageReceivedEvent e, String word) {
-        sendMessage(e.getMessage().getAuthor().toString() + " violated Soviet Russia by saying \"" + word + "\" in the chat.", e);
-
+        sendMessage(message, cont.getMessage().getMessage().getChannel());
     }
 
     private void unafk(commContext cont) {
         String message = "";
         boolean found = false;
-        IVoiceChannel empty = null;
         IVoiceChannel afk = cont.getMessage().getMessage().getGuild().getAFKChannel();
         if (afk == null) {
-            sendMessage("There is no AFK Channel.", cont.getMessage());
+            sendMessage("There is no AFK Channel.", cont.getMessage().getMessage().getChannel());
             return;
         }
         IUser[] Users = cont.getMessage().getMessage().getGuild().getUsers().toArray(new IUser[0]);
@@ -618,28 +518,28 @@ public class Instance {
                 try {
                     user.moveToVoiceChannel(back);
                 } catch (DiscordException | RateLimitException ex) {
-                    error(cont.getMessage(), "unafk", ex);
+                    error(cont.getMessage().getMessage().getGuild(), "unafk", ex);
                 } catch (MissingPermissionsException ex) {
-                    missingPermissions(cont.getMessage(), "unafk", ex);
+                    missingPermissions(cont.getMessage().getMessage().getChannel(), "unafk", ex);
                     return;
                 }
             }
         }
         if (!found) {
-            sendMessage("No Users found in AFK Channel", cont.getMessage());
+            sendMessage("No Users found in AFK Channel", cont.getMessage().getMessage().getChannel());
         } else {
-            sendMessage(message, cont.getMessage());
+            sendMessage(message, cont.getMessage().getMessage().getChannel());
         }
     }
 
     private void rekt(commContext cont) {
         int i = 0;
-        AudioInputStream[] sources = Ohhs;
+        AudioInputStream[] sources = sfx;
         if (cont.getArgs().size() > 1) {
-            for (String command : OhhsIndex) {
+            for (String command : sfxIndex) {
                 if (command.equalsIgnoreCase(cont.getArgs().get(1))) {
                     sources = new AudioInputStream[1];
-                    sources[0] = Ohhs[i];
+                    sources[0] = sfx[i];
                 }
                 i++;
             }
@@ -648,7 +548,7 @@ public class Instance {
         try {
             getAudioPlayerForGuild(cont.getMessage().getMessage().getGuild()).queue(sources[rn.nextInt(sources.length)]);
         } catch (IOException ex) {
-            error(cont.getMessage(), "rekt", ex);
+            error(cont.getMessage().getMessage().getGuild(), "rekt", ex);
         }
     }
 
@@ -663,13 +563,10 @@ public class Instance {
                 a++;
             }
             if (command == -1) {
-                sendMessage("Command does not Exist", cont.getMessage());
+                sendMessage("Command does not Exist", cont.getMessage().getMessage().getChannel());
                 return;
             }
-            String name = instSet[command];
-            String description = helpText[command];
-            //String syntax = arguments[command];
-            //String options = options[command];
+            sendMessage("`" + commChar + instSet[a] + " - " + helpText[a] + "`", cont.getMessage().getMessage().getChannel());
         } else {
             String message = "```";
             int a = 0;
@@ -679,22 +576,22 @@ public class Instance {
                     message = message + helpText[a] + "\n";
                 } catch (IndexOutOfBoundsException ex) {
                     message = message + ex.getMessage() + "\n";
-                    error(cont.getMessage(), "help", ex);
+                    error(cont.getMessage().getMessage().getGuild(), "help", ex);
                 }
                 a++;
             }
             message = message + "```";
-            sendMessage(message, cont.getMessage());
+            sendMessage(message, cont.getMessage().getMessage().getChannel());
         }
     }
 
     private void defaultMessage(commContext cont) {
-        sendMessage(quotes[rn.nextInt(quotes.length)], cont.getMessage());
+        sendMessage(quotes[rn.nextInt(quotes.length)], cont.getMessage().getMessage().getChannel());
     }
 
     private void terminate(commContext cont) {
         if (!cont.getMessage().getMessage().getAuthor().getID().equals("141981833951838208")) {
-            sendMessage("Communism marches on!", cont.getMessage());
+            sendMessage("Communism marches on!", cont.getMessage().getMessage().getChannel());
             return;
         }
         reconnect.set(false);
@@ -709,30 +606,15 @@ public class Instance {
         System.exit(0);
     }
 
-    private void sendMessage(String message, MessageReceivedEvent e) {
-        try {
-            new MessageBuilder(this.client).appendContent(message).withChannel(e.getMessage().getChannel()).build();
-        } catch (RateLimitException | DiscordException ex) {
-            error(e, "sendMessage(event)", ex);
-        } catch (MissingPermissionsException ex) {
-            missingPermissions(e, "sendMessage(event)", ex);
-            try {
-                new MessageBuilder(this.client).appendContent(message + "\nThis Bot needs the permission: " + ex.toString()).withChannel(client.getOrCreatePMChannel(e.getMessage().getAuthor())).build();
-            } catch (DiscordException | RateLimitException ex2) {
-                error(e, "sendMessage(event)", ex2);
-            } catch (MissingPermissionsException ex2) {
-                missingPermissions(e, "sendMessage(event)", ex2);
-            }
-        }
-    }
-
-    public void sendMessage(String message, IChannel channel) {
+    private void sendMessage(String message, IChannel channel) {
         try {
             new MessageBuilder(this.client).appendContent(message).withChannel(channel).build();
-        } catch (RateLimitException | DiscordException ex) {
-            error(null, "sendMessage(String)", ex);
+        } catch (DiscordException ex) {
+            error(channel.getGuild(), "sendMessage(event)", ex);
+        } catch (RateLimitException ex2) {
+            rateLimit(ex2, (cont) -> sendMessage(cont.getReturnMessage(), cont.getChannel()), new commContext(channel, message));
         } catch (MissingPermissionsException ex) {
-            missingPermissions((MessageReceivedEvent) null, "sendMessage(String)", ex);
+            missingPermissions(channel, "sendMessage(event)", ex);
         }
     }
 
@@ -740,31 +622,38 @@ public class Instance {
         log.info(methodName + " failed to find " + type + ": \"" + name + "\" in Server: \"" + e.getMessage().getGuild().getName() + "\"");
     }
 
-    private void customException(MessageReceivedEvent e, String methodName, String message) {
+    private void customException(MessageReceivedEvent e, String methodName, String message, Exception ex) {
         log.info(methodName + " - Server: \"" + e.getMessage().getGuild().getName() + "\": " + message);
+        if (ex != null) {
+            log.debug("Full Stack Trace - ", ex);
+        }
     }
 
-    private void missingPermissions(MessageReceivedEvent e, String methodName, MissingPermissionsException ex) {
-        log.info(methodName + ": " + ex.getErrorMessage() + " on Server: \"" + e.getMessage().getGuild().getName() + "\" in channel: " + e.getMessage().getChannel().getName());
-    }
-
-    public void missingPermissions(TrackQueueEvent e, String methodName, MissingPermissionsException ex) {
-        log.info(methodName + ": " + ex.getErrorMessage() + " on Server: \"" + e.getPlayer().getGuild());
-    }
-
-    public void missingPermissions(TrackFinishEvent e, String methodName, MissingPermissionsException ex) {
-        log.info(methodName + ": " + ex.getErrorMessage() + " on Server: \"" + e.getPlayer().getGuild());
+    private void missingPermissions(IChannel channel, String methodName, MissingPermissionsException ex) {
+        log.info(methodName + ": " + ex.getErrorMessage() + " on Server: \"" + channel.getGuild().getName() + "\" in channel: " + channel.getName());
     }
 
     private void missingArgs(MessageReceivedEvent e, String methodName, List<String> args) {
+        log.info(methodName + " called without enough arguments: " + args.toString() + " in Server: \"" + e.getMessage().getGuild().getName() + "\"");
+    }
+
+    private void wrongArgs(MessageReceivedEvent e, String methodName, List<String> args) {
         log.info(methodName + " called with incomplete arguments: " + args.toString() + " in Server: \"" + e.getMessage().getGuild().getName() + "\"");
     }
 
-    private void missingArgs(MessageReceivedEvent e, String methodName, List<String> args, Exception ex) {
-        log.info(methodName + " called with incomplete arguments: " + args.toString() + " in Server: \"" + e.getMessage().getGuild().getName() + "\" returned Exception: " + ex.getMessage());
+    private void error(IGuild guild, String methodName, Exception ex) {
+        log.error(methodName + " in the Server: \"" + guild.getName() + "\" returned error: " + ex.getMessage());
+        log.debug("Full Stack Trace - ", ex);
     }
 
-    private void error(MessageReceivedEvent e, String methodName, Exception ex) {
-        log.error(methodName + " in the Server: \"" + e.getMessage().getGuild().getName() + "\" returned error: " + ex.getMessage());
+    private void rateLimit(RateLimitException ex, Consumer<commContext> method, commContext args) {
+        log.debug("Rate Limited - ", ex);
+        try {
+            Thread.sleep(ex.getRetryDelay());
+        } catch (InterruptedException e) {
+            log.debug("RateLimit Sleep Interrupted, Cancelling retry.");
+            return;
+        }
+        method.accept(args);
     }
 }

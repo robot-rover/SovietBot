@@ -6,6 +6,7 @@
 package main;
 
 import sx.blah.discord.handle.impl.events.MessageReceivedEvent;
+import sx.blah.discord.handle.obj.IChannel;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -15,11 +16,13 @@ import java.util.Scanner;
 /**
  * @author Sam
  */
-public class commContext {
-    private List<String> args = new ArrayList<String>();
+class commContext {
+    private List<String> args = new ArrayList<>();
     private MessageReceivedEvent e;
+    private String message;
+    private IChannel channel;
 
-    public commContext(MessageReceivedEvent e, String commChar) {
+    commContext(MessageReceivedEvent e, String commChar) {
         this.e = e;
         boolean next = true;
         Scanner parser = new Scanner(e.getMessage().getContent());
@@ -35,6 +38,11 @@ public class commContext {
         }
     }
 
+    commContext(IChannel channel, String message) {
+        this.channel = channel;
+        this.message = message;
+    }
+
     List<String> getArgs() {
         return args;
     }
@@ -43,4 +51,15 @@ public class commContext {
         return e;
     }
 
+    String getReturnMessage() {
+        return message;
+    }
+
+    IChannel getChannel() {
+        if (e == null) {
+            return channel;
+        } else {
+            return e.getMessage().getChannel();
+        }
+    }
 }

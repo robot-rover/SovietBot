@@ -1,0 +1,15 @@
+.idea/
+.index/
+debug.log
+dependency-reduced-pom.xml
+events.log
+modules/
+nbactions.xml
+sovietBot.iml
+src/test/
+target/
+/ffmpeg.exe
+/ffprobe.exe
+/youtube-dl
+resource/Ohhs/
+resource/nopes/

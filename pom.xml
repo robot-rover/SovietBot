@@ -16,10 +16,6 @@
             <id>jitpack.io</id>
             <url>https://jitpack.io</url>
         </repository>
-        <repository>
-            <id>local-files</id>
-            <url>file://${basedir}</url>
-        </repository>
     </repositories>
 
     <dependencies>
