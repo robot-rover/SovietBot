@@ -3,7 +3,7 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package main;
+package Main;
 
 import sx.blah.discord.handle.impl.events.MessageReceivedEvent;
 import sx.blah.discord.handle.obj.IChannel;
@@ -16,13 +16,13 @@ import java.util.Scanner;
 /**
  * @author Sam
  */
-class commContext {
+class CommContext {
     private List<String> args = new ArrayList<>();
     private MessageReceivedEvent e;
     private String message;
     private IChannel channel;
 
-    commContext(MessageReceivedEvent e, String commChar) {
+    CommContext(MessageReceivedEvent e, String commChar) {
         this.e = e;
         boolean next = true;
         Scanner parser = new Scanner(e.getMessage().getContent());
@@ -38,7 +38,7 @@ class commContext {
         }
     }
 
-    commContext(IChannel channel, String message) {
+    CommContext(IChannel channel, String message) {
         this.channel = channel;
         this.message = message;
     }

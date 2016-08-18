@@ -15,7 +15,7 @@ MANAGE_MESSAGES 0x00002000  Allows for deletion of other users messages
 
 Total:          19950624
  */
-package main;
+package Main;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

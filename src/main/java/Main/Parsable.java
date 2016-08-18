@@ -3,12 +3,12 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package main;
+package Main;
 
 /**
  * @author Sam
  */
-class parsable {
+class Parsable {
     static boolean tryInt(String i) {
         boolean parsable = true;
         try {

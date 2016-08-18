@@ -1,5 +1,7 @@
-package main;
+package Main;
 
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 import net.dv8tion.d4j.player.MusicPlayer;
 import net.dv8tion.jda.player.Playlist;
 import net.dv8tion.jda.player.source.AudioInfo;
@@ -10,6 +12,7 @@ import sx.blah.discord.api.ClientBuilder;
 import sx.blah.discord.api.IDiscordClient;
 import sx.blah.discord.api.events.EventSubscriber;
 import sx.blah.discord.handle.audio.IAudioManager;
+import sx.blah.discord.handle.audio.impl.DefaultProvider;
 import sx.blah.discord.handle.impl.events.MessageReceivedEvent;
 import sx.blah.discord.handle.impl.events.ReadyEvent;
 import sx.blah.discord.handle.obj.IChannel;
@@ -20,10 +23,7 @@ import sx.blah.discord.util.*;
 
 import javax.sound.sampled.AudioInputStream;
 import javax.sound.sampled.UnsupportedAudioFileException;
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
+import java.io.*;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLConnection;
@@ -31,38 +31,40 @@ import java.util.*;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Consumer;
 
+import static Main.Parsable.tryInt;
 import static javax.sound.sampled.AudioSystem.getAudioInputStream;
-import static main.parsable.tryInt;
 import static sx.blah.discord.util.audio.AudioPlayer.getAudioPlayerForGuild;
 
 class Instance {
-
-    /*public @interface command {
-
-        String name() default "default";
-    }*/
-
     private static final Logger log = LoggerFactory.getLogger(Instance.class);
-    private volatile IDiscordClient client;
-    private final String token;
-    private final AtomicBoolean reconnect = new AtomicBoolean(true);
-    private final String[] instSet;
-    private final String[] helpText;
-    private final AudioInputStream[] sfx;
-    private final String[] sfxIndex;
-    private final Random rn;
-    private final String[] quotes;
-    private static final String version = "1.1.5";
+    private static final String version = "1.1.6";
     private static final String botName = "SovietBot";
     private static final String frameName = sx.blah.discord.Discord4J.NAME;
     private static final String frameVersion = sx.blah.discord.Discord4J.VERSION;
     private static final String helpCommand = "help";
     private static final String author = "robot_rover";
-    private final Map<String, Consumer<commContext>> commandsTest = new HashMap<>();
-    private final String commChar;
+    private final String token;
+    private final AtomicBoolean reconnect = new AtomicBoolean(true);
+    private final AudioInputStream[] sfx;
+    private final String[] sfxIndex;
+    private final Random rn;
+    private final String[] quotes;
+    private final Map<String, Consumer<CommContext>> commandsTest = new HashMap<>();
+    private volatile IDiscordClient client;
+    private CommandList commands;
+    private Object syncObject;
 
     Instance(String token) {
-        this.commChar = ">";
+        syncObject = new Object();
+        FileReader reader;
+        try {
+            reader = new FileReader("resource/commands.json");
+            Gson gson = new GsonBuilder().create();
+            commands = gson.fromJson(reader, CommandList.class);
+        } catch (FileNotFoundException e) {
+            log.error("commands.json does not exits. exiting...");
+            System.exit(1);
+        }
         commandsTest.put("quote", this::defaultMessage);
         commandsTest.put("stop", this::terminate);
         commandsTest.put("help", this::help);
@@ -114,45 +116,11 @@ class Instance {
         quotes[9] = "http://i2.kym-cdn.com/photos/images/original/000/000/948/in-soviet-russia.png";
         quotes[10] = "In Soviet Russia, a van steals you";
         quotes[11] = "In Soviet Russia, jokes crack you.";
-        quotes[12] = "https://qph.ec.quoracdn.net/main-qimg-99907edafce7fb6acb5dc766368bf9af-c?convert_to_webp=true";
+        quotes[12] = "https://qph.ec.quoracdn.net/Main-qimg-99907edafce7fb6acb5dc766368bf9af-c?convert_to_webp=true";
         quotes[13] = "http://67.media.tumblr.com/tumblr_meknuzRXuD1rxustho1_500.jpg";
         quotes[14] = "https://cdn.meme.am/instances/10678438.jpg";
         quotes[15] = "http://files.sharenator.com/in_soviet_russia_holy_crap_not_another_internet_meme_demotivational_poster_1247942328-s640x458-173710.jpg";
         quotes[16] = "http://ci.memecdn.com/689/2331689.jpg";
-        instSet = new String[16];
-        helpText = new String[16];
-        instSet[0] = "quote";
-        helpText[0] = "Triggers a memorable quote.";
-        instSet[1] = "stop";
-        helpText[1] = "Shuts down SovietBot.";
-        instSet[2] = "help";
-        helpText[2] = "Displays this help Message.";
-        instSet[3] = "rekt";
-        helpText[3] = "Plays a sound in the voice chat. Slightly Obnoxious...";
-        instSet[4] = "unafk";
-        helpText[4] = "Brings AFK players to your current channel.";
-        instSet[5] = "info";
-        helpText[5] = "Displays Basic bot Info.";
-        instSet[6] = "weather";
-        helpText[6] = "[Coming Soon] Interface for getting the weather in your area.";
-        instSet[7] = "bring";
-        helpText[7] = "Brings all current users of a server to you.";
-        instSet[8] = "purge";
-        helpText[8] = "Removes x amount of messages from the current channel.";
-        instSet[9] = "coin";
-        helpText[9] = "Flips a coin.";
-        instSet[10] = "disconnect";
-        helpText[10] = "Disconnects a user from a voice channel.";
-        instSet[11] = "cat";
-        helpText[11] = "Posts a random cat pic.";
-        instSet[12] = "roll";
-        helpText[12] = "Rolls a random number in a variety of ways.";
-        instSet[13] = "connect";
-        helpText[13] = "Connects and Disconnects to voice channels.";
-        instSet[14] = "music";
-        helpText[14] = "Adds youtube link to queue.";
-        instSet[15] = "commChar";
-        helpText[15] = "[Coming Soon] Change the command character for the bot.";
     }
 
     void login() throws DiscordException {
@@ -178,8 +146,8 @@ class Instance {
             return;
         }
         String message = e.getMessage().getContent();
-        if (message.startsWith(commChar)) {
-            commContext cont = new commContext(e, commChar);
+        if (message.startsWith(commands.commChar)) {
+            CommContext cont = new CommContext(e, commands.commChar);
             Consumer exec;
             try {
                 exec = commandsTest.get(cont.getArgs().get(0));
@@ -225,7 +193,7 @@ class Instance {
         }
     }
 
-    private void connect(commContext cont) {
+    private void connect(CommContext cont) {
         if (cont.getArgs().size() >= 2 && cont.getArgs().get(1).equals("/")) {
             leaveChannel(cont.getMessage().getMessage().getGuild());
         } else if (cont.getArgs().size() >= 2) {
@@ -263,13 +231,23 @@ class Instance {
         }
     }
 
-    private void music(commContext cont) {
+    private void music(CommContext cont) {
         log.info("starting music");
         IAudioManager manager = cont.getMessage().getMessage().getGuild().getAudioManager();
         MusicPlayer player;
+        if (manager.getAudioProvider() instanceof DefaultProvider) {
             player = new MusicPlayer();
             player.setVolume(1);
             manager.setAudioProvider(player);
+        } else {
+            try {
+                player = (MusicPlayer) manager.getAudioProvider();
+            } catch (ClassCastException ex) {
+                player = new MusicPlayer();
+                player.setVolume(1);
+                manager.setAudioProvider(player);
+            }
+        }
         if (cont.getArgs().size() < 2) {
             missingArgs(cont.getMessage(), "music", cont.getArgs());
             return;
@@ -288,28 +266,20 @@ class Instance {
         log.info("playlst into array");
         if (sources.size() > 1) {
             log.info("more than one source");
-            final MusicPlayer fPlayer = player;
-            Thread thread = new Thread() {
-                @Override
-                public void run() {
-                    log.info("running in thread");
-                    for (Iterator<AudioSource> it = sources.iterator(); it.hasNext(); ) {
-                        AudioSource source = it.next();
-                        AudioInfo info = source.getInfo();
-                        List<AudioSource> queue = fPlayer.getAudioQueue();
-                        if (info.getError() == null) {
-                            queue.add(source);
-                            if (fPlayer.isStopped()) {
-                                fPlayer.play();
-                            }
-                        } else {
-                            log.warn("Error in music source, skipping...");
-                            it.remove();
-                        }
+            for (Iterator<AudioSource> it = sources.iterator(); it.hasNext(); ) {
+                AudioSource source = it.next();
+                AudioInfo info = source.getInfo();
+                List<AudioSource> queue = player.getAudioQueue();
+                if (info.getError() == null) {
+                    queue.add(source);
+                    if (player.isStopped()) {
+                        player.play();
                     }
+                } else {
+                    log.warn("Error in music source, skipping...");
+                    it.remove();
                 }
-            };
-            thread.start();
+            }
         } else {
             log.info("only one source");
             AudioSource source = sources.get(0);
@@ -327,10 +297,10 @@ class Instance {
         }
     }
 
-    private void weather(commContext cont) {
+    private void weather(CommContext cont) {
     }
 
-    private void coin(commContext cont) {
+    private void coin(CommContext cont) {
         String message;
         if (rn.nextBoolean()) {
             message = "Heads";
@@ -340,7 +310,7 @@ class Instance {
         sendMessage(message, cont.getMessage().getMessage().getChannel());
     }
 
-    private void roll(commContext cont) {
+    private void roll(CommContext cont) {
         int roll;
         boolean dnd;
         int d = 0;
@@ -376,7 +346,7 @@ class Instance {
         }
     }
 
-    private void cat(commContext cont) {
+    private void cat(CommContext cont) {
         URL url;
         try {
             url = new URL("http://random.cat/meow");
@@ -406,7 +376,7 @@ class Instance {
         sendMessage(message, cont.getMessage().getMessage().getChannel());
     }
 
-    private void disconnect(commContext cont) {
+    private void disconnect(CommContext cont) {
         if (cont.getArgs().size() < 2) {
             missingArgs(cont.getMessage(), "disconnect", cont.getArgs());
         }
@@ -439,7 +409,7 @@ class Instance {
         }
     }
 
-    private void purge(commContext cont) {
+    private void purge(CommContext cont) {
         MessageList clear;
         if (cont.getArgs().size() < 2) {
             missingArgs(cont.getMessage(), "purge", cont.getArgs());
@@ -467,7 +437,7 @@ class Instance {
 
     }
 
-    private void bring(commContext cont) {
+    private void bring(CommContext cont) {
         String message = "";
         boolean found = false;
         IUser[] Users = cont.getMessage().getMessage().getGuild().getUsers().toArray(new IUser[0]);
@@ -509,12 +479,12 @@ class Instance {
         }
     }
 
-    private void info(commContext cont) {
-        String message = "```" + botName + " version " + version + "\n" + "Created with " + frameName + " version " + frameVersion + "\n" + "For help type: " + commChar + helpCommand + "\n" + "This bot was created by " + author + "```";
+    private void info(CommContext cont) {
+        String message = "```" + botName + " version " + version + "\n" + "Created with " + frameName + " version " + frameVersion + "\n" + "For help type: " + commands.commChar + helpCommand + "\n" + "This bot was created by " + author + "```";
         sendMessage(message, cont.getMessage().getMessage().getChannel());
     }
 
-    private void unafk(commContext cont) {
+    private void unafk(CommContext cont) {
         String message = "";
         boolean found = false;
         IVoiceChannel afk = cont.getMessage().getMessage().getGuild().getAFKChannel();
@@ -559,7 +529,7 @@ class Instance {
         }
     }
 
-    private void rekt(commContext cont) {
+    private void rekt(CommContext cont) {
         int i = 0;
         AudioInputStream[] sources = sfx;
         if (cont.getArgs().size() > 1) {
@@ -579,44 +549,30 @@ class Instance {
         }
     }
 
-    private void help(commContext cont) {
+    private void help(CommContext cont) {
         if (cont.getArgs().size() >= 2) {
             int command = -1;
-            int a = 0;
-            for (String s : instSet) {
-                if (cont.getArgs().get(1).startsWith(s)) {
-                    command = a;
+            CommandList.Command comm = null;
+            for (CommandList.Command s : commands.commands) {
+                if (cont.getArgs().get(1).startsWith(s.commandName)) {
+                    comm = s;
                 }
-                a++;
             }
-            if (command == -1) {
+            if (comm == null) {
                 sendMessage("Command does not Exist", cont.getMessage().getMessage().getChannel());
                 return;
             }
-            sendMessage("`" + commChar + instSet[a] + " - " + helpText[a] + "`", cont.getMessage().getMessage().getChannel());
+            sendMessage("`" + commands.commChar + comm.toString() + "`", cont.getMessage().getMessage().getChannel());
         } else {
-            String message = "```";
-            int a = 0;
-            for (String s : instSet) {
-                message = message + commChar + s + " - ";
-                try {
-                    message = message + helpText[a] + "\n";
-                } catch (IndexOutOfBoundsException ex) {
-                    message = message + ex.getMessage() + "\n";
-                    error(cont.getMessage().getMessage().getGuild(), "help", ex);
-                }
-                a++;
-            }
-            message = message + "```";
-            sendMessage(message, cont.getMessage().getMessage().getChannel());
+            sendMessage("```\n" + commands.toString() + "\n```", cont.getMessage().getMessage().getChannel());
         }
     }
 
-    private void defaultMessage(commContext cont) {
+    private void defaultMessage(CommContext cont) {
         sendMessage(quotes[rn.nextInt(quotes.length)], cont.getMessage().getMessage().getChannel());
     }
 
-    private void terminate(commContext cont) {
+    private void terminate(CommContext cont) {
         if (!cont.getMessage().getMessage().getAuthor().getID().equals("141981833951838208")) {
             sendMessage("Communism marches on!", cont.getMessage().getMessage().getChannel());
             return;
@@ -645,7 +601,7 @@ class Instance {
         } catch (DiscordException ex) {
             error(channel.getGuild(), "sendMessage(event)", ex);
         } catch (RateLimitException ex2) {
-            rateLimit(ex2, (cont) -> sendMessage(cont.getReturnMessage(), cont.getChannel()), new commContext(channel, message));
+            rateLimit(ex2, (cont) -> sendMessage(cont.getReturnMessage(), cont.getChannel()), new CommContext(channel, message));
         } catch (MissingPermissionsException ex) {
             missingPermissions(channel, "sendMessage(event)", ex);
         }
@@ -683,7 +639,7 @@ class Instance {
         log.debug("Full Stack Trace - ", ex);
     }
 
-    private void rateLimit(RateLimitException ex, Consumer<commContext> method, commContext args) {
+    private void rateLimit(RateLimitException ex, Consumer<CommContext> method, CommContext args) {
         log.debug("Rate Limited - ", ex);
         try {
             Thread.sleep(ex.getRetryDelay());

@@ -1,0 +1,69 @@
+{
+  "commChar": ">",
+  "commands": [
+    {
+      "commandName": "quote",
+      "helpText": "Triggers a memorable quote."
+    },
+    {
+      "commandName": "stop",
+      "helpText": "Shuts down SovietBot."
+    },
+    {
+      "commandName": "help",
+      "helpText": "Displays this help message."
+    },
+    {
+      "commandName": "rekt",
+      "helpText": "Plays a sound in the voice chat. Slightly Obnoxious..."
+    },
+    {
+      "commandName": "unafk",
+      "helpText": "Brings AFK players to your current channel."
+    },
+    {
+      "commandName": "info",
+      "helpText": "Displays basic bot info."
+    },
+    {
+      "commandName": "weather",
+      "helpText": "[Coming Soon] Interface for getting the weather in your area."
+    },
+    {
+      "commandName": "bring",
+      "helpText": "Brings all current users of a server to you"
+    },
+    {
+      "commandName": "purge",
+      "helpText": "Removes x amount of messages from the current channel."
+    },
+    {
+      "commandName": "coin",
+      "helpText": "Flips a coin."
+    },
+    {
+      "commandName": "disconnect",
+      "helpText": "Disconnects a user rom a voice channel."
+    },
+    {
+      "commandName": "cat",
+      "helpText": "Posts a random cat picture."
+    },
+    {
+      "commandName": "roll",
+      "helpText": "Rolls a random number in a variety of ways."
+    },
+    {
+      "commandName": "connect",
+      "helpText": "Connects and disconnects to voice channels."
+    },
+    {
+      "commandName": "music",
+      "helpText": "Adds a youtube link to queue"
+    },
+    {
+      "commandName": "commChar",
+      "helpText": "[Coming Soon] Change the command character for the bot"
+    }
+  ]
+}
