@@ -253,8 +253,7 @@ class Instance {
         List<AudioSource> sources = new LinkedList<>(playlist.getSources());
         log.info("playlist into array");
         log.info("more than one source");
-        for (Iterator<AudioSource> it = sources.iterator(); it.hasNext(); ) {
-            AudioSource source = it.next();
+        for (AudioSource source : sources) {
             AudioInfo info = source.getInfo();
             List<AudioSource> queue = player.getAudioQueue();
             if (info.getError() == null) {
@@ -264,7 +263,7 @@ class Instance {
                 }
             } else {
                 log.warn("Error in music source, skipping...");
-                it.remove();
+                sources.remove(source);
             }
         }
     }
