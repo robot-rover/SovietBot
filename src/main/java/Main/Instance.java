@@ -11,8 +11,6 @@ import org.slf4j.LoggerFactory;
 import sx.blah.discord.api.ClientBuilder;
 import sx.blah.discord.api.IDiscordClient;
 import sx.blah.discord.api.events.EventSubscriber;
-import sx.blah.discord.handle.audio.IAudioManager;
-import sx.blah.discord.handle.audio.impl.DefaultProvider;
 import sx.blah.discord.handle.impl.events.MessageReceivedEvent;
 import sx.blah.discord.handle.impl.events.ReadyEvent;
 import sx.blah.discord.handle.obj.IChannel;
@@ -20,6 +18,7 @@ import sx.blah.discord.handle.obj.IGuild;
 import sx.blah.discord.handle.obj.IUser;
 import sx.blah.discord.handle.obj.IVoiceChannel;
 import sx.blah.discord.util.*;
+import sx.blah.discord.util.audio.AudioPlayer;
 
 import javax.sound.sampled.AudioInputStream;
 import javax.sound.sampled.UnsupportedAudioFileException;
@@ -233,21 +232,10 @@ class Instance {
 
     private void music(CommContext cont) {
         log.info("starting music");
-        IAudioManager manager = cont.getMessage().getMessage().getGuild().getAudioManager();
-        MusicPlayer player;
-        if (manager.getAudioProvider() instanceof DefaultProvider) {
-            player = new MusicPlayer();
-            player.setVolume(1);
-            manager.setAudioProvider(player);
-        } else {
-            try {
-                player = (MusicPlayer) manager.getAudioProvider();
-            } catch (ClassCastException ex) {
-                player = new MusicPlayer();
-                player.setVolume(1);
-                manager.setAudioProvider(player);
-            }
-        }
+        AudioPlayer aPlayer = getAudioPlayerForGuild(cont.getMessage().getMessage().getGuild());
+        MusicPlayer player = new MusicPlayer();
+        player.setVolume(1);
+        aPlayer.queue(player);
         if (cont.getArgs().size() < 2) {
             missingArgs(cont.getMessage(), "music", cont.getArgs());
             return;
@@ -263,36 +251,20 @@ class Instance {
         }
         log.info("got playlist");
         List<AudioSource> sources = new LinkedList<>(playlist.getSources());
-        log.info("playlst into array");
-        if (sources.size() > 1) {
-            log.info("more than one source");
-            for (Iterator<AudioSource> it = sources.iterator(); it.hasNext(); ) {
-                AudioSource source = it.next();
-                AudioInfo info = source.getInfo();
-                List<AudioSource> queue = player.getAudioQueue();
-                if (info.getError() == null) {
-                    queue.add(source);
-                    if (player.isStopped()) {
-                        player.play();
-                    }
-                } else {
-                    log.warn("Error in music source, skipping...");
-                    it.remove();
-                }
-            }
-        } else {
-            log.info("only one source");
-            AudioSource source = sources.get(0);
+        log.info("playlist into array");
+        log.info("more than one source");
+        for (Iterator<AudioSource> it = sources.iterator(); it.hasNext(); ) {
+            AudioSource source = it.next();
             AudioInfo info = source.getInfo();
+            List<AudioSource> queue = player.getAudioQueue();
             if (info.getError() == null) {
-                log.info("no errors");
-                player.getAudioQueue().add(source);
+                queue.add(source);
                 if (player.isStopped()) {
-                    log.info("resuming...");
                     player.play();
                 }
             } else {
                 log.warn("Error in music source, skipping...");
+                it.remove();
             }
         }
     }
