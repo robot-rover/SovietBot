@@ -23,7 +23,10 @@ import sx.blah.discord.util.audio.AudioPlayer;
 
 import javax.sound.sampled.AudioInputStream;
 import javax.sound.sampled.UnsupportedAudioFileException;
-import java.io.*;
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLConnection;
@@ -58,13 +61,14 @@ class Instance {
 
     Instance(String token) {
         syncObject = new Object();
-        FileReader reader;
+        BufferedReader reader;
         try {
-            reader = new FileReader("resource/commands.json");
+            ClassLoader classLoader = this.getClass().getClassLoader();
+            reader = new BufferedReader(new InputStreamReader(classLoader.getResourceAsStream("commands.json")));
             Gson gson = new GsonBuilder().create();
             commands = gson.fromJson(reader, CommandList.class);
-        } catch (FileNotFoundException e) {
-            log.error("commands.json does not exits. exiting...");
+        } catch (NullPointerException ex) {
+            log.error("commands.json not found. exiting...", ex);
             System.exit(1);
         }
         commandsTest.put("quote", this::defaultMessage);
