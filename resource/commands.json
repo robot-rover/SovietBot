@@ -3,67 +3,88 @@
   "commands": [
     {
       "commandName": "quote",
-      "helpText": "Triggers a memorable quote."
+      "helpText": "Triggers a memorable quote.",
+      "delete": true
     },
     {
       "commandName": "stop",
-      "helpText": "Shuts down SovietBot."
+      "helpText": "Shuts down SovietBot.",
+      "delete": false
     },
     {
       "commandName": "help",
-      "helpText": "Displays this help message."
+      "helpText": "Displays this help message.",
+      "delete": true
     },
     {
       "commandName": "rekt",
-      "helpText": "Plays a sound in the voice chat. Slightly Obnoxious..."
+      "helpText": "Plays a sound in the voice chat. Slightly Obnoxious...",
+      "delete": true
     },
     {
       "commandName": "unafk",
-      "helpText": "Brings AFK players to your current channel."
+      "helpText": "Brings AFK players to your current channel.",
+      "delete": true
     },
     {
       "commandName": "info",
-      "helpText": "Displays basic bot info."
+      "helpText": "Displays basic bot info.",
+      "delete": true
     },
     {
       "commandName": "weather",
-      "helpText": "[Coming Soon] Interface for getting the weather in your area."
+      "helpText": "[Coming Soon] Interface for getting the weather in your area.",
+      "delete": true
     },
     {
       "commandName": "bring",
-      "helpText": "Brings all current users of a server to you"
+      "helpText": "Brings all current users of a server to you",
+      "delete": true
     },
     {
       "commandName": "purge",
-      "helpText": "Removes x amount of messages from the current channel."
+      "helpText": "Removes x amount of messages from the current channel.",
+      "delete": false
     },
     {
       "commandName": "coin",
-      "helpText": "Flips a coin."
+      "helpText": "Flips a coin.",
+      "delete": true
     },
     {
       "commandName": "disconnect",
-      "helpText": "Disconnects a user rom a voice channel."
+      "helpText": "Disconnects a user rom a voice channel.",
+      "delete": true
     },
     {
       "commandName": "cat",
-      "helpText": "Posts a random cat picture."
+      "helpText": "Posts a random cat picture.",
+      "delete": true
     },
     {
       "commandName": "roll",
-      "helpText": "Rolls a random number in a variety of ways."
+      "helpText": "Rolls a random number in a variety of ways.",
+      "delete": true
     },
     {
       "commandName": "connect",
-      "helpText": "Connects and disconnects to voice channels."
+      "helpText": "Connects and disconnects to voice channels.",
+      "delete": true
     },
     {
       "commandName": "music",
-      "helpText": "Adds a youtube link to queue"
+      "helpText": "Adds a youtube link to queue",
+      "delete": true
     },
     {
       "commandName": "commChar",
-      "helpText": "[Coming Soon] Change the command character for the bot"
+      "helpText": "[Coming Soon] Change the command character for the bot",
+      "delete": true
+    },
+    {
+      "commandName": "uptime",
+      "helpText": "Shows you how long the bot has been running",
+      "delete": true
     }
   ]
 }

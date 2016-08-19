@@ -8,6 +8,7 @@ import net.dv8tion.jda.player.source.AudioInfo;
 import net.dv8tion.jda.player.source.AudioSource;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import sx.blah.discord.Discord4J;
 import sx.blah.discord.api.ClientBuilder;
 import sx.blah.discord.api.IDiscordClient;
 import sx.blah.discord.api.events.EventSubscriber;
@@ -26,6 +27,8 @@ import java.io.*;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLConnection;
+import java.time.LocalDateTime;
+import java.time.temporal.ChronoUnit;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Consumer;
@@ -79,6 +82,7 @@ class Instance {
         commandsTest.put("weather", this::weather);
         commandsTest.put("connect", this::connect);
         commandsTest.put("music", this::music);
+        commandsTest.put("uptime", this::uptime);
         //commandsTest.put("commChar", this::setChar);
         this.quotes = new String[17];
         this.sfxIndex = new String[6];
@@ -123,8 +127,9 @@ class Instance {
     }
 
     void login() throws DiscordException {
-        client = new ClientBuilder().withToken(token).login();
+        client = new ClientBuilder().withToken(token).build();
         client.getDispatcher().registerListener(this);
+        client.login();
     }
 
     @EventSubscriber
@@ -153,35 +158,57 @@ class Instance {
                 if (exec == null) {
                     throw new NullPointerException();
                 }
-            } catch (NullPointerException | IndexOutOfBoundsException ex) {
+            } catch (NullPointerException ex) {
                 return;
             }
-            Thread thread = new Thread() {
-                @Override
-                public void run() {
-                    try {
-                        Thread.sleep(5000);
-                    } catch (InterruptedException ex) {
-                        threadInterrupted(ex, "onMessage");
-                    }
-                    try {
-                        e.getMessage().delete();
-                    } catch (MissingPermissionsException ex) {
-                        missingPermissions(e.getMessage().getChannel(), "onMessage", ex);
-                    } catch (RateLimitException ex) {
+            CommandList.Command command = null;
+            try {
+                command = commands.getCommand(cont.getArgs().get(0));
+            } catch (NoSuchElementException ex) {
+                log.warn("The CommandList does not match the list of Executable Methods");
+                log.debug("Full Stacktrace - ", ex);
+                return;
+            }
+            if (command.delete) {
+                Thread thread = new Thread() {
+                    @Override
+                    public void run() {
                         try {
-                            Thread.sleep(ex.getRetryDelay());
-                        } catch (InterruptedException ex2) {
-                            threadInterrupted(ex2, "onMessage");
+                            Thread.sleep(5000);
+                        } catch (InterruptedException ex) {
+                            threadInterrupted(ex, "onMessage");
                         }
-                    } catch (DiscordException ex) {
-                        error(e.getMessage().getGuild(), "onMessage", ex);
+                        try {
+                            e.getMessage().delete();
+                        } catch (MissingPermissionsException ex) {
+                            missingPermissions(e.getMessage().getChannel(), "onMessage", ex);
+                        } catch (RateLimitException ex) {
+                            try {
+                                Thread.sleep(ex.getRetryDelay());
+                            } catch (InterruptedException ex2) {
+                                threadInterrupted(ex2, "onMessage");
+                            }
+                        } catch (DiscordException ex) {
+                            error(e.getMessage().getGuild(), "onMessage", ex);
+                        }
                     }
-                }
-            };
-            thread.start();
+                };
+                thread.start();
+            }
             exec.accept(cont);
         }
+    }
+
+    private void uptime(CommContext cont) {
+        LocalDateTime launchTime = Discord4J.getLaunchTime();
+        LocalDateTime current = LocalDateTime.now();
+        long hours = launchTime.until(current, ChronoUnit.HOURS);
+        launchTime = launchTime.plusHours(hours);
+        long minutes = launchTime.until(current, ChronoUnit.MINUTES);
+        launchTime = launchTime.plusMinutes(minutes);
+        long seconds = launchTime.until(current, ChronoUnit.SECONDS);
+        String message = "`SovietBot has been running for " + Long.toString(hours) + " hours, " + Long.toString(minutes) + " minutes, and " + Long.toString(seconds) + " seconds.`";
+        sendMessage(message, cont.getMessage().getMessage().getChannel());
     }
 
     private void leaveChannel(IGuild guild) {
@@ -553,12 +580,13 @@ class Instance {
         } catch (MissingPermissionsException | RateLimitException | DiscordException ex) {
             log.debug("Error while deleting stop command", ex);
         }
-        reconnect.set(false);
         try {
             client.logout();
-        } catch (RateLimitException | DiscordException ex) {
+        } catch (DiscordException ex) {
             log.error("Logout failed", ex);
             return;
+        } catch (RateLimitException ex) {
+            rateLimit(ex, this::terminate, cont);
         }
         log.info("\n------------------------------------------------------------------------\n"
                 + "Terminated\n"
