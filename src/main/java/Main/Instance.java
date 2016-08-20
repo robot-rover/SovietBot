@@ -23,17 +23,13 @@ import sx.blah.discord.util.audio.AudioPlayer;
 
 import javax.sound.sampled.AudioInputStream;
 import javax.sound.sampled.UnsupportedAudioFileException;
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
+import java.io.*;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLConnection;
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.*;
-import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Consumer;
 
 import static Main.Parsable.tryInt;
@@ -48,8 +44,8 @@ class Instance {
     private static final String frameVersion = sx.blah.discord.Discord4J.VERSION;
     private static final String helpCommand = "help";
     private static final String author = "robot_rover";
+    private static final String invite = "https://discordapp.com/oauth2/authorize?&client_id=184445488093724672&scope=bot&permissions=19950624";
     private final String token;
-    private final AtomicBoolean reconnect = new AtomicBoolean(true);
     private final AudioInputStream[] sfx;
     private final String[] sfxIndex;
     private final Random rn;
@@ -57,10 +53,8 @@ class Instance {
     private final Map<String, Consumer<CommContext>> commandsTest = new HashMap<>();
     private volatile IDiscordClient client;
     private CommandList commands;
-    private Object syncObject;
 
     Instance(String token) {
-        syncObject = new Object();
         BufferedReader reader;
         try {
             ClassLoader classLoader = this.getClass().getClassLoader();
@@ -87,6 +81,8 @@ class Instance {
         commandsTest.put("connect", this::connect);
         commandsTest.put("music", this::music);
         commandsTest.put("uptime", this::uptime);
+        commandsTest.put("log", this::log);
+        commandsTest.put("invite", this::invite);
         //commandsTest.put("commChar", this::setChar);
         this.quotes = new String[17];
         this.sfxIndex = new String[6];
@@ -165,7 +161,7 @@ class Instance {
             } catch (NullPointerException ex) {
                 return;
             }
-            CommandList.Command command = null;
+            CommandList.Command command;
             try {
                 command = commands.getCommand(cont.getArgs().get(0));
             } catch (NoSuchElementException ex) {
@@ -173,7 +169,7 @@ class Instance {
                 log.debug("Full Stacktrace - ", ex);
                 return;
             }
-            if (command.delete) {
+            if (command.delete && !cont.getMessage().getMessage().getChannel().isPrivate()) {
                 Thread thread = new Thread() {
                     @Override
                     public void run() {
@@ -200,6 +196,32 @@ class Instance {
                 thread.start();
             }
             exec.accept(cont);
+        }
+    }
+
+    private void invite(CommContext cont) {
+        String message = "Invite Me to Your Server:\n " + invite;
+        sendMessage(message, cont.getMessage().getMessage().getChannel());
+    }
+
+    private void log(CommContext cont) {
+        String path;
+        if (cont.getArgs().size() >= 2 && cont.getArgs().get(1).equals("full")) {
+            path = "debug.log";
+        } else {
+            path = "events.log";
+        }
+        File file = new File(path);
+        try {
+            cont.getMessage().getMessage().getChannel().sendFile(file);
+        } catch (IOException e) {
+            log.warn("Log file not found");
+        } catch (MissingPermissionsException ex) {
+            missingPermissions(cont.getMessage().getMessage().getChannel(), "log", ex);
+        } catch (RateLimitException ex) {
+            rateLimit(ex, this::log, cont);
+        } catch (DiscordException ex) {
+            error(cont.getMessage().getMessage().getGuild(), "log", ex);
         }
     }
 
@@ -553,7 +575,6 @@ class Instance {
 
     private void help(CommContext cont) {
         if (cont.getArgs().size() >= 2) {
-            int command = -1;
             CommandList.Command comm = null;
             for (CommandList.Command s : commands.commands) {
                 if (cont.getArgs().get(1).startsWith(s.commandName)) {
@@ -579,10 +600,12 @@ class Instance {
             sendMessage("Communism marches on!", cont.getMessage().getMessage().getChannel());
             return;
         }
-        try {
-            cont.getMessage().getMessage().delete();
-        } catch (MissingPermissionsException | RateLimitException | DiscordException ex) {
-            log.debug("Error while deleting stop command", ex);
+        if (cont.getMessage().getMessage().getChannel().isPrivate()) {
+            try {
+                cont.getMessage().getMessage().delete();
+            } catch (MissingPermissionsException | RateLimitException | DiscordException ex) {
+                log.debug("Error while deleting stop command", ex);
+            }
         }
         try {
             client.logout();
@@ -600,7 +623,7 @@ class Instance {
 
     private void sendMessage(String message, IChannel channel) {
         try {
-            new MessageBuilder(this.client).appendContent(message).withChannel(channel).build();
+            channel.sendMessage(message);
         } catch (DiscordException ex) {
             error(channel.getGuild(), "sendMessage(event)", ex);
         } catch (RateLimitException ex2) {

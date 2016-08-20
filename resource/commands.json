@@ -85,6 +85,16 @@
       "commandName": "uptime",
       "helpText": "Shows you how long the bot has been running",
       "delete": true
+    },
+    {
+      "commandName": "log",
+      "helpText": "Uploads Logs.",
+      "delete": "true"
+    },
+    {
+      "commandName": "invite",
+      "helpText": "Sends you an Invite for the bot.",
+      "delete": "true"
     }
   ]
 }
