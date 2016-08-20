@@ -12,12 +12,10 @@ import sx.blah.discord.Discord4J;
 import sx.blah.discord.api.ClientBuilder;
 import sx.blah.discord.api.IDiscordClient;
 import sx.blah.discord.api.events.EventSubscriber;
+import sx.blah.discord.handle.audio.IAudioProvider;
 import sx.blah.discord.handle.impl.events.MessageReceivedEvent;
 import sx.blah.discord.handle.impl.events.ReadyEvent;
-import sx.blah.discord.handle.obj.IChannel;
-import sx.blah.discord.handle.obj.IGuild;
-import sx.blah.discord.handle.obj.IUser;
-import sx.blah.discord.handle.obj.IVoiceChannel;
+import sx.blah.discord.handle.obj.*;
 import sx.blah.discord.util.*;
 import sx.blah.discord.util.audio.AudioPlayer;
 
@@ -88,7 +86,7 @@ class Instance {
         commandsTest.put("log", this::log);
         commandsTest.put("invite", this::invite);
         //commandsTest.put("commChar", this::setChar);
-        this.quotes = new String[17];
+        this.quotes = new String[16];
         this.sfxIndex = new String[6];
         rn = new Random();
         this.token = token;
@@ -122,11 +120,10 @@ class Instance {
         quotes[9] = "http://i2.kym-cdn.com/photos/images/original/000/000/948/in-soviet-russia.png";
         quotes[10] = "In Soviet Russia, a van steals you";
         quotes[11] = "In Soviet Russia, jokes crack you.";
-        quotes[12] = "https://qph.ec.quoracdn.net/Main-qimg-99907edafce7fb6acb5dc766368bf9af-c?convert_to_webp=true";
+        quotes[12] = "http://ci.memecdn.com/689/2331689.jpg";
         quotes[13] = "http://67.media.tumblr.com/tumblr_meknuzRXuD1rxustho1_500.jpg";
         quotes[14] = "https://cdn.meme.am/instances/10678438.jpg";
         quotes[15] = "http://files.sharenator.com/in_soviet_russia_holy_crap_not_another_internet_meme_demotivational_poster_1247942328-s640x458-173710.jpg";
-        quotes[16] = "http://ci.memecdn.com/689/2331689.jpg";
     }
 
     void login() throws DiscordException {
@@ -174,33 +171,37 @@ class Instance {
                 return;
             }
             if (command.delete && !cont.getMessage().getMessage().getChannel().isPrivate()) {
-                Thread thread = new Thread() {
-                    @Override
-                    public void run() {
-                        try {
-                            Thread.sleep(5000);
-                        } catch (InterruptedException ex) {
-                            threadInterrupted(ex, "onMessage");
-                        }
-                        try {
-                            e.getMessage().delete();
-                        } catch (MissingPermissionsException ex) {
-                            missingPermissions(e.getMessage().getChannel(), "onMessage", ex);
-                        } catch (RateLimitException ex) {
-                            try {
-                                Thread.sleep(ex.getRetryDelay());
-                            } catch (InterruptedException ex2) {
-                                threadInterrupted(ex2, "onMessage");
-                            }
-                        } catch (DiscordException ex) {
-                            error(e.getMessage().getGuild(), "onMessage", ex);
-                        }
-                    }
-                };
-                thread.start();
+                delayDelete(cont.getMessage().getMessage(), 5000);
             }
             exec.accept(cont);
         }
+    }
+
+    private void delayDelete(IMessage message, int delay) {
+        Thread thread = new Thread() {
+            @Override
+            public void run() {
+                try {
+                    Thread.sleep(delay);
+                } catch (InterruptedException ex) {
+                    threadInterrupted(ex, "onMessage");
+                }
+                try {
+                    message.delete();
+                } catch (MissingPermissionsException ex) {
+                    missingPermissions(message.getChannel(), "onMessage", ex);
+                } catch (RateLimitException ex) {
+                    try {
+                        Thread.sleep(ex.getRetryDelay());
+                    } catch (InterruptedException ex2) {
+                        threadInterrupted(ex2, "onMessage");
+                    }
+                } catch (DiscordException ex) {
+                    error(message.getGuild(), "onMessage", ex);
+                }
+            }
+        };
+        thread.start();
     }
 
     private void invite(CommContext cont) {
@@ -288,40 +289,82 @@ class Instance {
     }
 
     private void music(CommContext cont) {
-        log.info("starting music");
         AudioPlayer aPlayer = getAudioPlayerForGuild(cont.getMessage().getMessage().getGuild());
-        MusicPlayer player = new MusicPlayer();
-        player.setVolume(1);
-        aPlayer.queue(player);
         if (cont.getArgs().size() < 2) {
             missingArgs(cont.getMessage(), "music", cont.getArgs());
-            return;
-        }
-        String url = cont.getArgs().get(1);
-        log.info("making playlist");
-        Playlist playlist;
-        try {
-            playlist = Playlist.getPlaylist(url);
-        } catch (NullPointerException ex) {
-            log.warn("The YT-DL playlist process resulted in a null or zero-length INFO!");
-            return;
-        }
-        log.info("got playlist");
-        List<AudioSource> sources = new LinkedList<>(playlist.getSources());
-        log.info("playlist into array");
-        log.info("more than one source");
-        for (AudioSource source : sources) {
-            AudioInfo info = source.getInfo();
-            List<AudioSource> queue = player.getAudioQueue();
-            if (info.getError() == null) {
-                queue.add(source);
-                if (player.isStopped()) {
-                    player.play();
-                }
+        } else if (cont.getArgs().get(1).equals("skip")) {
+            IAudioProvider provider = aPlayer.getCurrentTrack().getProvider();
+            if (provider instanceof MusicPlayer) {
+                ((MusicPlayer) provider).skipToNext();
             } else {
-                log.warn("Error in music source, skipping...");
-                sources.remove(source);
+                aPlayer.skip();
             }
+        } else if (cont.getArgs().get(1).equals("queue")) {
+            List<AudioPlayer.Track> playlist = aPlayer.getPlaylist();
+            ArrayList<String> messageLines = new ArrayList<>();
+            messageLines.add("Music Queue:");
+            int i = 1;
+            for (AudioPlayer.Track track : playlist) {
+                if (track.getProvider() instanceof MusicPlayer) {
+                    MusicPlayer player = (MusicPlayer) track.getProvider();
+                    AudioSource currentSource = player.getCurrentAudioSource();
+                    messageLines.add("```Now Playing - [" + currentSource.getInfo().getDuration().getTimestamp() + "] - " + currentSource.getInfo().getTitle() + " - Now Playing");
+                    for (AudioSource source : player.getAudioQueue()) {
+                        messageLines.add(String.format("%1$" + 12 + "s.", i) + " [" + source.getInfo().getDuration().getTimestamp() + "] - " + source.getInfo().getTitle());
+                        i++;
+                    }
+                }
+            }
+            int characters = 0;
+            int line = 0;
+            boolean go = true;
+            String message = "";
+            for (String s : messageLines) {
+                characters += s.length();
+                if (characters >= 1970 || line > 11) {
+                    message = message + "            + " + (messageLines.size() - line) + " more...";
+                    break;
+                } else {
+                    message = message + s + "\n";
+                }
+                line++;
+
+            }
+            message = message + "```";
+            IMessage delete = sendMessage(message, cont.getMessage().getMessage().getChannel());
+            delayDelete(delete, 15000);
+        } else {
+            log.info("starting music");
+            MusicPlayer player = new MusicPlayer();
+            player.setVolume(1);
+            aPlayer.queue(player);
+            String url = cont.getArgs().get(1);
+            log.info("making playlist");
+            Playlist playlist;
+            try {
+                playlist = Playlist.getPlaylist(url);
+            } catch (NullPointerException ex) {
+                log.warn("The YT-DL playlist process resulted in a null or zero-length INFO!");
+                return;
+            }
+            log.info("got playlist");
+            List<AudioSource> sources = new LinkedList<>(playlist.getSources());
+            log.info("playlist into array");
+            log.info("more than one source");
+            for (AudioSource source : sources) {
+                AudioInfo info = source.getInfo();
+                List<AudioSource> queue = player.getAudioQueue();
+                if (info.getError() == null) {
+                    queue.add(source);
+                    if (player.isStopped()) {
+                        player.play();
+                    }
+                } else {
+                    log.warn("Error in music source, skipping...");
+                    sources.remove(source);
+                }
+            }
+            log.info("done processing sources");
         }
     }
 
@@ -625,9 +668,10 @@ class Instance {
         System.exit(0);
     }
 
-    private void sendMessage(String message, IChannel channel) {
+    private IMessage sendMessage(String message, IChannel channel) {
+        IMessage messageObject = null;
         try {
-            channel.sendMessage(message);
+            messageObject = channel.sendMessage(message);
         } catch (DiscordException ex) {
             error(channel.getGuild(), "sendMessage(event)", ex);
         } catch (RateLimitException ex2) {
@@ -635,6 +679,7 @@ class Instance {
         } catch (MissingPermissionsException ex) {
             missingPermissions(channel, "sendMessage(event)", ex);
         }
+        return messageObject;
     }
 
     private void threadInterrupted(InterruptedException ex, String methodName) {
