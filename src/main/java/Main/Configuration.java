@@ -2,7 +2,9 @@ package Main;
 
 import java.util.NoSuchElementException;
 
-class CommandList {
+class Configuration {
+    String botName;
+    String botAvatar;
     String commChar;
     Command[] commands;
 
@@ -17,23 +19,6 @@ class CommandList {
             throw new NoSuchElementException("No command named " + name + " found.");
         }
         return command;
-    }
-
-    class Command {
-        String commandName;
-        String helpText;
-        boolean delete;
-
-
-
-        public Command() {
-        }
-
-        @Override
-        public String toString() {
-            return commandName + " - " + helpText;
-        }
-
     }
 
     @Override

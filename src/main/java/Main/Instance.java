@@ -52,19 +52,23 @@ class Instance {
     private final String[] quotes;
     private final Map<String, Consumer<CommContext>> commandsTest = new HashMap<>();
     private volatile IDiscordClient client;
-    private CommandList commands;
+    private Configuration config;
+    private File configFile;
+    private ClassLoader classLoader;
 
     Instance(String token) {
+        classLoader = this.getClass().getClassLoader();
+        //if(!new File("commands.json").exists()) {
         BufferedReader reader;
         try {
-            ClassLoader classLoader = this.getClass().getClassLoader();
             reader = new BufferedReader(new InputStreamReader(classLoader.getResourceAsStream("commands.json")));
             Gson gson = new GsonBuilder().create();
-            commands = gson.fromJson(reader, CommandList.class);
+            config = gson.fromJson(reader, Configuration.class);
         } catch (NullPointerException ex) {
-            log.error("commands.json not found. exiting...", ex);
+            log.error("default config.json not found. exiting...", ex);
             System.exit(1);
         }
+        //}
         commandsTest.put("quote", this::defaultMessage);
         commandsTest.put("stop", this::terminate);
         commandsTest.put("help", this::help);
@@ -88,7 +92,6 @@ class Instance {
         this.sfxIndex = new String[6];
         rn = new Random();
         this.token = token;
-        ClassLoader classLoader = this.getClass().getClassLoader();
         this.sfx = new AudioInputStream[6];
         try {
             sfx[0] = getAudioInputStream(classLoader.getResource("ohs/womboCombo.mp3"));
@@ -135,10 +138,11 @@ class Instance {
     @EventSubscriber
     public void onReady(ReadyEvent e) throws DiscordException, RateLimitException {
         log.info("*** Discord bot armed ***");
-        if (!client.getOurUser().getName().equals("SovietBot")) {
-            client.changeUsername("SovietBot");
+        if (!client.getOurUser().getName().equals(config.botName)) {
+            client.changeUsername(config.botName);
         }
-        client.changeAvatar(Image.forUrl("jpeg", "https://drive.google.com/uc?export=download&id=0B1pMiSpsgGecSzlPUmhSamlvN2M"));
+        String[] filename = config.botAvatar.split("[.]");
+        client.changeAvatar(Image.forStream(filename[filename.length - 1], classLoader.getResourceAsStream(config.botAvatar)));
         log.info("\n------------------------------------------------------------------------\n"
                 + "*** Discord bot Ready ***\n"
                 + "------------------------------------------------------------------------");
@@ -150,8 +154,8 @@ class Instance {
             return;
         }
         String message = e.getMessage().getContent();
-        if (message.startsWith(commands.commChar)) {
-            CommContext cont = new CommContext(e, commands.commChar);
+        if (message.startsWith(config.commChar)) {
+            CommContext cont = new CommContext(e, config.commChar);
             Consumer exec;
             try {
                 exec = commandsTest.get(cont.getArgs().get(0));
@@ -161,11 +165,11 @@ class Instance {
             } catch (NullPointerException ex) {
                 return;
             }
-            CommandList.Command command;
+            Command command;
             try {
-                command = commands.getCommand(cont.getArgs().get(0));
+                command = config.getCommand(cont.getArgs().get(0));
             } catch (NoSuchElementException ex) {
-                log.warn("The CommandList does not match the list of Executable Methods");
+                log.warn("The Configuration does not match the list of Executable Methods");
                 log.debug("Full Stacktrace - ", ex);
                 return;
             }
@@ -504,7 +508,7 @@ class Instance {
     }
 
     private void info(CommContext cont) {
-        String message = "```" + botName + " version " + version + "\n" + "Created with " + frameName + " version " + frameVersion + "\n" + "For help type: " + commands.commChar + helpCommand + "\n" + "This bot was created by " + author + "```";
+        String message = "```" + botName + " version " + version + "\n" + "Created with " + frameName + " version " + frameVersion + "\n" + "For help type: " + config.commChar + helpCommand + "\n" + "This bot was created by " + author + "```";
         sendMessage(message, cont.getMessage().getMessage().getChannel());
     }
 
@@ -575,8 +579,8 @@ class Instance {
 
     private void help(CommContext cont) {
         if (cont.getArgs().size() >= 2) {
-            CommandList.Command comm = null;
-            for (CommandList.Command s : commands.commands) {
+            Command comm = null;
+            for (Command s : config.commands) {
                 if (cont.getArgs().get(1).startsWith(s.commandName)) {
                     comm = s;
                 }
@@ -585,9 +589,9 @@ class Instance {
                 sendMessage("Command does not Exist", cont.getMessage().getMessage().getChannel());
                 return;
             }
-            sendMessage("`" + commands.commChar + comm.toString() + "`", cont.getMessage().getMessage().getChannel());
+            sendMessage("`" + config.commChar + comm.toString() + "`", cont.getMessage().getMessage().getChannel());
         } else {
-            sendMessage("```\n" + commands.toString() + "\n```", cont.getMessage().getMessage().getChannel());
+            sendMessage("```\n" + config.toString() + "\n```", cont.getMessage().getMessage().getChannel());
         }
     }
 

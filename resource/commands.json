@@ -1,4 +1,6 @@
 {
+  "botName": "SovietBot",
+  "botAvatar": "person.jpeg",
   "commChar": ">",
   "commands": [
     {
