@@ -13,6 +13,7 @@ import sx.blah.discord.api.ClientBuilder;
 import sx.blah.discord.api.IDiscordClient;
 import sx.blah.discord.api.events.EventSubscriber;
 import sx.blah.discord.handle.audio.IAudioProvider;
+import sx.blah.discord.handle.impl.events.DiscordDisconnectedEvent;
 import sx.blah.discord.handle.impl.events.MessageReceivedEvent;
 import sx.blah.discord.handle.impl.events.ReadyEvent;
 import sx.blah.discord.handle.obj.*;
@@ -25,6 +26,9 @@ import java.io.*;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLConnection;
+import java.nio.file.CopyOption;
+import java.nio.file.Files;
+import java.nio.file.StandardCopyOption;
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.*;
@@ -48,7 +52,7 @@ class Instance {
     private final String[] sfxIndex;
     private final Random rn;
     private final String[] quotes;
-    private final Map<String, Consumer<CommContext>> commandsTest = new HashMap<>();
+    private final Map<String, Consumer<CommContext>> commandsExec = new HashMap<>();
     private volatile IDiscordClient client;
     private Configuration config;
     private File configFile;
@@ -56,36 +60,52 @@ class Instance {
 
     Instance(String token) {
         classLoader = this.getClass().getClassLoader();
-        //if(!new File("commands.json").exists()) {
-        BufferedReader reader;
+        configFile = new File("commands.json");
+        if (!configFile.exists() || configFile.isDirectory()) {
+            BufferedReader reader;
+            try {
+                CopyOption[] options = new CopyOption[]{
+                        StandardCopyOption.REPLACE_EXISTING
+                };
+                Files.copy(classLoader.getResourceAsStream("defaultCommands.json"), configFile.toPath(), options);
+            } catch (NullPointerException ex) {
+                log.error("default config.json not found. exiting...", ex);
+                System.exit(1);
+            } catch (IOException ex) {
+                log.error("failed to initialize new config file. exiting...", ex);
+                System.exit(1);
+            }
+        }
+        FileReader fileReader = null;
         try {
-            reader = new BufferedReader(new InputStreamReader(classLoader.getResourceAsStream("commands.json")));
-            Gson gson = new GsonBuilder().create();
-            config = gson.fromJson(reader, Configuration.class);
-        } catch (NullPointerException ex) {
-            log.error("default config.json not found. exiting...", ex);
+            fileReader = new FileReader(configFile);
+        } catch (FileNotFoundException ex) {
+            log.error("Config file not found and was not rebuild. exiting", ex);
             System.exit(1);
         }
+        Gson gson = new GsonBuilder().create();
+        config = gson.fromJson(fileReader, Configuration.class);
+
         //}
-        commandsTest.put("quote", this::defaultMessage);
-        commandsTest.put("stop", this::terminate);
-        commandsTest.put("help", this::help);
-        commandsTest.put("rekt", this::rekt);
-        commandsTest.put("unafk", this::unafk);
-        commandsTest.put("info", this::info);
-        commandsTest.put("bring", this::bring);
-        commandsTest.put("purge", this::purge);
-        commandsTest.put("disconnect", this::disconnect);
-        commandsTest.put("cat", this::cat);
-        commandsTest.put("roll", this::roll);
-        commandsTest.put("coin", this::coin);
-        commandsTest.put("weather", this::weather);
-        commandsTest.put("connect", this::connect);
-        commandsTest.put("music", this::music);
-        commandsTest.put("uptime", this::uptime);
-        commandsTest.put("log", this::log);
-        commandsTest.put("invite", this::invite);
-        //commandsTest.put("commChar", this::setChar);
+        commandsExec.put("quote", this::defaultMessage);
+        commandsExec.put("stop", this::terminate);
+        commandsExec.put("help", this::help);
+        commandsExec.put("rekt", this::rekt);
+        commandsExec.put("unafk", this::unafk);
+        commandsExec.put("info", this::info);
+        commandsExec.put("bring", this::bring);
+        commandsExec.put("purge", this::purge);
+        commandsExec.put("disconnect", this::disconnect);
+        commandsExec.put("cat", this::cat);
+        commandsExec.put("roll", this::roll);
+        commandsExec.put("coin", this::coin);
+        commandsExec.put("weather", this::weather);
+        commandsExec.put("connect", this::connect);
+        commandsExec.put("music", this::music);
+        commandsExec.put("uptime", this::uptime);
+        commandsExec.put("log", this::log);
+        commandsExec.put("invite", this::invite);
+        //commandsExec.put("commChar", this::setChar);
         this.quotes = new String[16];
         this.sfxIndex = new String[6];
         rn = new Random();
@@ -134,14 +154,14 @@ class Instance {
 
     @EventSubscriber
     public void onReady(ReadyEvent e) throws DiscordException, RateLimitException {
-        log.info("*** Discord bot armed ***");
+        log.info("*** " + botName + " armed ***");
         if (!client.getOurUser().getName().equals(config.botName)) {
             client.changeUsername(config.botName);
         }
         String[] filename = config.botAvatar.split("[.]");
         client.changeAvatar(Image.forStream(filename[filename.length - 1], classLoader.getResourceAsStream(config.botAvatar)));
         log.info("\n------------------------------------------------------------------------\n"
-                + "*** Discord bot Ready ***\n"
+                + "*** " + botName + " v" + version + " bot Ready ***\n"
                 + "------------------------------------------------------------------------");
     }
 
@@ -155,7 +175,7 @@ class Instance {
             CommContext cont = new CommContext(e, config.commChar);
             Consumer exec;
             try {
-                exec = commandsTest.get(cont.getArgs().get(0));
+                exec = commandsExec.get(cont.getArgs().get(0));
                 if (exec == null) {
                     throw new NullPointerException();
                 }
@@ -189,7 +209,8 @@ class Instance {
                 try {
                     message.delete();
                 } catch (MissingPermissionsException ex) {
-                    missingPermissions(message.getChannel(), "onMessage", ex);
+                    //fail silently
+                    log.debug("Did not delete message, missing permissions");
                 } catch (RateLimitException ex) {
                     try {
                         Thread.sleep(ex.getRetryDelay());
@@ -302,7 +323,6 @@ class Instance {
         } else if (cont.getArgs().get(1).equals("queue")) {
             List<AudioPlayer.Track> playlist = aPlayer.getPlaylist();
             ArrayList<String> messageLines = new ArrayList<>();
-            messageLines.add("Music Queue:");
             int i = 1;
             for (AudioPlayer.Track track : playlist) {
                 if (track.getProvider() instanceof MusicPlayer) {
@@ -329,6 +349,9 @@ class Instance {
                 }
                 line++;
 
+            }
+            if (message.equals("")) {
+                message = "```Queue is Empty";
             }
             message = message + "```";
             IMessage delete = sendMessage(message, cont.getMessage().getMessage().getChannel());
@@ -643,15 +666,17 @@ class Instance {
     }
 
     private void terminate(CommContext cont) {
-        if (!cont.getMessage().getMessage().getAuthor().getID().equals("141981833951838208")) {
-            sendMessage("Communism marches on!", cont.getMessage().getMessage().getChannel());
-            return;
-        }
-        if (cont.getMessage().getMessage().getChannel().isPrivate()) {
-            try {
-                cont.getMessage().getMessage().delete();
-            } catch (MissingPermissionsException | RateLimitException | DiscordException ex) {
-                log.debug("Error while deleting stop command", ex);
+        if (cont != null) {
+            if (!cont.getMessage().getMessage().getAuthor().getID().equals("141981833951838208")) {
+                sendMessage("Communism marches on!", cont.getMessage().getMessage().getChannel());
+                return;
+            }
+            if (cont.getMessage().getMessage().getChannel().isPrivate()) {
+                try {
+                    cont.getMessage().getMessage().delete();
+                } catch (MissingPermissionsException | RateLimitException | DiscordException ex) {
+                    log.debug("Error while deleting stop command", ex);
+                }
             }
         }
         try {
@@ -662,10 +687,17 @@ class Instance {
         } catch (RateLimitException ex) {
             rateLimit(ex, this::terminate, cont);
         }
-        log.info("\n------------------------------------------------------------------------\n"
-                + "Terminated\n"
-                + "------------------------------------------------------------------------");
-        System.exit(0);
+
+    }
+
+    @EventSubscriber
+    public void onDisconnect(DiscordDisconnectedEvent e) {
+        if (e.getReason().equals(DiscordDisconnectedEvent.Reason.LOGGED_OUT)) {
+            log.info("\n------------------------------------------------------------------------\n"
+                    + "Terminated\n"
+                    + "------------------------------------------------------------------------");
+            System.exit(0);
+        }
     }
 
     private IMessage sendMessage(String message, IChannel channel) {
