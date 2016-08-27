@@ -24,18 +24,23 @@ import sx.blah.discord.util.DiscordException;
 public class Main {
 
     private static final Logger log = LoggerFactory.getLogger(Main.class);
+    private static Instance bot;
 
     public static void main(String[] args) {
         log.info("\n------------------------------------------------------------------------\n"
                 + "### Initializing sovietBot ### "
                 + "\n------------------------------------------------------------------------");
         System.setProperty("webdriver.chrome.driver", "resources/chromedriver.exe");
-        Instance bot;
-        bot = new Instance(args[0]);
+        bot = new Instance();
         try {
             bot.login();
         } catch (DiscordException e) {
             log.warn("Bot could not start", e);
         }
     }
+
+    public static Instance getBot() {
+        return bot;
+    }
+
 }

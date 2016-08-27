@@ -6,6 +6,7 @@ class Configuration {
     String botName;
     String botAvatar;
     String commChar;
+    String token;
     Command[] commands;
 
     Command getCommand(String name) throws NoSuchElementException {

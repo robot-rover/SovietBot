@@ -1,5 +1,6 @@
 package Main;
 
+import Main.githubwebhooks.GithubWebhooks;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import net.dv8tion.d4j.player.MusicPlayer;
@@ -13,7 +14,6 @@ import sx.blah.discord.api.ClientBuilder;
 import sx.blah.discord.api.IDiscordClient;
 import sx.blah.discord.api.events.EventSubscriber;
 import sx.blah.discord.handle.audio.IAudioProvider;
-import sx.blah.discord.handle.impl.events.DiscordDisconnectedEvent;
 import sx.blah.discord.handle.impl.events.MessageReceivedEvent;
 import sx.blah.discord.handle.impl.events.ReadyEvent;
 import sx.blah.discord.handle.obj.*;
@@ -38,30 +38,35 @@ import static Main.Parsable.tryInt;
 import static javax.sound.sampled.AudioSystem.getAudioInputStream;
 import static sx.blah.discord.util.audio.AudioPlayer.getAudioPlayerForGuild;
 
-class Instance {
-    private static final Logger log = LoggerFactory.getLogger(Instance.class);
-    private static final String version = "1.1.6";
+public class Instance {
+    public static final Logger log = LoggerFactory.getLogger(Instance.class);
+    private static final String version = "1.1.7";
     private static final String botName = "SovietBot";
     private static final String frameName = sx.blah.discord.Discord4J.NAME;
     private static final String frameVersion = sx.blah.discord.Discord4J.VERSION;
     private static final String helpCommand = "help";
     private static final String author = "robot_rover";
     private static final String invite = "https://discordapp.com/oauth2/authorize?&client_id=184445488093724672&scope=bot&permissions=19950624";
-    private final String token;
     private final AudioInputStream[] sfx;
     private final String[] sfxIndex;
     private final Random rn;
     private final String[] quotes;
     private final Map<String, Consumer<CommContext>> commandsExec = new HashMap<>();
-    private volatile IDiscordClient client;
+    public volatile IDiscordClient client;
     private Configuration config;
     private File configFile;
     private ClassLoader classLoader;
+    private Boolean restart;
+    private GithubWebhooks webHooks;
 
-    Instance(String token) {
+    Instance() {
+        webHooks = null;
+        Discord4J.disableChannelWarnings();
         classLoader = this.getClass().getClassLoader();
         configFile = new File("commands.json");
-        if (!configFile.exists() || configFile.isDirectory()) {
+        log.info("Looking for config at: " + configFile.getAbsolutePath());
+        if (!configFile.exists()) {
+            log.warn("config not found, generating new one...");
             BufferedReader reader;
             try {
                 CopyOption[] options = new CopyOption[]{
@@ -75,6 +80,8 @@ class Instance {
                 log.error("failed to initialize new config file. exiting...", ex);
                 System.exit(1);
             }
+        } else {
+            log.info("config found");
         }
         FileReader fileReader = null;
         try {
@@ -85,8 +92,7 @@ class Instance {
         }
         Gson gson = new GsonBuilder().create();
         config = gson.fromJson(fileReader, Configuration.class);
-
-        //}
+        restart = false;
         commandsExec.put("quote", this::defaultMessage);
         commandsExec.put("stop", this::terminate);
         commandsExec.put("help", this::help);
@@ -105,11 +111,11 @@ class Instance {
         commandsExec.put("uptime", this::uptime);
         commandsExec.put("log", this::log);
         commandsExec.put("invite", this::invite);
+        commandsExec.put("restart", this::restart);
         //commandsExec.put("commChar", this::setChar);
         this.quotes = new String[16];
         this.sfxIndex = new String[6];
         rn = new Random();
-        this.token = token;
         this.sfx = new AudioInputStream[6];
         try {
             sfx[0] = getAudioInputStream(classLoader.getResource("ohs/womboCombo.mp3"));
@@ -147,7 +153,11 @@ class Instance {
     }
 
     void login() throws DiscordException {
-        client = new ClientBuilder().withToken(token).build();
+        if (config.token.equals("")) {
+            log.error("you must set a token in the config!");
+            System.exit(1);
+        }
+        client = new ClientBuilder().withToken(config.token).build();
         client.getDispatcher().registerListener(this);
         client.login();
     }
@@ -155,6 +165,7 @@ class Instance {
     @EventSubscriber
     public void onReady(ReadyEvent e) throws DiscordException, RateLimitException {
         log.info("*** " + botName + " armed ***");
+        webHooks = new GithubWebhooks(1000, client, "welp2.0");
         if (!client.getOurUser().getName().equals(config.botName)) {
             client.changeUsername(config.botName);
         }
@@ -337,7 +348,6 @@ class Instance {
             }
             int characters = 0;
             int line = 0;
-            boolean go = true;
             String message = "";
             for (String s : messageLines) {
                 characters += s.length();
@@ -578,6 +588,16 @@ class Instance {
         sendMessage(message, cont.getMessage().getMessage().getChannel());
     }
 
+    private void restart(CommContext cont) {
+        if (!cont.getMessage().getMessage().getAuthor().getID().equals("141981833951838208")) {
+            sendMessage("Communism marches on!", cont.getMessage().getMessage().getChannel());
+            return;
+        }
+        restart = true;
+        sendMessage("Set to Restart", cont.getMessage().getMessage().getChannel());
+        terminate(cont);
+    }
+
     private void unafk(CommContext cont) {
         String message = "";
         boolean found = false;
@@ -671,7 +691,7 @@ class Instance {
                 sendMessage("Communism marches on!", cont.getMessage().getMessage().getChannel());
                 return;
             }
-            if (cont.getMessage().getMessage().getChannel().isPrivate()) {
+            if (!cont.getMessage().getMessage().getChannel().isPrivate()) {
                 try {
                     cont.getMessage().getMessage().delete();
                 } catch (MissingPermissionsException | RateLimitException | DiscordException ex) {
@@ -687,20 +707,21 @@ class Instance {
         } catch (RateLimitException ex) {
             rateLimit(ex, this::terminate, cont);
         }
-
-    }
-
-    @EventSubscriber
-    public void onDisconnect(DiscordDisconnectedEvent e) {
-        if (e.getReason().equals(DiscordDisconnectedEvent.Reason.LOGGED_OUT)) {
-            log.info("\n------------------------------------------------------------------------\n"
-                    + "Terminated\n"
-                    + "------------------------------------------------------------------------");
-            System.exit(0);
+        log.info("\n------------------------------------------------------------------------\n"
+                + "Terminated\n"
+                + "------------------------------------------------------------------------");
+        if (restart) {
+            try {
+                new ProcessBuilder("java", "-jar", "sovietBot-master.jar").inheritIO().start();
+            } catch (IOException ex) {
+                log.error("restart failed :-(", ex);
+            }
         }
+        System.exit(0);
+
     }
 
-    private IMessage sendMessage(String message, IChannel channel) {
+    public IMessage sendMessage(String message, IChannel channel) {
         IMessage messageObject = null;
         try {
             messageObject = channel.sendMessage(message);

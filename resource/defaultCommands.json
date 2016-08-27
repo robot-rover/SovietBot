@@ -2,6 +2,7 @@
   "botName": "SovietBot",
   "botAvatar": "avatars/person.jpeg",
   "commChar": ">",
+  "token": "",
   "commands": [
     {
       "commandName": "quote",
@@ -97,6 +98,11 @@
       "commandName": "invite",
       "helpText": "Sends you an Invite for the bot.",
       "delete": "true"
+    },
+    {
+      "commandName": "restart",
+      "helpText": "Restarts the bot",
+      "delete": "false"
     }
   ]
 }

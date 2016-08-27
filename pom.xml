@@ -5,7 +5,7 @@
 
     <groupId>com.rrIndustries</groupId>
     <artifactId>sovietBot</artifactId>
-    <version>1.1.6</version>
+    <version>master</version>
     <packaging>jar</packaging>
     <repositories>
         <repository>
@@ -20,14 +20,42 @@
 
     <dependencies>
         <dependency>
+            <groupId>com.sparkjava</groupId>
+            <artifactId>spark-core</artifactId>
+            <version>2.5</version>
+            <exclusions>
+                <exclusion>
+                    <artifactId>websocket-common</artifactId>
+                    <groupId>org.eclipse.jetty.websocket</groupId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+        <dependency>
             <groupId>net.dv8tion</groupId>
             <artifactId>d4j-player</artifactId>
-            <version>0.2.2_16</version>
+            <version>0.2.2_17</version>
+            <exclusions>
+                <exclusion>
+                    <artifactId>Discord4j</artifactId>
+                    <groupId>com.github.austinv11</groupId>
+                </exclusion>
+            </exclusions>
         </dependency>
         <dependency>
             <groupId>com.github.austinv11</groupId>
             <artifactId>Discord4J</artifactId>
             <version>dev-SNAPSHOT</version>
+        </dependency>
+        <!--<dependency>
+            <groupId>sx.blah</groupId>
+            <artifactId>Discord4J</artifactId>
+            <version>1.0.0</version>
+            <scope>system</scope>
+        </dependency>-->
+        <dependency>
+            <groupId>com.darichey.discord</groupId>
+            <artifactId>Commands4J</artifactId>
+            <scope>System</scope>
         </dependency>
         <!--  Gson: Java to Json conversion -->
         <dependency>
