@@ -31,4 +31,20 @@ class Configuration {
         printOut = "Command Character - \"" + commChar + "\"" + printOut;
         return printOut;
     }
+
+    class Command {
+        String commandName;
+        String helpText;
+        boolean delete;
+
+
+        public Command() {
+        }
+
+        @Override
+        public String toString() {
+            return commandName + " - " + helpText;
+        }
+
+    }
 }

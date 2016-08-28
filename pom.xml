@@ -3,7 +3,7 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
-    <groupId>com.rrIndustries</groupId>
+    <groupId>rr.Industries</groupId>
     <artifactId>sovietBot</artifactId>
     <version>master</version>
     <packaging>jar</packaging>
@@ -19,6 +19,7 @@
     </repositories>
 
     <dependencies>
+        <!-- Spark: Websocket Server -->
         <dependency>
             <groupId>com.sparkjava</groupId>
             <artifactId>spark-core</artifactId>
@@ -30,6 +31,7 @@
                 </exclusion>
             </exclusions>
         </dependency>
+        <!-- JDA Player: Playing Audio in Voice Channels -->
         <dependency>
             <groupId>net.dv8tion</groupId>
             <artifactId>d4j-player</artifactId>
@@ -41,22 +43,26 @@
                 </exclusion>
             </exclusions>
         </dependency>
+        <!-- Discord4J: Base API for discord -->
         <dependency>
             <groupId>com.github.austinv11</groupId>
             <artifactId>Discord4J</artifactId>
             <version>dev-SNAPSHOT</version>
         </dependency>
-        <!--<dependency>
-            <groupId>sx.blah</groupId>
-            <artifactId>Discord4J</artifactId>
-            <version>1.0.0</version>
-            <scope>system</scope>
-        </dependency>-->
+        <!-- Discord4J local testing branch -->
+        <!-- <dependency>
+             <groupId>sx.blah</groupId>
+             <artifactId>Discord4J</artifactId>
+             <version>2.5.4</version>
+             <scope>system</scope>
+         </dependency>-->
+        <!-- Apache Commons-io: Used for file download -->
         <dependency>
-            <groupId>com.darichey.discord</groupId>
-            <artifactId>Commands4J</artifactId>
-            <scope>System</scope>
+            <groupId>commons-io</groupId>
+            <artifactId>commons-io</artifactId>
+            <version>2.4</version>
         </dependency>
+
         <!--  Gson: Java to Json conversion -->
         <dependency>
             <groupId>com.google.code.gson</groupId>
@@ -64,7 +70,7 @@
             <version>2.7</version>
             <scope>compile</scope>
         </dependency>
-        <!-- Allows you to log events from Discord4J -->
+        <!-- SL4J Binding - Logback Classic -->
         <dependency>
             <groupId>ch.qos.logback</groupId>
             <artifactId>logback-classic</artifactId>

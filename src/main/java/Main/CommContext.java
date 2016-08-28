@@ -62,4 +62,20 @@ class CommContext {
             return e.getMessage().getChannel();
         }
     }
+
+    class Command {
+        String commandName;
+        String helpText;
+        boolean delete;
+
+
+        public Command() {
+        }
+
+        @Override
+        public String toString() {
+            return commandName + " - " + helpText;
+        }
+
+    }
 }

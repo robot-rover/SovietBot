@@ -30,7 +30,6 @@ public class Main {
         log.info("\n------------------------------------------------------------------------\n"
                 + "### Initializing sovietBot ### "
                 + "\n------------------------------------------------------------------------");
-        System.setProperty("webdriver.chrome.driver", "resources/chromedriver.exe");
         bot = new Instance();
         try {
             bot.login();

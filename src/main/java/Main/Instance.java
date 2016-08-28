@@ -7,6 +7,7 @@ import net.dv8tion.d4j.player.MusicPlayer;
 import net.dv8tion.jda.player.Playlist;
 import net.dv8tion.jda.player.source.AudioInfo;
 import net.dv8tion.jda.player.source.AudioSource;
+import org.apache.commons.io.FileUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import sx.blah.discord.Discord4J;
@@ -26,17 +27,32 @@ import java.io.*;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLConnection;
-import java.nio.file.CopyOption;
 import java.nio.file.Files;
 import java.nio.file.StandardCopyOption;
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.*;
+import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.function.Consumer;
 
 import static Main.Parsable.tryInt;
 import static javax.sound.sampled.AudioSystem.getAudioInputStream;
 import static sx.blah.discord.util.audio.AudioPlayer.getAudioPlayerForGuild;
+
+/* todo: Add SQLite Storage: https://github.com/xerial/sqlite-jdbc
+ * todo: Add Permissions
+ * todo: Restructure to modules
+ * Commands -
+ * command: Add Strawpole Command
+ * command: Add Prefix Switch Command
+ * command: Add Weather Command: https://bitbucket.org/akapribot/owm-japis
+ * command: Tag Command
+ * command: Echo Command
+ * command: Rip Command: https://www.ripme.xyz/<phrase>
+ * command: Whois Command
+ * command: Dictionary Command
+ * command: Triggered Text Command: http://eeemo.net/
+ */
 
 public class Instance {
     public static final Logger log = LoggerFactory.getLogger(Instance.class);
@@ -56,7 +72,6 @@ public class Instance {
     private Configuration config;
     private File configFile;
     private ClassLoader classLoader;
-    private Boolean restart;
     private GithubWebhooks webHooks;
 
     Instance() {
@@ -69,10 +84,7 @@ public class Instance {
             log.warn("config not found, generating new one...");
             BufferedReader reader;
             try {
-                CopyOption[] options = new CopyOption[]{
-                        StandardCopyOption.REPLACE_EXISTING
-                };
-                Files.copy(classLoader.getResourceAsStream("defaultCommands.json"), configFile.toPath(), options);
+                Files.copy(classLoader.getResourceAsStream("defaultCommands.json"), configFile.toPath(), StandardCopyOption.REPLACE_EXISTING);
             } catch (NullPointerException ex) {
                 log.error("default config.json not found. exiting...", ex);
                 System.exit(1);
@@ -92,9 +104,8 @@ public class Instance {
         }
         Gson gson = new GsonBuilder().create();
         config = gson.fromJson(fileReader, Configuration.class);
-        restart = false;
         commandsExec.put("quote", this::defaultMessage);
-        commandsExec.put("stop", this::terminate);
+        commandsExec.put("stop", this::stop);
         commandsExec.put("help", this::help);
         commandsExec.put("rekt", this::rekt);
         commandsExec.put("unafk", this::unafk);
@@ -162,6 +173,30 @@ public class Instance {
         client.login();
     }
 
+    public void downloadUpdate(String url) {
+        File jarFile = new File("sovietBot-main.jar");
+        File backupFile = new File("sovietBot-backup.jar");
+        try {
+            Files.copy(jarFile.toPath(), backupFile.toPath(), StandardCopyOption.REPLACE_EXISTING);
+        } catch (IOException ex) {
+            log.error("Error Copying jar to backup file", ex);
+            return;
+        }
+        try {
+            FileUtils.copyURLToFile(new URL(url), jarFile, 10000, 10000);
+        } catch (IOException ex) {
+            log.error("Error Downloading Jar", ex);
+            try {
+                log.warn("Restoring from Backup");
+                Files.copy(backupFile.toPath(), jarFile.toPath(), StandardCopyOption.REPLACE_EXISTING);
+            } catch (IOException ex2) {
+                log.error("Error Restoring Backup");
+                terminate(false);
+            }
+        }
+        terminate(true);
+    }
+
     @EventSubscriber
     public void onReady(ReadyEvent e) throws DiscordException, RateLimitException {
         log.info("*** " + botName + " armed ***");
@@ -193,7 +228,7 @@ public class Instance {
             } catch (NullPointerException ex) {
                 return;
             }
-            Command command;
+            Configuration.Command command;
             try {
                 command = config.getCommand(cont.getArgs().get(0));
             } catch (NoSuchElementException ex) {
@@ -282,6 +317,7 @@ public class Instance {
         }
     }
 
+    //todo: Connect to Multi-Word Channels with ""
     private void connect(CommContext cont) {
         if (cont.getArgs().size() >= 2 && cont.getArgs().get(1).equals("/")) {
             leaveChannel(cont.getMessage().getMessage().getGuild());
@@ -320,6 +356,7 @@ public class Instance {
         }
     }
 
+    //todo: Music Loading Progress Bar
     private void music(CommContext cont) {
         AudioPlayer aPlayer = getAudioPlayerForGuild(cont.getMessage().getMessage().getGuild());
         if (cont.getArgs().size() < 2) {
@@ -381,9 +418,8 @@ public class Instance {
                 return;
             }
             log.info("got playlist");
-            List<AudioSource> sources = new LinkedList<>(playlist.getSources());
+            ConcurrentLinkedQueue<AudioSource> sources = new ConcurrentLinkedQueue<>(playlist.getSources());
             log.info("playlist into array");
-            log.info("more than one source");
             for (AudioSource source : sources) {
                 AudioInfo info = source.getInfo();
                 List<AudioSource> queue = player.getAudioQueue();
@@ -593,9 +629,14 @@ public class Instance {
             sendMessage("Communism marches on!", cont.getMessage().getMessage().getChannel());
             return;
         }
-        restart = true;
-        sendMessage("Set to Restart", cont.getMessage().getMessage().getChannel());
-        terminate(cont);
+        if (!cont.getMessage().getMessage().getChannel().isPrivate()) {
+            try {
+                cont.getMessage().getMessage().delete();
+            } catch (MissingPermissionsException | RateLimitException | DiscordException ex) {
+                log.debug("Error while deleting restart command", ex);
+            }
+        }
+        terminate(true);
     }
 
     private void unafk(CommContext cont) {
@@ -665,8 +706,8 @@ public class Instance {
 
     private void help(CommContext cont) {
         if (cont.getArgs().size() >= 2) {
-            Command comm = null;
-            for (Command s : config.commands) {
+            Configuration.Command comm = null;
+            for (Configuration.Command s : config.commands) {
                 if (cont.getArgs().get(1).startsWith(s.commandName)) {
                     comm = s;
                 }
@@ -685,7 +726,7 @@ public class Instance {
         sendMessage(quotes[rn.nextInt(quotes.length)], cont.getMessage().getMessage().getChannel());
     }
 
-    private void terminate(CommContext cont) {
+    private void stop(CommContext cont) {
         if (cont != null) {
             if (!cont.getMessage().getMessage().getAuthor().getID().equals("141981833951838208")) {
                 sendMessage("Communism marches on!", cont.getMessage().getMessage().getChannel());
@@ -699,14 +740,10 @@ public class Instance {
                 }
             }
         }
-        try {
-            client.logout();
-        } catch (DiscordException ex) {
-            log.error("Logout failed", ex);
-            return;
-        } catch (RateLimitException ex) {
-            rateLimit(ex, this::terminate, cont);
-        }
+        terminate(false);
+    }
+
+    private void terminate(Boolean restart) {
         log.info("\n------------------------------------------------------------------------\n"
                 + "Terminated\n"
                 + "------------------------------------------------------------------------");
@@ -718,7 +755,6 @@ public class Instance {
             }
         }
         System.exit(0);
-
     }
 
     public IMessage sendMessage(String message, IChannel channel) {

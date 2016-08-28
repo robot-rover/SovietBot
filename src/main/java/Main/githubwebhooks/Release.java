@@ -79,5 +79,16 @@ class Release { // last one
              */
             String html_url;
         }
+
+        /**
+         * The download link to the .tar.gz archive of the release
+         */
+        String tarball_url;
+
+        /**
+         * The download link to the .zip archive of the release
+         */
+        String zipball_url;
+
     }
 }

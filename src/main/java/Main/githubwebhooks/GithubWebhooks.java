@@ -154,7 +154,7 @@ public class GithubWebhooks {
                                 "\n");
                         message = message + ("<" + release.release.html_url + ">");
                         sendMessageToChannels(release.repository.full_name, event, message);
-                        //Main.getBot().downloadUpdate(release.release.html_url);
+                        Main.getBot().downloadUpdate(release.release.tarball_url);
                     }
                 }
             } catch (Exception ex) {
