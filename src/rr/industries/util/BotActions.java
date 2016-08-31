@@ -107,11 +107,12 @@ public final class BotActions {
     public static boolean saveLog() {
         boolean successful = true;
         try {
-            Files.copy(new File("./events.log").toPath(), new File("./events" + Long.toString(System.currentTimeMillis()) + ".log").toPath(), StandardCopyOption.COPY_ATTRIBUTES);
-            Files.copy(new File("./debug.log").toPath(), new File("./debug" + Long.toString(System.currentTimeMillis()) + ".log").toPath(), StandardCopyOption.COPY_ATTRIBUTES);
+            Files.copy(new File("events.log").toPath(), new File("events_" + Long.toString(System.currentTimeMillis()) + ".log").toPath(), StandardCopyOption.COPY_ATTRIBUTES);
+            Files.copy(new File("debug.log").toPath(), new File("debug_" + Long.toString(System.currentTimeMillis()) + ".log").toPath(), StandardCopyOption.COPY_ATTRIBUTES);
 
         } catch (IOException ex) {
             LOG.error("Error Archiving Disconnect Log", ex);
+            successful = false;
         }
         return successful;
     }

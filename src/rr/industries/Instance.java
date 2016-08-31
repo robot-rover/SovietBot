@@ -48,6 +48,7 @@ import static rr.industries.SovietBot.*;
  * Command: Whois Command
  * Command: Dictionary Command
  * Command: Triggered Text Command: http://eeemo.net/
+ * Command: environment command
  */
 
 public class Instance {
@@ -169,7 +170,7 @@ public class Instance {
     @EventSubscriber
     public void onDisconnect(DiscordDisconnectedEvent ex) {
         LOG.info("DiscordDisconnectedEvent Received with reason: " + ex.getReason().name(), ex);
-        if (ex.getReason() != DiscordDisconnectedEvent.Reason.LOGGED_OUT) {
+        if (ex.getReason() == DiscordDisconnectedEvent.Reason.RECONNECTION_FAILED) {
             boolean restart = BotActions.saveLog();
             BotActions.terminate(restart, client);
         }
