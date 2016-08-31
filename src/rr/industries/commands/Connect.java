@@ -11,7 +11,6 @@ import java.util.List;
 /**
  * Created by Sam on 8/28/2016.
  */
-//todo: Connect to Multi-Word Channels with "
 public class Connect extends Command {
     public Connect() {
         commandName = "connect";
@@ -25,14 +24,21 @@ public class Connect extends Command {
             BotActions.disconnectFromChannel(cont.getMessage().getMessage().getGuild(), cont.getClient().getConnectedVoiceChannels());
         } else if (cont.getArgs().size() >= 2) {
             try {
-                IVoiceChannel next = cont.getMessage().getMessage().getGuild().getVoiceChannelsByName(cont.getArgs().get(1)).get(0);
-                if (!next.isConnected()) {
-                    next.join();
+                String channelName;
+                if (cont.getMessage().getMessage().getContent().matches("\".+\"")) {
+                    channelName = cont.getMessage().getMessage().getContent().split("\"")[1];
+                } else {
+                    channelName = cont.getArgs().get(1);
+                }
+                List<IVoiceChannel> next = cont.getMessage().getMessage().getGuild().getVoiceChannelsByName(channelName);
+                if (next.size() > 0) {
+                    if (!next.get(0).isConnected())
+                        next.get(0).join();
+                } else {
+                    Logging.notFound(cont.getMessage(), "connect", "Voice Channel", channelName, LOG);
                 }
             } catch (MissingPermissionsException ex) {
                 Logging.missingPermissions(cont.getMessage().getMessage().getChannel(), "connect", ex, LOG);
-            } catch (NullPointerException | IndexOutOfBoundsException ex) {
-                LOG.debug("Could not connect: Channel called " + cont.getArgs().get(1) + " not found");
             }
         } else {
             List<IVoiceChannel> next = cont.getMessage().getMessage().getAuthor().getConnectedVoiceChannels();
