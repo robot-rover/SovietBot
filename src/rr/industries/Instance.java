@@ -21,7 +21,6 @@ import sx.blah.discord.handle.impl.events.MessageReceivedEvent;
 import sx.blah.discord.handle.impl.events.ReadyEvent;
 import sx.blah.discord.util.DiscordException;
 import sx.blah.discord.util.Image;
-import sx.blah.discord.util.MessageBuilder;
 import sx.blah.discord.util.RateLimitException;
 
 import java.io.File;
@@ -32,7 +31,8 @@ import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.StandardCopyOption;
 
-import static rr.industries.SovietBot.*;
+import static rr.industries.SovietBot.botName;
+import static rr.industries.SovietBot.resourceLoader;
 
 /* todo: Add SQLite Storage: https://github.com/xerial/sqlite-jdbc
  * todo: Add Permissions
@@ -145,9 +145,8 @@ public class Instance {
         String[] filename = config.botAvatar.split("[.]");
         client.changeAvatar(Image.forStream(filename[filename.length - 1], SovietBot.resourceLoader.getResourceAsStream(config.botAvatar)));
         LOG.info("\n------------------------------------------------------------------------\n"
-                + "*** " + botName + " v" + version + " bot Ready ***\n"
+                + "*** " + botName + " Ready ***\n"
                 + "------------------------------------------------------------------------");
-        BotActions.sendMessage(new MessageBuilder(client).withContent("It Worked Bruh").withChannel(client.getOrCreatePMChannel(client.getUserByID("141981833951838208"))));
     }
 
     @EventSubscriber

@@ -37,7 +37,7 @@ public class SovietBot {
 
     public static void main(String[] args) {
         LOG.info("\n------------------------------------------------------------------------\n"
-                + "### Initializing sovietBot ### "
+                + "### " + botName + " v" + version + " ### "
                 + "\n------------------------------------------------------------------------");
         bot = new Instance();
         try {
