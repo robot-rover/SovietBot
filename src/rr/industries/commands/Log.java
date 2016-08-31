@@ -24,9 +24,9 @@ public class Log extends Command {
     public void execute(CommContext cont) {
         String path;
         if (cont.getArgs().size() >= 2 && cont.getArgs().get(1).equals("full")) {
-            path = "debug.LOG";
+            path = "debug.log";
         } else {
-            path = "events.LOG";
+            path = "events.log";
         }
         File file = new File(path);
         try {
