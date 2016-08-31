@@ -27,7 +27,7 @@ public class SovietBot {
     private static Instance bot;
     public static ClassLoader resourceLoader = Instance.class.getClassLoader();
 
-    public static final String version = "1.2.0";
+    public static final String version = "1.2.1";
     public static final String botName = "SovietBot";
     public static final String frameName = sx.blah.discord.Discord4J.NAME;
     public static final String frameVersion = sx.blah.discord.Discord4J.VERSION;
