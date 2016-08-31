@@ -13,5 +13,5 @@ target/
 /youtube-dl
 resource/Ohhs/
 resource/nopes/
-commands.json
+configuration.json
 /token.txt

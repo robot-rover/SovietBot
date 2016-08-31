@@ -3,27 +3,26 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package Main;
+package rr.industries.util;
 
+import sx.blah.discord.api.IDiscordClient;
 import sx.blah.discord.handle.impl.events.MessageReceivedEvent;
-import sx.blah.discord.handle.obj.IChannel;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.Scanner;
 
-/**
- * @author Sam
- */
-class CommContext {
-    private List<String> args = new ArrayList<>();
+public class CommContext {
+    private final List<String> args = new ArrayList<>();
     private MessageReceivedEvent e;
-    private String message;
-    private IChannel channel;
+    private IDiscordClient client;
+    private String commChar;
 
-    CommContext(MessageReceivedEvent e, String commChar) {
+    public CommContext(MessageReceivedEvent e, IDiscordClient client, String commChar) {
         this.e = e;
+        this.commChar = commChar;
+        this.client = client;
         boolean next = true;
         Scanner parser = new Scanner(e.getMessage().getContent());
         while (next) {
@@ -38,44 +37,19 @@ class CommContext {
         }
     }
 
-    CommContext(IChannel channel, String message) {
-        this.channel = channel;
-        this.message = message;
-    }
-
-    List<String> getArgs() {
+    public List<String> getArgs() {
         return args;
     }
 
-    MessageReceivedEvent getMessage() {
+    public MessageReceivedEvent getMessage() {
         return e;
     }
 
-    String getReturnMessage() {
-        return message;
+    public IDiscordClient getClient() {
+        return client;
     }
 
-    IChannel getChannel() {
-        if (e == null) {
-            return channel;
-        } else {
-            return e.getMessage().getChannel();
-        }
-    }
-
-    class Command {
-        String commandName;
-        String helpText;
-        boolean delete;
-
-
-        public Command() {
-        }
-
-        @Override
-        public String toString() {
-            return commandName + " - " + helpText;
-        }
-
+    public String getCommChar() {
+        return commChar;
     }
 }

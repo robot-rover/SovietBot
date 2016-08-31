@@ -3,13 +3,10 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package Main;
+package rr.industries.util;
 
-/**
- * @author Sam
- */
-class Parsable {
-    static boolean tryInt(String i) {
+public class Parsable {
+    public static boolean tryInt(String i) {
         boolean parsable = true;
         try {
             Integer.parseInt(i);
@@ -19,7 +16,7 @@ class Parsable {
         return parsable;
     }
 
-    static boolean tryDouble(String i) {
+    public static boolean tryDouble(String i) {
         boolean parsable = true;
         try {
             Double.parseDouble(i);
