@@ -102,7 +102,7 @@ public class Instance {
     }
 
     public void downloadUpdate(String url) {
-        File jarFile = new File("sovietBot-rr.industries.jar");
+        File jarFile = new File("sovietBot-master.jar");
         File archive = new File("SovietBot-archive.zip");
         File backupFile = new File("sovietBot-backup.jar");
         try {

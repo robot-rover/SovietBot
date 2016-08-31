@@ -31,8 +31,8 @@ public class Log extends Command {
         File file = new File(path);
         try {
             cont.getMessage().getMessage().getChannel().sendFile(file);
-        } catch (IOException e) {
-            LOG.warn("Log file not found");
+        } catch (IOException ex) {
+            LOG.warn("Log file not found", ex);
         } catch (MissingPermissionsException ex) {
             Logging.missingPermissions(cont.getMessage().getMessage().getChannel(), "log", ex, LOG);
         } catch (RateLimitException ex) {
