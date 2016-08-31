@@ -21,6 +21,7 @@ import sx.blah.discord.handle.impl.events.MessageReceivedEvent;
 import sx.blah.discord.handle.impl.events.ReadyEvent;
 import sx.blah.discord.util.DiscordException;
 import sx.blah.discord.util.Image;
+import sx.blah.discord.util.MessageBuilder;
 import sx.blah.discord.util.RateLimitException;
 
 import java.io.File;
@@ -146,6 +147,7 @@ public class Instance {
         LOG.info("\n------------------------------------------------------------------------\n"
                 + "*** " + botName + " v" + version + " bot Ready ***\n"
                 + "------------------------------------------------------------------------");
+        BotActions.sendMessage(new MessageBuilder(client).withContent("It Worked Bruh").withChannel(client.getOrCreatePMChannel(client.getUserByID("141981833951838208"))));
     }
 
     @EventSubscriber

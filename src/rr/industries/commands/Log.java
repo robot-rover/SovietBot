@@ -34,11 +34,11 @@ public class Log extends Command {
         } catch (IOException ex) {
             LOG.warn("Log file not found", ex);
         } catch (MissingPermissionsException ex) {
-            Logging.missingPermissions(cont.getMessage().getMessage().getChannel(), "log", ex, LOG);
+            Logging.missingPermissions(cont.getMessage().getMessage().getChannel(), "Log", ex, LOG);
         } catch (RateLimitException ex) {
             Logging.rateLimit(ex, this::execute, cont, LOG);
         } catch (DiscordException ex) {
-            Logging.error(cont.getMessage().getMessage().getGuild(), "LOG", ex, LOG);
+            Logging.error(cont.getMessage().getMessage().getGuild(), "Log", ex, LOG);
         }
     }
 }
