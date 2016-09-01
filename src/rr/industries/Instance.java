@@ -14,13 +14,10 @@ import sx.blah.discord.api.ClientBuilder;
 import sx.blah.discord.api.IDiscordClient;
 import sx.blah.discord.api.events.EventSubscriber;
 import sx.blah.discord.handle.impl.events.DiscordDisconnectedEvent;
-import sx.blah.discord.handle.impl.events.MessageEmbedEvent;
 import sx.blah.discord.handle.impl.events.MessageReceivedEvent;
 import sx.blah.discord.handle.impl.events.ReadyEvent;
-import sx.blah.discord.handle.obj.IMessage;
 import sx.blah.discord.util.DiscordException;
 import sx.blah.discord.util.Image;
-import sx.blah.discord.util.MessageBuilder;
 import sx.blah.discord.util.RateLimitException;
 
 import java.io.File;
@@ -99,27 +96,6 @@ public class Instance {
         client = new ClientBuilder().withToken(config.token).build();
         client.getDispatcher().registerListener(this);
         client.login();
-    }
-
-    @EventSubscriber
-    public void onEmbed(MessageEmbedEvent e) throws RateLimitException, DiscordException {
-        MessageBuilder message = new MessageBuilder(client).withChannel(e.getMessage().getChannel()).withContent("**NEW EMBEDS DETECTED**");
-        message.appendContent("\nMessage - \n```" + e.getMessage().getContent() + "```");
-        for (IMessage.IEmbedded embedded : e.getNewEmbed()) {
-            message.appendContent("\n```");
-            message.appendContent("\nName: " + embedded.getTitle());
-            message.appendContent("\nDescription: " + embedded.getDescription());
-            message.appendContent("\nURL: " + embedded.getUrl());
-            message.appendContent("\nType: " + embedded.getType());
-            message.appendContent("\nThumbnail: " + embedded.getThumbnail());
-            if (embedded.getEmbedProvider() != null) {
-                message.appendContent("\nProvider -");
-                message.appendContent("\n\tName: " + embedded.getEmbedProvider().getName());
-                message.appendContent("\n\tURL: " + embedded.getEmbedProvider().getUrl());
-            }
-            message.appendContent("\n```");
-        }
-        BotActions.sendMessage(message);
     }
 
     @EventSubscriber
