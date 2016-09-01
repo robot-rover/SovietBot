@@ -1,7 +1,5 @@
 package rr.industries.util;
 
-import net.lingala.zip4j.core.ZipFile;
-import net.lingala.zip4j.exception.ZipException;
 import org.apache.commons.io.FileUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -124,7 +122,6 @@ public final class BotActions {
     public static void downloadUpdate(String url, IDiscordClient client) {
         LOG.info("Downloading new .jar");
         File jarFile = new File("sovietBot-master.jar");
-        File archive = new File("SovietBot-archive.zip");
         File backupFile = new File("sovietBot-backup.jar");
         try {
             Files.copy(jarFile.toPath(), backupFile.toPath(), StandardCopyOption.REPLACE_EXISTING);
@@ -133,9 +130,9 @@ public final class BotActions {
             return;
         }
         try {
-            FileUtils.copyURLToFile(new URL(url), archive, 10000, 10000);
-            new ZipFile(archive).extractAll("./");
-        } catch (IOException | ZipException ex) {
+            Files.delete(jarFile.toPath());
+            FileUtils.copyURLToFile(new URL(url), jarFile, 10000, 10000);
+        } catch (IOException ex) {
             LOG.error("Error Downloading Jar", ex);
             try {
                 LOG.warn("Restoring from Backup");
