@@ -1,5 +1,8 @@
 package rr.industries.util;
 
+import net.lingala.zip4j.core.ZipFile;
+import net.lingala.zip4j.exception.ZipException;
+import org.apache.commons.io.FileUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import rr.industries.SovietBot;
@@ -14,6 +17,7 @@ import sx.blah.discord.util.RateLimitException;
 
 import java.io.File;
 import java.io.IOException;
+import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.StandardCopyOption;
 import java.util.List;
@@ -115,5 +119,39 @@ public final class BotActions {
             successful = false;
         }
         return successful;
+    }
+
+    public static void downloadUpdate(String url, IDiscordClient client) {
+        LOG.info("Downloading new .jar");
+        File jarFile = new File("sovietBot-master.jar");
+        File archive = new File("SovietBot-archive.zip");
+        File backupFile = new File("sovietBot-backup.jar");
+        try {
+            Files.copy(jarFile.toPath(), backupFile.toPath(), StandardCopyOption.REPLACE_EXISTING);
+        } catch (IOException ex) {
+            LOG.error("Error Copying jar to backup file", ex);
+            return;
+        }
+        try {
+            FileUtils.copyURLToFile(new URL(url), archive, 10000, 10000);
+            new ZipFile(archive).extractAll("./");
+        } catch (IOException | ZipException ex) {
+            LOG.error("Error Downloading Jar", ex);
+            try {
+                LOG.warn("Restoring from Backup");
+                Files.copy(backupFile.toPath(), jarFile.toPath(), StandardCopyOption.REPLACE_EXISTING);
+            } catch (IOException ex2) {
+                LOG.error("Error Restoring Backup", ex2);
+                return;
+                //todo: add send to owner message
+            }
+        }
+        try {
+            Files.delete(backupFile.toPath());
+        } catch (IOException ex) {
+            LOG.warn("Unable to delete backup after successful extraction", ex);
+        }
+        BotActions.saveLog();
+        BotActions.terminate(true, client);
     }
 }

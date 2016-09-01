@@ -2,9 +2,6 @@ package rr.industries;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
-import net.lingala.zip4j.core.ZipFile;
-import net.lingala.zip4j.exception.ZipException;
-import org.apache.commons.io.FileUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import rr.industries.commands.Command;
@@ -17,17 +14,19 @@ import sx.blah.discord.api.ClientBuilder;
 import sx.blah.discord.api.IDiscordClient;
 import sx.blah.discord.api.events.EventSubscriber;
 import sx.blah.discord.handle.impl.events.DiscordDisconnectedEvent;
+import sx.blah.discord.handle.impl.events.MessageEmbedEvent;
 import sx.blah.discord.handle.impl.events.MessageReceivedEvent;
 import sx.blah.discord.handle.impl.events.ReadyEvent;
+import sx.blah.discord.handle.obj.IMessage;
 import sx.blah.discord.util.DiscordException;
 import sx.blah.discord.util.Image;
+import sx.blah.discord.util.MessageBuilder;
 import sx.blah.discord.util.RateLimitException;
 
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
-import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.StandardCopyOption;
 
@@ -102,40 +101,30 @@ public class Instance {
         client.login();
     }
 
-    public void downloadUpdate(String url) {
-        File jarFile = new File("sovietBot-master.jar");
-        File archive = new File("SovietBot-archive.zip");
-        File backupFile = new File("sovietBot-backup.jar");
-        try {
-            Files.copy(jarFile.toPath(), backupFile.toPath(), StandardCopyOption.REPLACE_EXISTING);
-        } catch (IOException ex) {
-            LOG.error("Error Copying jar to backup file", ex);
-            return;
-        }
-        try {
-            FileUtils.copyURLToFile(new URL(url), archive, 10000, 10000);
-            new ZipFile(archive).extractAll("./");
-        } catch (IOException | ZipException ex) {
-            LOG.error("Error Downloading Jar", ex);
-            try {
-                LOG.warn("Restoring from Backup");
-                Files.copy(backupFile.toPath(), jarFile.toPath(), StandardCopyOption.REPLACE_EXISTING);
-            } catch (IOException ex2) {
-                LOG.error("Error Restoring Backup", ex2);
-                return;
-                //todo: add send to owner message
+    @EventSubscriber
+    public void onEmbed(MessageEmbedEvent e) throws RateLimitException, DiscordException {
+        MessageBuilder message = new MessageBuilder(client).withChannel(e.getMessage().getChannel()).withContent("**NEW EMBEDS DETECTED**");
+        message.appendContent("\nMessage - \n```" + e.getMessage().getContent() + "```");
+        for (IMessage.IEmbedded embedded : e.getNewEmbed()) {
+            message.appendContent("\n```");
+            message.appendContent("\nName: " + embedded.getTitle());
+            message.appendContent("\nDescription: " + embedded.getDescription());
+            message.appendContent("\nURL: " + embedded.getUrl());
+            message.appendContent("\nType: " + embedded.getType());
+            message.appendContent("\nThumbnail: " + embedded.getThumbnail());
+            if (embedded.getEmbedProvider() != null) {
+                message.appendContent("\nProvider -");
+                message.appendContent("\n\tName: " + embedded.getEmbedProvider().getName());
+                message.appendContent("\n\tURL: " + embedded.getEmbedProvider().getUrl());
             }
+            message.appendContent("\n```");
         }
-        try {
-            Files.delete(backupFile.toPath());
-        } catch (IOException ex) {
-            LOG.warn("Unable to delete backup after successful extraction", ex);
-        }
-        BotActions.terminate(true, client);
+        BotActions.sendMessage(message);
     }
 
     @EventSubscriber
     public void onReady(ReadyEvent e) throws DiscordException, RateLimitException {
+        Discord4J.disableChannelWarnings();
         LOG.info("*** " + botName + " armed ***");
         webHooks = new GithubWebhooks(1000, client, "welp2.0");
         webHooks.enable();

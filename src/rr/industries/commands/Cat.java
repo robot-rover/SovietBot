@@ -47,6 +47,12 @@ public class Cat extends Command {
         } catch (IOException ex) {
             Logging.error(cont.getMessage().getMessage().getGuild(), "cat", ex, LOG);
             return;
+        } finally {
+            try {
+                br.close();
+            } catch (IOException ex) {
+                LOG.warn("unable to close Cat url reader", ex);
+            }
         }
         message = message.substring(9, message.length() - 2);
         message = message.replace("\\/", "/");
