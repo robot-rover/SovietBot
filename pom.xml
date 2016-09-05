@@ -19,12 +19,6 @@
     </repositories>
 
     <dependencies>
-        <!-- Zip4J: Extract and Compress .zip Files -->
-        <!--<dependency>
-            <groupId>net.lingala.zip4j</groupId>
-            <artifactId>zip4j</artifactId>
-            <version>1.2.5</version>
-        </dependency>-->
         <!-- Spark: Websocket Server -->
         <dependency>
             <groupId>com.sparkjava</groupId>
@@ -50,11 +44,11 @@
             </exclusions>
         </dependency>
         <!--Discord4J: Base API for discord -->
-        <!--<dependency>
+        <dependency>
             <groupId>com.github.austinv11</groupId>
             <artifactId>Discord4J</artifactId>
-            <version>dev-SNAPSHOT</version>
-        </dependency>-->
+            <version>0fa0ba2</version>
+        </dependency>
         <!-- Apache Commons-io: Used for file download -->
         <dependency>
             <groupId>commons-io</groupId>
@@ -75,11 +69,11 @@
             <version>1.1.6</version>
         </dependency>
         <!-- Discord4J local testing branch -->
-        <dependency>
-            <groupId>sx.blah</groupId>
-            <artifactId>Discord4J</artifactId>
-            <version>2.5.4</version>
-        </dependency>
+        <!-- <dependency>
+             <groupId>sx.blah</groupId>
+             <artifactId>Discord4J</artifactId>
+             <version>2.5.4</version>
+         </dependency>-->
     </dependencies>
 
     <build>

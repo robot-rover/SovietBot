@@ -7,6 +7,8 @@ import sx.blah.discord.handle.obj.IVoiceChannel;
 import sx.blah.discord.util.MissingPermissionsException;
 
 import java.util.List;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
  * Created by Sam on 8/28/2016.
@@ -25,7 +27,9 @@ public class Connect extends Command {
         } else if (cont.getArgs().size() >= 2) {
             try {
                 String channelName;
-                if (cont.getMessage().getMessage().getContent().matches("\".+\"")) {
+                Pattern p = Pattern.compile("\".+\"");
+                Matcher m = p.matcher(cont.getMessage().getMessage().getContent());
+                if (m.find()) {
                     channelName = cont.getMessage().getMessage().getContent().split("\"")[1];
                 } else {
                     channelName = cont.getArgs().get(1);

@@ -1,5 +1,6 @@
 package rr.industries.commands;
 
+import rr.industries.SovietBot;
 import rr.industries.util.BotActions;
 import rr.industries.util.CommContext;
 import sx.blah.discord.util.MessageBuilder;
@@ -17,7 +18,12 @@ public class Info extends Command {
 
     @Override
     public void execute(CommContext cont) {
-        String message = "```" + botName + " version " + version + "\n" + "Created with " + frameName + " version " + frameVersion + "\n" + "For help type: " + cont.getCommChar() + helpCommand + "\n" + "This bot was created by " + author + "```";
+        String message = "```markdown\n" +
+                "# " + botName + " version " + version + " #\n" +
+                "Created with " + frameName + " version " + frameVersion + "\n" +
+                "[For help type](" + cont.getCommChar() + helpCommand + ")\n" + "This bot was created by <" + author + ">\n" +
+                "[Invite Link](" + SovietBot.invite + ")" +
+                "```";
         BotActions.sendMessage(new MessageBuilder(cont.getClient()).withContent(message).withChannel(cont.getMessage().getMessage().getChannel()));
     }
 }

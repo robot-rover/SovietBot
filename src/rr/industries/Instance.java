@@ -32,16 +32,13 @@ import static rr.industries.SovietBot.resourceLoader;
 
 /* todo: Add SQLite Storage: https://github.com/xerial/sqlite-jdbc
  * todo: Add Permissions
- * todo: Restructure to modules
  * todo: Write config changes
  * Commands -
- * Command: config command
  * Command: Add Strawpole Command
  * Command: Add Prefix Switch Command
  * Command: Add Weather Command: https://bitbucket.org/akapribot/owm-japis
  * Command: Tag Command
  * Command: Echo Command
- * Command: Rip Command: https://www.ripme.xyz/<phrase>
  * Command: Whois Command
  * Command: Dictionary Command
  * Command: Triggered Text Command: http://eeemo.net/
@@ -55,6 +52,7 @@ public class Instance {
     public Configuration config;
     public CommandList commandList;
     private Module webHooks;
+    public static boolean loggedIn = true;
 
     Instance() {
         webHooks = null;
@@ -102,7 +100,7 @@ public class Instance {
     public void onReady(ReadyEvent e) throws DiscordException, RateLimitException {
         Discord4J.disableChannelWarnings();
         LOG.info("*** " + botName + " armed ***");
-        webHooks = new GithubWebhooks(1000, client, "welp2.0");
+        webHooks = new GithubWebhooks(1000, client, config.secret);
         webHooks.enable();
         if (!client.getOurUser().getName().equals(config.botName)) {
             client.changeUsername(config.botName);
@@ -112,6 +110,7 @@ public class Instance {
         LOG.info("\n------------------------------------------------------------------------\n"
                 + "*** " + botName + " Ready ***\n"
                 + "------------------------------------------------------------------------");
+        BotActions.messageOwner("Startup Successful", client, false);
     }
 
     @EventSubscriber
@@ -135,6 +134,7 @@ public class Instance {
 
     @EventSubscriber
     public void onDisconnect(DiscordDisconnectedEvent ex) {
+        loggedIn = false;
         LOG.info("DiscordDisconnectedEvent Received with reason: " + ex.getReason().name(), ex);
         if (ex.getReason() == DiscordDisconnectedEvent.Reason.RECONNECTION_FAILED) {
             boolean restart = BotActions.saveLog();

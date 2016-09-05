@@ -12,7 +12,7 @@ public class Quote extends Command {
     private final String[] quotes;
 
     public Quote() {
-        commandName = "music";
+        commandName = "quote";
         helpText = "Plays YouTube and Sound Cloud music.";
         quotes = new String[]{
                 "In Soviet Russia, command type you.",

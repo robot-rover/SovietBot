@@ -1,8 +1,11 @@
 package rr.industries.util;
 
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 import org.apache.commons.io.FileUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import rr.industries.Instance;
 import rr.industries.SovietBot;
 import sx.blah.discord.api.IDiscordClient;
 import sx.blah.discord.handle.obj.IGuild;
@@ -14,6 +17,8 @@ import sx.blah.discord.util.MissingPermissionsException;
 import sx.blah.discord.util.RateLimitException;
 
 import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.net.URL;
 import java.nio.file.Files;
@@ -59,7 +64,8 @@ public final class BotActions {
                     Logging.threadInterrupted(ex, "onMessage", SovietBot.LOG);
                 }
                 try {
-                    message.delete();
+                    if (Instance.loggedIn)
+                        message.delete();
                 } catch (MissingPermissionsException ex) {
                     //fail silently
                     SovietBot.LOG.debug("Did not delete message, missing permissions");
@@ -71,6 +77,28 @@ public final class BotActions {
             }
         };
         thread.start();
+    }
+
+    public static void messageOwner(String message, IDiscordClient client, boolean notify) {
+        MessageBuilder messageBuilder = new MessageBuilder(client).withContent(message);
+        try {
+            if (!notify) {
+                for (IGuild guild : client.getGuilds()) {
+                    if (guild.getID().equals("161155978199302144"))
+                        messageBuilder.withChannel("161155978199302144");
+                    if (guild.getID().equals("141313424880566272"))
+                        messageBuilder.withChannel("170685308273164288");
+                }
+            }
+            if (messageBuilder.getChannel() == null) {
+                messageBuilder.withChannel(client.getOrCreatePMChannel(client.getUserByID("141981833951838208")));
+            }
+            BotActions.sendMessage(messageBuilder);
+        } catch (DiscordException ex) {
+            LOG.error("Error messaging bot owner", ex);
+        } catch (RateLimitException ex) {
+            //todo: implement ratelimit
+        }
     }
 
     public static IMessage sendMessage(MessageBuilder builder) {
@@ -88,6 +116,15 @@ public final class BotActions {
     }
 
     public static void terminate(Boolean restart, IDiscordClient client) {
+        LOG.info("Writing Config");
+        Gson gson = new GsonBuilder().setPrettyPrinting().create();
+        try (FileWriter writer = new FileWriter("configuration.json", false)) {
+            writer.write(gson.toJson(SovietBot.getBot().config));
+        } catch (FileNotFoundException ex) {
+            LOG.error("Config file not found upon exit, but was saved", ex);
+        } catch (IOException ex) {
+            LOG.error("Config file was not saved upon exit", ex);
+        }
         try {
             client.logout();
         } catch (RateLimitException | DiscordException ex) {
@@ -97,11 +134,26 @@ public final class BotActions {
                 + "Terminated\n"
                 + "------------------------------------------------------------------------");
         if (restart) {
-            try {
-                new ProcessBuilder("java", "-jar", "sovietBot-master.jar").inheritIO().start();
-            } catch (IOException ex) {
-                LOG.error("restart failed :-(", ex);
-            }
+            Runtime.getRuntime().addShutdownHook(new Thread() {
+                @Override
+                public void run() {
+                    if (new File("sovietBot-update.jar").exists()) {
+                        LOG.info("Updated Jar exists, copying...");
+                        try {
+                            Files.copy(new File("sovietBot-update.jar").toPath(), new File("sovietBot-master.jar").toPath(), StandardCopyOption.REPLACE_EXISTING);
+                            Files.delete(new File("sovietBot-update.jar").toPath());
+                        } catch (IOException ex) {
+                            LOG.error("Failed to Update SovietBot", ex);
+                        }
+                    }
+                    saveLog();
+                    try {
+                        new ProcessBuilder("java", "-jar", "-server", "sovietBot-master.jar").inheritIO().start();
+                    } catch (IOException ex) {
+                        LOG.error("restart failed :-(", ex);
+                    }
+                }
+            });
         }
         System.exit(0);
     }
@@ -149,6 +201,13 @@ public final class BotActions {
             LOG.warn("Unable to delete backup after successful extraction", ex);
         }
         BotActions.saveLog();
+        try {
+            sendMessage(new MessageBuilder(client).withContent("Updated successfully.").withChannel(client.getOrCreatePMChannel(client.getUserByID("141981833951838208"))));
+        } catch (DiscordException ex) {
+            LOG.error("Error Sending Successful Update Message", ex);
+        } catch (RateLimitException ex) {
+            //todo: Fix ratelimits
+        }
         BotActions.terminate(true, client);
     }
 }

@@ -5,4 +5,5 @@ public class Configuration {
     String botAvatar;
     public String commChar;
     String token;
+    String secret;
 }

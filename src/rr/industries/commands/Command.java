@@ -16,8 +16,8 @@ public abstract class Command {
     static final Logger LOG = LoggerFactory.getLogger(Command.class);
     static final ClassLoader resourceLoader = SovietBot.resourceLoader;
     public Permissions permLevel = Permissions.NORMAL;
-    public String commandName;
-    public String helpText;
+    public String commandName = "notConfigured";
+    public String helpText = "notConfigured";
     public boolean deleteMessage = true;
 
     public abstract void execute(CommContext cont);
