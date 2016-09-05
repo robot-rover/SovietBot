@@ -143,10 +143,10 @@ public final class BotActions {
                             Files.copy(new File("sovietBot-update.jar").toPath(), new File("sovietBot-master.jar").toPath(), StandardCopyOption.REPLACE_EXISTING);
                             Files.delete(new File("sovietBot-update.jar").toPath());
                         } catch (IOException ex) {
+                            saveLog();
                             LOG.error("Failed to Update SovietBot", ex);
                         }
                     }
-                    saveLog();
                     try {
                         new ProcessBuilder("java", "-jar", "-server", "sovietBot-master.jar").inheritIO().start();
                     } catch (IOException ex) {

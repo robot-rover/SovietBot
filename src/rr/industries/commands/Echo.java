@@ -12,7 +12,11 @@ import sx.blah.discord.util.MessageBuilder;
 public class Echo implements Command {
     @Override
     public void execute(CommContext cont) {
-        BotActions.sendMessage(new MessageBuilder(cont.getClient()).withChannel(cont.getMessage().getMessage().getChannel())
-                .withContent(cont.getConcatArgs()));
+        MessageBuilder message = new MessageBuilder(cont.getClient()).withChannel(cont.getMessage().getMessage().getChannel())
+                .withContent(cont.getConcatArgs());
+        LOG.info(cont.getConcatArgs());
+        if (message.getContent().length() > 0) {
+            BotActions.sendMessage(message);
+        }
     }
 }

@@ -39,15 +39,10 @@ public class CommContext {
 
     public String getConcatArgs() {
         String concatArgs = "";
-        boolean first = true;
-        for (String arg : args) {
-            if (first) {
-                first = false;
-            } else {
-                concatArgs.concat(arg + " ");
-            }
+        for (int i = 1; i < args.size(); i++) {
+            concatArgs = concatArgs.concat(args.get(i) + " ");
         }
-        return concatArgs.substring(0, concatArgs.length() - 1);
+        return concatArgs.substring(0, concatArgs.length() > 0 ? concatArgs.length() - 1 : 0);
     }
 
     public List<String> getArgs() {

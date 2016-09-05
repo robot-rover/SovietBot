@@ -1,6 +1,6 @@
 .idea/
 .index/
-debug.log
+*.log
 dependency-reduced-pom.xml
 events.log
 nbactions.xml

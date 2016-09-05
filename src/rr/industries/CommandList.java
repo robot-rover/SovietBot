@@ -24,14 +24,13 @@ public class CommandList {
                 new Disconnect(), new Help(), new Info(), new Invite(), new Log(), new Music(),
                 new Purge(), new Quote(), new Rekt(), new Restart(), new Roll(), new Stop(),
                 new Unafk(), new Uptime(), new Weather(), new Prefix(), new Rip(), new Regenerate(),
-                new Environment()
+                new Environment(), new Echo()
         );
 
     }
 
     public Command getCommand(String findCommand) {
-        return commandList.stream().filter((Command v) ->
-                v.getClass().isAnnotationPresent(CommandInfo.class) && v.getClass().getDeclaredAnnotation(CommandInfo.class).commandName().equals(findCommand))
+        return commandList.stream().filter((Command v) -> v.getClass().isAnnotationPresent(CommandInfo.class) && v.getClass().getDeclaredAnnotation(CommandInfo.class).commandName().equals(findCommand))
                 .findAny().orElse(null);
     }
 }
