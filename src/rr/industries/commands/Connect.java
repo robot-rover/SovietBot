@@ -2,6 +2,7 @@ package rr.industries.commands;
 
 import rr.industries.util.BotActions;
 import rr.industries.util.CommContext;
+import rr.industries.util.CommandInfo;
 import rr.industries.util.Logging;
 import sx.blah.discord.handle.obj.IVoiceChannel;
 import sx.blah.discord.util.MissingPermissionsException;
@@ -10,15 +11,11 @@ import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-/**
- * Created by Sam on 8/28/2016.
- */
-public class Connect extends Command {
-    public Connect() {
-        commandName = "connect";
-        helpText = "Connects and disconnects the bot from voice channels.";
-    }
-
+@CommandInfo(
+        commandName = "connect",
+        helpText = "Connects and disconnects the bot from voice channels."
+)
+public class Connect implements Command {
     @Override
     public void execute(CommContext cont) {
 

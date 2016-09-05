@@ -2,17 +2,15 @@ package rr.industries.commands;
 
 import rr.industries.util.BotActions;
 import rr.industries.util.CommContext;
+import rr.industries.util.CommandInfo;
 import rr.industries.util.Parsable;
 import sx.blah.discord.util.MessageBuilder;
 
-/**
- * Created by Sam on 8/28/2016.
- */
-public class Roll extends Command {
-    public Roll() {
-        commandName = "roll";
-        helpText = "Rolls a random number in a variety of ways.";
-    }
+@CommandInfo(
+        commandName = "roll",
+        helpText = "Rolls a random number in a variety of ways"
+)
+public class Roll implements Command {
 
     @Override
     public void execute(CommContext cont) {

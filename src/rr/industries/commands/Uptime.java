@@ -2,22 +2,18 @@ package rr.industries.commands;
 
 import rr.industries.util.BotActions;
 import rr.industries.util.CommContext;
+import rr.industries.util.CommandInfo;
 import sx.blah.discord.Discord4J;
 import sx.blah.discord.util.MessageBuilder;
 
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
 
-/**
- * Created by Sam on 8/28/2016.
- */
-public class Uptime extends Command {
-
-    public Uptime() {
-        commandName = "uptime";
-        helpText = "Shows you how long the bot has been running.";
-    }
-
+@CommandInfo(
+        commandName = "uptime",
+        helpText = "Shows you how long the bot has been running."
+)
+public class Uptime implements Command {
     @Override
     public void execute(CommContext cont) {
 

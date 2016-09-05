@@ -2,23 +2,20 @@ package rr.industries.commands;
 
 import rr.industries.util.BotActions;
 import rr.industries.util.CommContext;
+import rr.industries.util.CommandInfo;
 import rr.industries.util.Permissions;
 import sx.blah.discord.util.DiscordException;
 import sx.blah.discord.util.MessageBuilder;
 import sx.blah.discord.util.MissingPermissionsException;
 import sx.blah.discord.util.RateLimitException;
 
-/**
- * Created by Sam on 8/28/2016.
- */
-public class Restart extends Command {
-
-    public Restart() {
-        permLevel = Permissions.BOTOPERATOR;
-        commandName = "restart";
-        helpText = "Restarts the bot.";
-        deleteMessage = false;
-    }
+@CommandInfo(
+        commandName = "restart",
+        helpText = "Restarts the bot.",
+        permLevel = Permissions.BOTOPERATOR,
+        deleteMessage = false
+)
+public class Restart implements Command {
 
     @Override
     public void execute(CommContext cont) {

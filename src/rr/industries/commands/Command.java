@@ -4,21 +4,18 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import rr.industries.SovietBot;
 import rr.industries.util.CommContext;
-import rr.industries.util.Permissions;
+import rr.industries.util.CommandInfo;
 
 import java.util.Random;
 
 /**
  * Created by Sam on 8/28/2016.
  */
-public abstract class Command {
-    static final Random rn = new Random();
-    static final Logger LOG = LoggerFactory.getLogger(Command.class);
-    static final ClassLoader resourceLoader = SovietBot.resourceLoader;
-    public Permissions permLevel = Permissions.NORMAL;
-    public String commandName = "notConfigured";
-    public String helpText = "notConfigured";
-    public boolean deleteMessage = true;
+@CommandInfo(commandName = "help", helpText = "derpydoodahday")
+public interface Command {
+    Random rn = new Random();
+    Logger LOG = LoggerFactory.getLogger(Command.class);
+    ClassLoader resourceLoader = SovietBot.resourceLoader;
 
-    public abstract void execute(CommContext cont);
+    void execute(CommContext cont);
 }

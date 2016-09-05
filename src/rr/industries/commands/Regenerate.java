@@ -4,21 +4,16 @@ import rr.industries.CommandList;
 import rr.industries.SovietBot;
 import rr.industries.util.BotActions;
 import rr.industries.util.CommContext;
+import rr.industries.util.CommandInfo;
 import rr.industries.util.Permissions;
 import sx.blah.discord.util.MessageBuilder;
 
-/**
- * @author Sam
- * @project sovietBot
- * @created 9/2/2016
- */
-public class Regenerate extends Command {
-    public Regenerate() {
-        permLevel = Permissions.BOTOPERATOR;
-        commandName = "regen";
-        helpText = "Reinstantiates the bot's commandlist";
-        deleteMessage = true;
-    }
+@CommandInfo(
+        commandName = "regen",
+        helpText = "Reinstantiates the bot's list of commands.",
+        permLevel = Permissions.BOTOPERATOR
+)
+public class Regenerate implements Command {
 
     @Override
     public void execute(CommContext cont) {

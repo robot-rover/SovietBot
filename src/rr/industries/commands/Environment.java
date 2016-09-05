@@ -3,26 +3,20 @@ package rr.industries.commands;
 import rr.industries.SovietBot;
 import rr.industries.util.BotActions;
 import rr.industries.util.CommContext;
+import rr.industries.util.CommandInfo;
 import rr.industries.util.Permissions;
 import sx.blah.discord.Discord4J;
 import sx.blah.discord.util.MessageBuilder;
 
 import java.time.format.DateTimeFormatter;
 
-/**
- * @author Sam
- * @project sovietBot
- * @created 9/4/2016
- */
-public class Environment extends Command {
+@CommandInfo(
+        commandName = "env",
+        helpText = "Displays statistics about the bot's operating environment.",
+        permLevel = Permissions.BOTOPERATOR
+)
+public class Environment implements Command {
     private static int byteToMegabyte = 1048576;
-
-    public Environment() {
-        permLevel = Permissions.BOTOPERATOR;
-        commandName = "env";
-        helpText = "Displays statistics about the bots' operating environment";
-    }
-
     @Override
     public void execute(CommContext cont) {
         MessageBuilder message = new MessageBuilder(cont.getClient()).withChannel(cont.getMessage().getMessage().getChannel()).withContent("```markdown\n");

@@ -1,9 +1,6 @@
 package rr.industries.commands;
 
-import rr.industries.util.BotActions;
-import rr.industries.util.CommContext;
-import rr.industries.util.Logging;
-import rr.industries.util.Permissions;
+import rr.industries.util.*;
 import sx.blah.discord.handle.obj.IUser;
 import sx.blah.discord.handle.obj.IVoiceChannel;
 import sx.blah.discord.util.DiscordException;
@@ -14,13 +11,12 @@ import sx.blah.discord.util.RateLimitException;
 /**
  * Created by Sam on 8/28/2016.
  */
-public class Bring extends Command {
-    public Bring() {
-        permLevel = Permissions.ADMIN;
-        commandName = "bring";
-        helpText = "Brings all current users of a server to you";
-    }
-
+@CommandInfo(
+        commandName = "bring",
+        helpText = "Brings all current users of a server to you.",
+        permLevel = Permissions.ADMIN
+)
+public class Bring implements Command {
     @Override
     public void execute(CommContext cont) {
 

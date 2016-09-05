@@ -1,6 +1,7 @@
 package rr.industries.commands;
 
 import rr.industries.util.CommContext;
+import rr.industries.util.CommandInfo;
 import rr.industries.util.Logging;
 import rr.industries.util.Permissions;
 import sx.blah.discord.handle.obj.IUser;
@@ -9,16 +10,12 @@ import sx.blah.discord.util.DiscordException;
 import sx.blah.discord.util.MissingPermissionsException;
 import sx.blah.discord.util.RateLimitException;
 
-/**
- * Created by Sam on 8/28/2016.
- */
-public class Disconnect extends Command {
-    public Disconnect() {
-        permLevel = Permissions.ADMIN;
-        commandName = "disconnect";
-        helpText = "Disconnects a user from a voice channel.";
-    }
-
+@CommandInfo(
+        commandName = "disconnect",
+        helpText = "Disconnects a user from a voice channel",
+        permLevel = Permissions.ADMIN
+)
+public class Disconnect implements Command {
     @Override
     public void execute(CommContext cont) {
 

@@ -2,6 +2,7 @@ package rr.industries.commands;
 
 import rr.industries.util.BotActions;
 import rr.industries.util.CommContext;
+import rr.industries.util.CommandInfo;
 import rr.industries.util.Logging;
 import sx.blah.discord.util.MessageBuilder;
 
@@ -16,12 +17,11 @@ import java.net.URLConnection;
 /**
  * Created by Sam on 8/28/2016.
  */
-public class Cat extends Command {
-    public Cat() {
-        commandName = "cat";
-        helpText = "Posts a random cat picture";
-    }
-
+@CommandInfo(
+        commandName = "cat",
+        helpText = "Posts a random cat picture."
+)
+public class Cat implements Command {
     @Override
     public void execute(CommContext cont) {
 

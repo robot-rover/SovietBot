@@ -1,24 +1,18 @@
 package rr.industries.commands;
 
-import rr.industries.util.CommContext;
-import rr.industries.util.Logging;
-import rr.industries.util.Parsable;
-import rr.industries.util.Permissions;
+import rr.industries.util.*;
 import sx.blah.discord.util.DiscordException;
 import sx.blah.discord.util.MessageList;
 import sx.blah.discord.util.MissingPermissionsException;
 import sx.blah.discord.util.RateLimitException;
 
-/**
- * Created by Sam on 8/28/2016.
- */
-public class Purge extends Command {
-    public Purge() {
-        permLevel = Permissions.MOD;
-        commandName = "purge";
-        helpText = "Deletes Messages from a text Channel.";
-        deleteMessage = false;
-    }
+@CommandInfo(
+        commandName = "purge",
+        helpText = "Delets Messages from a text Channel",
+        permLevel = Permissions.MOD,
+        deleteMessage = false
+)
+public class Purge implements Command {
 
     @Override
     public void execute(CommContext cont) {

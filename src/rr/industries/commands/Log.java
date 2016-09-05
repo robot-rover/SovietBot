@@ -1,6 +1,7 @@
 package rr.industries.commands;
 
 import rr.industries.util.CommContext;
+import rr.industries.util.CommandInfo;
 import rr.industries.util.Logging;
 import rr.industries.util.Permissions;
 import sx.blah.discord.util.DiscordException;
@@ -10,16 +11,12 @@ import sx.blah.discord.util.RateLimitException;
 import java.io.File;
 import java.io.IOException;
 
-/**
- * Created by Sam on 8/28/2016.
- */
-public class Log extends Command {
-    public Log() {
-        permLevel = Permissions.BOTOPERATOR;
-        commandName = "log";
-        helpText = "Brings all current users of a server to you";
-    }
-
+@CommandInfo(
+        commandName = "log",
+        helpText = "Uploads the bots log to Chat",
+        permLevel = Permissions.BOTOPERATOR
+)
+public class Log implements Command {
     @Override
     public void execute(CommContext cont) {
         String path;

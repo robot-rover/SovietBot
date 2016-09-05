@@ -2,21 +2,17 @@ package rr.industries.commands;
 
 import rr.industries.util.BotActions;
 import rr.industries.util.CommContext;
+import rr.industries.util.CommandInfo;
 import rr.industries.util.Permissions;
 import sx.blah.discord.util.MessageBuilder;
 
-/**
- * Created by Sam on 8/28/2016.
- */
-public class Stop extends Command {
-
-    public Stop() {
-        permLevel = Permissions.BOTOPERATOR;
-        commandName = "stop";
-        helpText = "Shuts down SovietBot";
-        deleteMessage = false;
-    }
-
+@CommandInfo(
+        commandName = "stop",
+        helpText = "Shuts down SovietBot",
+        permLevel = Permissions.BOTOPERATOR,
+        deleteMessage = false
+)
+public class Stop implements Command {
     @Override
     public void execute(CommContext cont) {
         if (cont != null) {
@@ -25,6 +21,7 @@ public class Stop extends Command {
                 return;
             }
             if (!cont.getMessage().getMessage().getChannel().isPrivate()) {
+                //todo: stop delete message testing
                 /*try {
                     cont.getMessage().getMessage().delete();
                 } catch (MissingPermissionsException | RateLimitException | DiscordException ex) {

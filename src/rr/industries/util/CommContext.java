@@ -37,6 +37,19 @@ public class CommContext {
         }
     }
 
+    public String getConcatArgs() {
+        String concatArgs = "";
+        boolean first = true;
+        for (String arg : args) {
+            if (first) {
+                first = false;
+            } else {
+                concatArgs.concat(arg + " ");
+            }
+        }
+        return concatArgs.substring(0, concatArgs.length() - 1);
+    }
+
     public List<String> getArgs() {
         return args;
     }

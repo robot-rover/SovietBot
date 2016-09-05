@@ -1,9 +1,6 @@
 package rr.industries.commands;
 
-import rr.industries.util.BotActions;
-import rr.industries.util.CommContext;
-import rr.industries.util.Logging;
-import rr.industries.util.Permissions;
+import rr.industries.util.*;
 import sx.blah.discord.handle.obj.IUser;
 import sx.blah.discord.handle.obj.IVoiceChannel;
 import sx.blah.discord.util.DiscordException;
@@ -11,19 +8,13 @@ import sx.blah.discord.util.MessageBuilder;
 import sx.blah.discord.util.MissingPermissionsException;
 import sx.blah.discord.util.RateLimitException;
 
-/**
- * Created by Sam on 8/28/2016.
- */
-public class Unafk extends Command {
-    public Unafk() {
-        permLevel = Permissions.ADMIN;
-        commandName = "unafk";
-        helpText = "Brings AFK players to your current channel.";
-    }
-
-    @Override
+@CommandInfo(
+        commandName = "unafk",
+        helpText = "Brings AFK players to your channel.",
+        permLevel = Permissions.ADMIN
+)
+public class Unafk implements Command {
     public void execute(CommContext cont) {
-
         String message = "";
         boolean found = false;
         IVoiceChannel afk = cont.getMessage().getMessage().getGuild().getAFKChannel();

@@ -1,6 +1,7 @@
 package rr.industries.commands;
 
 import rr.industries.util.CommContext;
+import rr.industries.util.CommandInfo;
 import rr.industries.util.Logging;
 import rr.industries.util.Permissions;
 
@@ -11,10 +12,12 @@ import java.io.IOException;
 import static javax.sound.sampled.AudioSystem.getAudioInputStream;
 import static sx.blah.discord.util.audio.AudioPlayer.getAudioPlayerForGuild;
 
-/**
- * Created by Sam on 8/28/2016.
- */
-public class Rekt extends Command {
+@CommandInfo(
+        commandName = "rekt",
+        helpText = "Plays a slightly obnoxious sound in voice chat.",
+        permLevel = Permissions.REGULAR
+)
+public class Rekt implements Command {
     private AudioInputStream[] sfx;
 
     /*this.sfxIndex = new String[6];
@@ -38,9 +41,6 @@ public class Rekt extends Command {
         } catch (IOException | UnsupportedAudioFileException ex) {
             LOG.warn("Error initializing audio streams", ex);
         }
-        permLevel = Permissions.REGULAR;
-        commandName = "rekt";
-        helpText = "Plays a sound in the voice chat. Slightly Obnoxious...";
     }
 
 

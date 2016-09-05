@@ -2,20 +2,18 @@ package rr.industries.commands;
 
 import rr.industries.util.BotActions;
 import rr.industries.util.CommContext;
+import rr.industries.util.CommandInfo;
+import rr.industries.util.Permissions;
 import sx.blah.discord.util.MessageBuilder;
 
 import java.util.regex.Pattern;
 
-/**
- * @author Sam
- * @project sovietBot
- * @created 9/4/2016
- */
-public class Rip extends Command {
-    public Rip() {
-        commandName = "rip";
-        helpText = "Gives you a link to a place where everything is Rip";
-    }
+@CommandInfo(
+        commandName = "rip",
+        helpText = "Gives you a link to a place where everything is Rip",
+        permLevel = Permissions.REGULAR
+)
+public class Rip implements Command {
 
     @Override
     public void execute(CommContext cont) {

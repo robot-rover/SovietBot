@@ -1,6 +1,9 @@
 package rr.industries;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import rr.industries.commands.*;
+import rr.industries.util.CommandInfo;
 
 import java.util.Arrays;
 import java.util.List;
@@ -12,8 +15,10 @@ import java.util.List;
  */
 public class CommandList {
     public List<Command> commandList;
+    public Logger LOG;
 
     public CommandList() {
+        LOG = LoggerFactory.getLogger(this.getClass());
         commandList = Arrays.asList(
                 new Bring(), new Cat(), new Coin(), new Connect(),
                 new Disconnect(), new Help(), new Info(), new Invite(), new Log(), new Music(),
@@ -25,7 +30,8 @@ public class CommandList {
     }
 
     public Command getCommand(String findCommand) {
-        Command comm = commandList.stream().filter((Command v) -> v.commandName.equals(findCommand)).findAny().orElse(null);
-        return comm;
+        return commandList.stream().filter((Command v) ->
+                v.getClass().isAnnotationPresent(CommandInfo.class) && v.getClass().getDeclaredAnnotation(CommandInfo.class).commandName().equals(findCommand))
+                .findAny().orElse(null);
     }
 }

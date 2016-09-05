@@ -2,18 +2,17 @@ package rr.industries.commands;
 
 import rr.industries.util.BotActions;
 import rr.industries.util.CommContext;
+import rr.industries.util.CommandInfo;
 import rr.industries.util.Parsable;
 import sx.blah.discord.util.MessageBuilder;
 
-/**
- * Created by Sam on 8/28/2016.
- */
-public class Quote extends Command {
+@CommandInfo(
+        commandName = "quote",
+        helpText = "Tells an \"In Soviet Russia\" joke."
+)
+public class Quote implements Command {
     private final String[] quotes;
-
     public Quote() {
-        commandName = "quote";
-        helpText = "Plays YouTube and Sound Cloud music.";
         quotes = new String[]{
                 "In Soviet Russia, command type you.",
                 "In Soviet Russia, the lowest rank in the military is Public, not Private",

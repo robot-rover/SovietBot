@@ -3,19 +3,16 @@ package rr.industries.commands;
 import rr.industries.SovietBot;
 import rr.industries.util.BotActions;
 import rr.industries.util.CommContext;
+import rr.industries.util.CommandInfo;
 import sx.blah.discord.util.MessageBuilder;
 
 import static rr.industries.SovietBot.*;
 
-/**
- * Created by Sam on 8/28/2016.
- */
-public class Info extends Command {
-    public Info() {
-        commandName = "info";
-        helpText = "Displays basic bot info.";
-    }
-
+@CommandInfo(
+        commandName = "info",
+        helpText = "Displays basic bot info."
+)
+public class Info implements Command {
     @Override
     public void execute(CommContext cont) {
         String message = "```markdown\n" +

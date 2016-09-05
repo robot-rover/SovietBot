@@ -9,6 +9,7 @@ import rr.industries.modules.Module;
 import rr.industries.modules.githubwebhooks.GithubWebhooks;
 import rr.industries.util.BotActions;
 import rr.industries.util.CommContext;
+import rr.industries.util.CommandInfo;
 import sx.blah.discord.Discord4J;
 import sx.blah.discord.api.ClientBuilder;
 import sx.blah.discord.api.IDiscordClient;
@@ -33,9 +34,10 @@ import static rr.industries.SovietBot.resourceLoader;
 /* todo: Add SQLite Storage: https://github.com/xerial/sqlite-jdbc
  * todo: Add Permissions
  * todo: Write config changes
+ * todo: XP and Levels
+ * todo: RSS feeds module
  * Commands -
  * Command: Add Strawpole Command
- * Command: Add Prefix Switch Command
  * Command: Add Weather Command: https://bitbucket.org/akapribot/owm-japis
  * Command: Tag Command
  * Command: Echo Command
@@ -43,6 +45,10 @@ import static rr.industries.SovietBot.resourceLoader;
  * Command: Dictionary Command
  * Command: Triggered Text Command: http://eeemo.net/
  * Command: environment command
+ * Command: URL Shortener
+ * Command: Reminder
+ * Command: voting
+ * Command: search stuff
  */
 
 public class Instance {
@@ -124,7 +130,8 @@ public class Instance {
             Command command;
             command = commandList.getCommand(cont.getArgs().get(0));
             if (command != null) {
-                if (command.deleteMessage && !cont.getMessage().getMessage().getChannel().isPrivate()) {
+                CommandInfo info = command.getClass().getDeclaredAnnotation(CommandInfo.class);
+                if (info.deleteMessage() && !cont.getMessage().getMessage().getChannel().isPrivate()) {
                     BotActions.delayDelete(cont.getMessage().getMessage(), 5000);
                 }
                 command.execute(cont);

@@ -6,6 +6,7 @@ import net.dv8tion.jda.player.source.AudioInfo;
 import net.dv8tion.jda.player.source.AudioSource;
 import rr.industries.util.BotActions;
 import rr.industries.util.CommContext;
+import rr.industries.util.CommandInfo;
 import rr.industries.util.Logging;
 import sx.blah.discord.handle.audio.IAudioProvider;
 import sx.blah.discord.handle.obj.IMessage;
@@ -18,16 +19,12 @@ import java.util.concurrent.ConcurrentLinkedQueue;
 
 import static sx.blah.discord.util.audio.AudioPlayer.getAudioPlayerForGuild;
 
-/**
- * Created by Sam on 8/28/2016.
- */
+@CommandInfo(
+        commandName = "music",
+        helpText = "Plays YouTube and SoundCloud music in a voice channel."
+)
 //todo: Music Loading Progress Bar
-public class Music extends Command {
-    public Music() {
-        commandName = "music";
-        helpText = "Plays YouTube and Sound Cloud music.";
-    }
-
+public class Music implements Command {
     @Override
     public void execute(CommContext cont) {
         AudioPlayer aPlayer = getAudioPlayerForGuild(cont.getMessage().getMessage().getGuild());
