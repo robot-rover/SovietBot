@@ -40,7 +40,6 @@ import static rr.industries.SovietBot.resourceLoader;
  * Command: Add Strawpole Command
  * Command: Add Weather Command: https://bitbucket.org/akapribot/owm-japis
  * Command: Tag Command
- * Command: Echo Command
  * Command: Whois Command
  * Command: Dictionary Command
  * Command: Triggered Text Command: http://eeemo.net/

@@ -19,6 +19,12 @@
     </repositories>
 
     <dependencies>
+        <!-- HTTP Client: Send Webhook POST -->
+        <dependency>
+            <groupId>org.apache.httpcomponents</groupId>
+            <artifactId>httpclient</artifactId>
+            <version>4.5.2</version>
+        </dependency>
         <!-- Spark: Websocket Server -->
         <dependency>
             <groupId>com.sparkjava</groupId>
