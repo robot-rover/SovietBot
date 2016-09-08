@@ -17,7 +17,6 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLConnection;
 import java.security.InvalidKeyException;
@@ -34,10 +33,10 @@ public class GithubWebhooks implements Module {
     private final List<ChannelSettings> channels = new ArrayList<>();
     private final Gson gson = new Gson();
     private final IDiscordClient client;
-    private final String secret;
     private final int port;
     private final Mac mac;
     private boolean isEnabled;
+    private final BotActions actions;
     private final Logger LOG = LoggerFactory.getLogger(GithubWebhooks.class);
 
     /**
@@ -46,15 +45,15 @@ public class GithubWebhooks implements Module {
      * @param port   The port to bind Spark to.
      * @param client The Client of the discord bot.
      */
-    public GithubWebhooks(int port, IDiscordClient client, final String secret) {
+    public GithubWebhooks(int port, IDiscordClient client, BotActions actions) {
         this.client = client;
         this.port = port;
-        this.secret = secret;
         isEnabled = false;
+        this.actions = actions;
 
-        final SecretKeySpec keySpec = secret == null ? null : new SecretKeySpec(secret.getBytes(), "HmacSHA1");
+        final SecretKeySpec keySpec = actions.getConfig().secret == null ? null : new SecretKeySpec(actions.getConfig().secret.getBytes(), "HmacSHA1");
         Mac tmpMac = null;
-        if (secret != null) {
+        if (actions.getConfig().secret != null) {
             try {
                 tmpMac = Mac.getInstance("HmacSHA1");
                 tmpMac.init(keySpec);
@@ -75,7 +74,7 @@ public class GithubWebhooks implements Module {
                 return "Content-Type must be application/json!";
             }
 
-            if (secret != null && mac != null) {
+            if (actions.getConfig().secret != null && mac != null) {
                 String signature = request.headers("X-Hub-Signature");
 
                 byte[] digestBytes = mac.doFinal(request.body().getBytes());
@@ -98,7 +97,7 @@ public class GithubWebhooks implements Module {
                 Ping ping = gson.fromJson(request.body(), Ping.class);
                 String pingMessage = "Ping from webhook " + ping.hook_id + " with zen " + ping.zen;
                 LOG.info(pingMessage);
-                BotActions.sendMessage(new MessageBuilder(client).withContent(pingMessage).withChannel(client.getOrCreatePMChannel(client.getUserByID("141981833951838208"))));
+                actions.sendMessage(new MessageBuilder(client).withContent(pingMessage).withChannel(client.getOrCreatePMChannel(client.getUserByID("141981833951838208"))));
             }
             // 👌 OK
             response.status(200);
@@ -108,12 +107,12 @@ public class GithubWebhooks implements Module {
         Spark.post("/command", (Request request, Response response) -> {
             Restart restart = gson.fromJson(request.body(), Restart.class);
             LOG.info("Command POST received - " + restart.command);
-            if (restart.command.equals("restart") && restart.secret.equals(secret)) {
+            if (restart.command.equals("restart") && restart.secret.equals(actions.getConfig().secret)) {
                 LOG.info("Everything Looks good, Restarting...");
                 Thread thread = new Thread() {
                     @Override
                     public void run() {
-                        BotActions.terminate(true, client);
+                        actions.terminate(true);
                     }
                 };
                 thread.start();
@@ -147,30 +146,22 @@ public class GithubWebhooks implements Module {
 
     private void sendMessageToChannels(String repo, String event, String content) {
         LOG.info("Sent a webhook message to channels for event " + event);
-        BotActions.sendMessage(new MessageBuilder(client).withContent(content).withChannel(client.getChannelByID("161155978199302144")));
+        actions.sendMessage(new MessageBuilder(client).withContent(content).withChannel(client.getChannelByID("161155978199302144")));
     }
 
     public String getJsonFromUrl(String address) throws IOException {
         URL url;
-        try {
-            url = new URL(address);
-        } catch (MalformedURLException ex) {
-            throw ex;
-        }
+        url = new URL(address);
         InputStream is;
-        try {
-            URLConnection con = url.openConnection();
-            is = con.getInputStream();
-        } catch (IOException ex) {
-            throw ex;
-        }
+        URLConnection con = url.openConnection();
+        is = con.getInputStream();
         BufferedReader br = new BufferedReader(new InputStreamReader(is));
         String inputLine;
-        String message = "";
+        StringBuilder builder = new StringBuilder();
         while ((inputLine = br.readLine()) != null)
-            message.concat(inputLine);
+            builder.append(inputLine);
         br.close();
-        return message;
+        return builder.toString();
     }
 
     private static class ChannelSettings {

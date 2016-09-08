@@ -2,7 +2,6 @@ package rr.industries.commands;
 
 import rr.industries.util.CommContext;
 import rr.industries.util.CommandInfo;
-import rr.industries.util.Logging;
 import rr.industries.util.Permissions;
 import sx.blah.discord.handle.obj.IUser;
 import sx.blah.discord.handle.obj.IVoiceChannel;
@@ -20,34 +19,37 @@ public class Disconnect implements Command {
     public void execute(CommContext cont) {
 
         if (cont.getArgs().size() < 2) {
-            Logging.missingArgs(cont.getMessage(), "disconnect", cont.getArgs(), LOG);
+            cont.getActions().missingArgs(cont.getMessage().getMessage().getChannel());
         }
         IUser user;
         try {
             user = cont.getMessage().getMessage().getMentions().get(0);
         } catch (IndexOutOfBoundsException ex) {
-            Logging.missingArgs(cont.getMessage(), "disconnect", cont.getArgs(), LOG);
+            cont.getActions().missingArgs(cont.getMessage().getMessage().getChannel());
             return;
         }
-        IVoiceChannel remove;
+        IVoiceChannel remove = null;
         try {
             remove = cont.getMessage().getMessage().getGuild().createVoiceChannel("Disconnect");
-            try {
-                user.moveToVoiceChannel(remove);
-            } catch (DiscordException ex) {
-                Logging.error(cont.getMessage().getMessage().getGuild(), "disconnect", ex, LOG);
-            } catch (MissingPermissionsException ex) {
-                Logging.missingPermissions(cont.getMessage().getMessage().getChannel(), "disconnect", ex, LOG);
-            } catch (RateLimitException ex) {
-                Logging.rateLimit(ex, this::execute, cont, LOG);
-            }
-            remove.delete();
+            user.moveToVoiceChannel(remove);
         } catch (DiscordException ex) {
-            Logging.error(cont.getMessage().getMessage().getGuild(), "disconnect", ex, LOG);
+            cont.getActions().customException("Disconnect", ex.getErrorMessage(), ex, LOG, true);
         } catch (MissingPermissionsException ex) {
-            Logging.missingPermissions(cont.getMessage().getMessage().getChannel(), "disconnect", ex, LOG);
+            cont.getActions().missingPermissions(cont.getMessage().getMessage().getChannel(), ex);
         } catch (RateLimitException ex) {
-            Logging.rateLimit(ex, this::execute, cont, LOG);
+            //todo: implement ratelimit
+        } finally {
+            try {
+                if (remove != null) {
+                    remove.delete();
+                }
+            } catch (DiscordException ex) {
+                cont.getActions().customException("Disconnect", ex.getErrorMessage(), ex, LOG, true);
+            } catch (MissingPermissionsException ex) {
+                cont.getActions().missingPermissions(cont.getMessage().getMessage().getChannel(), ex);
+            } catch (RateLimitException ex) {
+                //todo: implement ratelimit
+            }
         }
     }
 }

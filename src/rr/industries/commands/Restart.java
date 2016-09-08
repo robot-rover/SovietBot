@@ -1,6 +1,5 @@
 package rr.industries.commands;
 
-import rr.industries.util.BotActions;
 import rr.industries.util.CommContext;
 import rr.industries.util.CommandInfo;
 import rr.industries.util.Permissions;
@@ -21,7 +20,7 @@ public class Restart implements Command {
     public void execute(CommContext cont) {
 
         if (!cont.getMessage().getMessage().getAuthor().getID().equals("141981833951838208")) {
-            BotActions.sendMessage(new MessageBuilder(cont.getClient()).withContent("Communism marches on!").withChannel(cont.getMessage().getMessage().getChannel()));
+            cont.getActions().sendMessage(new MessageBuilder(cont.getClient()).withContent("Communism marches on!").withChannel(cont.getMessage().getMessage().getChannel()));
             return;
         }
         if (!cont.getMessage().getMessage().getChannel().isPrivate()) {
@@ -31,6 +30,6 @@ public class Restart implements Command {
                 LOG.debug("Error while deleting restart command", ex);
             }
         }
-        BotActions.terminate(true, cont.getClient());
+        cont.getActions().terminate(true);
     }
 }

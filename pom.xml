@@ -19,6 +19,12 @@
     </repositories>
 
     <dependencies>
+        <!-- SQLite Database Driver -->
+        <dependency>
+            <groupId>org.xerial</groupId>
+            <artifactId>sqlite-jdbc</artifactId>
+            <version>3.8.11.2</version>
+        </dependency>
         <!-- HTTP Client: Send Webhook POST -->
         <dependency>
             <groupId>org.apache.httpcomponents</groupId>

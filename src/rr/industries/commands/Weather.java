@@ -1,6 +1,5 @@
 package rr.industries.commands;
 
-import rr.industries.util.BotActions;
 import rr.industries.util.CommContext;
 import rr.industries.util.CommandInfo;
 import rr.industries.util.Permissions;
@@ -15,6 +14,6 @@ import sx.blah.discord.util.MessageBuilder;
 public class Weather implements Command {
     @Override
     public void execute(CommContext cont) {
-        BotActions.sendMessage(new MessageBuilder(cont.getClient()).withContent("Coming Soon!").withChannel(cont.getMessage().getMessage().getChannel()));
+        cont.getActions().sendMessage(new MessageBuilder(cont.getClient()).withContent("Coming Soon!").withChannel(cont.getMessage().getMessage().getChannel()));
     }
 }

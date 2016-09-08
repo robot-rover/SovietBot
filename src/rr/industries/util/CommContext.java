@@ -5,35 +5,47 @@
  */
 package rr.industries.util;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import rr.industries.Configuration;
 import sx.blah.discord.api.IDiscordClient;
 import sx.blah.discord.handle.impl.events.MessageReceivedEvent;
 
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.NoSuchElementException;
 import java.util.Scanner;
 
 public class CommContext {
+    private static final Logger LOG = LoggerFactory.getLogger(CommContext.class);
     private final List<String> args = new ArrayList<>();
-    private MessageReceivedEvent e;
-    private IDiscordClient client;
-    private String commChar;
+    private final MessageReceivedEvent e;
+    private Permissions callerPerms;
+    private final BotActions actions;
 
-    public CommContext(MessageReceivedEvent e, IDiscordClient client, String commChar) {
+    public CommContext(MessageReceivedEvent e, BotActions actions) {
+        this.actions = actions;
         this.e = e;
-        this.commChar = commChar;
-        this.client = client;
+        Statement sql = actions.getSQL();
+        try {
+            ResultSet rs = sql.executeQuery("SELECT perm from perms WHERE guildid=" + e.getMessage().getGuild().getID() + " AND userid=" + e.getMessage().getAuthor().getID());
+            if (!rs.next()) {
+                callerPerms = Permissions.NORMAL;
+            } else {
+                callerPerms = Permissions.values()[rs.getInt("perm")];
+            }
+        } catch (SQLException ex) {
+            actions.sqlError(ex, "CommContext<init>", LOG);
+        }
         boolean next = true;
         Scanner parser = new Scanner(e.getMessage().getContent());
-        while (next) {
-            try {
-                args.add(parser.next());
-            } catch (NoSuchElementException | NullPointerException ex) {
-                next = false;
-            }
+        while (parser.hasNext()) {
+            args.add(parser.next());
         }
-        if (args.get(0).startsWith(commChar)) {
-            args.set(0, args.get(0).substring(commChar.length()));
+        if (args.get(0).startsWith(actions.getConfig().commChar)) {
+            args.set(0, args.get(0).substring(actions.getConfig().commChar.length()));
         }
     }
 
@@ -45,6 +57,18 @@ public class CommContext {
         return concatArgs.substring(0, concatArgs.length() > 0 ? concatArgs.length() - 1 : 0);
     }
 
+    public BotActions getActions() {
+        return actions;
+    }
+
+    public Configuration getConfig() {
+        return actions.getConfig();
+    }
+
+    public Permissions getCallerPerms() {
+        return callerPerms;
+    }
+
     public List<String> getArgs() {
         return args;
     }
@@ -54,10 +78,10 @@ public class CommContext {
     }
 
     public IDiscordClient getClient() {
-        return client;
+        return actions.getClient();
     }
 
     public String getCommChar() {
-        return commChar;
+        return actions.getConfig().commChar;
     }
 }

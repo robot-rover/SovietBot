@@ -1,7 +1,6 @@
 package rr.industries.commands;
 
 import rr.industries.SovietBot;
-import rr.industries.util.BotActions;
 import rr.industries.util.CommContext;
 import rr.industries.util.CommandInfo;
 import sx.blah.discord.util.MessageBuilder;
@@ -21,6 +20,6 @@ public class Info implements Command {
                 "[For help type](" + cont.getCommChar() + helpCommand + ")\n" + "This bot was created by <" + author + ">\n" +
                 "[Invite Link](" + SovietBot.invite + ")" +
                 "```";
-        BotActions.sendMessage(new MessageBuilder(cont.getClient()).withContent(message).withChannel(cont.getMessage().getMessage().getChannel()));
+        cont.getActions().sendMessage(new MessageBuilder(cont.getClient()).withContent(message).withChannel(cont.getMessage().getMessage().getChannel()));
     }
 }

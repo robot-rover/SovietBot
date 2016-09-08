@@ -1,10 +1,10 @@
 package rr.industries.commands;
 
-import rr.industries.util.*;
-import sx.blah.discord.util.DiscordException;
-import sx.blah.discord.util.MessageList;
-import sx.blah.discord.util.MissingPermissionsException;
-import sx.blah.discord.util.RateLimitException;
+import rr.industries.util.CommContext;
+import rr.industries.util.CommandInfo;
+import rr.industries.util.Parsable;
+import rr.industries.util.Permissions;
+import sx.blah.discord.util.*;
 
 @CommandInfo(
         commandName = "purge",
@@ -19,27 +19,28 @@ public class Purge implements Command {
 
         MessageList clear;
         if (cont.getArgs().size() < 2) {
-            Logging.missingArgs(cont.getMessage(), "purge", cont.getArgs(), LOG);
+            cont.getActions().missingArgs(cont.getMessage().getMessage().getChannel());
             return;
         }
         if (!Parsable.tryInt(cont.getArgs().get(1))) {
-            Logging.wrongArgs(cont.getMessage(), "purge", cont.getArgs(), LOG);
+            cont.getActions().wrongArgs(cont.getMessage().getMessage().getChannel());
             return;
         }
         int number = Integer.parseInt(cont.getArgs().get(1)) + 1;
         if (number > 100) {
-            Logging.customException(cont.getMessage(), "purge", "You cannont delete more than 100 messages at a time (" + number + ")", null, LOG);
+            cont.getActions().sendMessage(new MessageBuilder(cont.getClient()).withContent("Cannot delete more than 99 messages at a time (" + number + ")")
+                    .withChannel(cont.getMessage().getMessage().getChannel()));
             return;
         }
         clear = new MessageList(cont.getClient(), cont.getMessage().getMessage().getChannel(), number);
         try {
             clear.bulkDelete(clear);
         } catch (DiscordException ex) {
-            Logging.error(cont.getMessage().getMessage().getGuild(), "purge", ex, LOG);
+            cont.getActions().customException("Purge", ex.getErrorMessage(), ex, LOG, true);
         } catch (MissingPermissionsException ex) {
-            Logging.missingPermissions(cont.getMessage().getMessage().getChannel(), "purge", ex, LOG);
+            cont.getActions().missingPermissions(cont.getMessage().getMessage().getChannel(), ex);
         } catch (RateLimitException ex) {
-            Logging.rateLimit(ex, this::execute, cont, LOG);
+            //todo: implement ratelimit
         }
     }
 }

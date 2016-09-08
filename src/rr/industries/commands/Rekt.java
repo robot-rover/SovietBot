@@ -2,7 +2,6 @@ package rr.industries.commands;
 
 import rr.industries.util.CommContext;
 import rr.industries.util.CommandInfo;
-import rr.industries.util.Logging;
 import rr.industries.util.Permissions;
 
 import javax.sound.sampled.AudioInputStream;
@@ -48,20 +47,20 @@ public class Rekt implements Command {
     public void execute(CommContext cont) {
         int i = 0;
         AudioInputStream[] sources = sfx;
-        if (cont.getArgs().size() > 1) {
-            /*for (String command : sfxIndex) {
+        /*if (cont.getArgs().size() > 1) {
+            for (String command : sfxIndex) {
                 if (command.equalsIgnoreCase(cont.getArgs().get(1))) {
                     sources = new AudioInputStream[1];
                     sources[0] = sfx[i];
                 }
                 i++;
-            }*/
-        }
+            }
+        }*/
 
         try {
             getAudioPlayerForGuild(cont.getMessage().getMessage().getGuild()).queue(sources[rn.nextInt(sources.length)]);
         } catch (IOException ex) {
-            Logging.error(cont.getMessage().getMessage().getGuild(), "rekt", ex, LOG);
+            cont.getActions().customException("Rekt", ex.getMessage(), ex, LOG, true);
         }
     }
 }

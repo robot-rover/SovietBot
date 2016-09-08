@@ -1,6 +1,5 @@
 package rr.industries.commands;
 
-import rr.industries.util.BotActions;
 import rr.industries.util.CommContext;
 import rr.industries.util.CommandInfo;
 import sx.blah.discord.util.MessageBuilder;
@@ -14,9 +13,8 @@ public class Echo implements Command {
     public void execute(CommContext cont) {
         MessageBuilder message = new MessageBuilder(cont.getClient()).withChannel(cont.getMessage().getMessage().getChannel())
                 .withContent(cont.getConcatArgs());
-        LOG.info(cont.getConcatArgs());
         if (message.getContent().length() > 0) {
-            BotActions.sendMessage(message);
+            cont.getActions().sendMessage(message);
         }
     }
 }

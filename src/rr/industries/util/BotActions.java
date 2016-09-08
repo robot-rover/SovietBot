@@ -2,12 +2,16 @@ package rr.industries.util;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
-import org.apache.commons.io.FileUtils;
+import com.sun.istack.internal.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import rr.industries.CommandList;
+import rr.industries.Configuration;
 import rr.industries.Instance;
 import rr.industries.SovietBot;
 import sx.blah.discord.api.IDiscordClient;
+import sx.blah.discord.handle.impl.events.MessageReceivedEvent;
+import sx.blah.discord.handle.obj.IChannel;
 import sx.blah.discord.handle.obj.IGuild;
 import sx.blah.discord.handle.obj.IMessage;
 import sx.blah.discord.handle.obj.IVoiceChannel;
@@ -20,9 +24,10 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.StandardCopyOption;
+import java.sql.SQLException;
+import java.sql.Statement;
 import java.util.List;
 
 /**
@@ -31,20 +36,17 @@ import java.util.List;
  * @created 8/29/2016
  */
 public final class BotActions {
-    public static Logger LOG = LoggerFactory.getLogger(BotActions.class);
+    private static final Logger LOG = LoggerFactory.getLogger(BotActions.class);
+    private final IDiscordClient client;
+    private final Configuration config;
+    private final CommandList commands;
+    private final Statement sql;
 
-    public static void connectToChannel(IVoiceChannel channel, List<IVoiceChannel> connectedChannels) {
-        IVoiceChannel possible = connectedChannels.stream().filter(v -> v.getGuild().equals(channel.getGuild())).findAny().orElse(null);
-        if (!channel.isConnected()) {
-            if (possible != null) {
-                possible.leave();
-            }
-            try {
-                channel.join();
-            } catch (MissingPermissionsException ex) {
-                Logging.missingPermissions(channel, "connectToChannel", ex, LOG);
-            }
-        }
+    public BotActions(IDiscordClient client, Configuration config, CommandList commands, Statement sql) {
+        this.client = client;
+        this.config = config;
+        this.commands = commands;
+        this.sql = sql;
     }
 
     public static void disconnectFromChannel(IGuild guild, List<IVoiceChannel> connectedChannels) {
@@ -54,32 +56,109 @@ public final class BotActions {
         }
     }
 
-    public static void delayDelete(IMessage message, int delay) {
-        Thread thread = new Thread() {
-            @Override
-            public void run() {
-                try {
-                    Thread.sleep(delay);
-                } catch (InterruptedException ex) {
-                    Logging.threadInterrupted(ex, "onMessage", SovietBot.LOG);
-                }
-                try {
-                    if (Instance.loggedIn)
-                        message.delete();
-                } catch (MissingPermissionsException ex) {
-                    //fail silently
-                    SovietBot.LOG.debug("Did not delete message, missing permissions");
-                } catch (RateLimitException ex) {
-                    //todo: fix ratelimit
-                } catch (DiscordException ex) {
-                    Logging.error(message.getGuild(), "onMessage", ex, LOG);
-                }
-            }
-        };
-        thread.start();
+    public IDiscordClient getClient() {
+        return client;
     }
 
-    public static void messageOwner(String message, IDiscordClient client, boolean notify) {
+    public Statement getSQL() {
+        return sql;
+    }
+
+    public CommandList getCommands() {
+        return commands;
+    }
+
+    public Configuration getConfig() {
+        return config;
+    }
+
+    public void sqlError(SQLException ex, String methodName, Logger log) {
+        String message = "SQL Error in " + methodName + ": " + ex.getMessage() + "\n" + ex.toString();
+        log.warn(message);
+        messageOwner(message, true);
+    }
+
+    public void threadInterrupted(InterruptedException ex, String methodName, Logger log) {
+        log.warn(methodName + " - Sleep was interrupted - ", ex);
+    }
+
+    public void notFound(MessageReceivedEvent e, String methodName, String type, String name, Logger log) {
+        String message = methodName + " failed to find " + type + ": \"" + name + "\" in Server: \"" + e.getMessage().getGuild().getName() + "\"";
+        log.info(message);
+        try {
+            e.getMessage().reply(message);
+        } catch (MissingPermissionsException ex) {
+            missingPermissions(e.getMessage().getChannel(), ex);
+        } catch (RateLimitException ex) {
+            //todo: implement ratelimit fix
+        } catch (DiscordException ex) {
+            customException("notFound", ex.getMessage(), ex, log, true);
+        }
+    }
+
+    public void customException(String methodName, String message, @Nullable Exception ex, Logger log, boolean error) {
+        String fullMessage = methodName + message;
+        if (error) {
+            log.error(fullMessage);
+            if (ex != null) {
+                log.error("Full Stack Trace - ", ex);
+            }
+            messageOwner("[ERROR] " + fullMessage, true);
+        } else {
+            log.info(fullMessage);
+            if (ex != null) {
+                log.debug("Full Stack Trace - ", ex);
+            }
+        }
+    }
+
+    public void missingPermissions(IChannel channel, MissingPermissionsException ex) {
+        sendMessage(new MessageBuilder(client).withChannel(channel).withContent(ex.getErrorMessage()));
+    }
+
+    public void missingArgs(IChannel channel) {
+        sendMessage(new MessageBuilder(client).withChannel(channel).withContent("You are missing some arguments"));
+    }
+
+    public void wrongArgs(IChannel channel) {
+        sendMessage(new MessageBuilder(client).withChannel(channel).withContent("Your arguments are incorrect"));
+    }
+
+    public void connectToChannel(IVoiceChannel channel, List<IVoiceChannel> connectedChannels) {
+        IVoiceChannel possible = connectedChannels.stream().filter(v -> v.getGuild().equals(channel.getGuild())).findAny().orElse(null);
+        if (!channel.isConnected()) {
+            if (possible != null) {
+                possible.leave();
+            }
+            try {
+                channel.join();
+            } catch (MissingPermissionsException ex) {
+                missingPermissions(channel, ex);
+            }
+        }
+    }
+
+    public void delayDelete(IMessage message, int delay) {
+        try {
+            Thread.sleep(delay);
+        } catch (InterruptedException ex) {
+            threadInterrupted(ex, "onMessage", SovietBot.LOG);
+        }
+        try {
+            if (Instance.loggedIn)
+                message.delete();
+        } catch (MissingPermissionsException ex) {
+            //fail silently
+            SovietBot.LOG.debug("Did not delete message, missing permissions");
+        } catch (RateLimitException ex) {
+            //todo: fix ratelimit
+        } catch (DiscordException ex) {
+            customException("delayDelete", ex.getErrorMessage(), ex, LOG, true);
+        }
+
+    }
+
+    public void messageOwner(String message, boolean notify) {
         MessageBuilder messageBuilder = new MessageBuilder(client).withContent(message);
         try {
             if (!notify) {
@@ -93,7 +172,7 @@ public final class BotActions {
             if (messageBuilder.getChannel() == null) {
                 messageBuilder.withChannel(client.getOrCreatePMChannel(client.getUserByID("141981833951838208")));
             }
-            BotActions.sendMessage(messageBuilder);
+            sendMessage(messageBuilder);
         } catch (DiscordException ex) {
             LOG.error("Error messaging bot owner", ex);
         } catch (RateLimitException ex) {
@@ -101,25 +180,25 @@ public final class BotActions {
         }
     }
 
-    public static IMessage sendMessage(MessageBuilder builder) {
+    public IMessage sendMessage(MessageBuilder builder) {
         IMessage messageObject = null;
         try {
             messageObject = builder.send();
         } catch (DiscordException ex) {
-            Logging.error(builder.getChannel().getGuild(), "sendMessage(event)", ex, LOG);
+            customException("sendMessage", ex.getErrorMessage(), ex, LOG, true);
         } catch (RateLimitException ex) {
             //todo: fix ratelimit
         } catch (MissingPermissionsException ex) {
-            Logging.missingPermissions(builder.getChannel(), "sendMessage(event)", ex, LOG);
+            missingPermissions(builder.getChannel(), ex);
         }
         return messageObject;
     }
 
-    public static void terminate(Boolean restart, IDiscordClient client) {
+    public void terminate(Boolean restart) {
         LOG.info("Writing Config");
         Gson gson = new GsonBuilder().setPrettyPrinting().create();
         try (FileWriter writer = new FileWriter("configuration.json", false)) {
-            writer.write(gson.toJson(SovietBot.getBot().config));
+            writer.write(gson.toJson(config));
         } catch (FileNotFoundException ex) {
             LOG.error("Config file not found upon exit, but was saved", ex);
         } catch (IOException ex) {
@@ -158,7 +237,7 @@ public final class BotActions {
         System.exit(0);
     }
 
-    public static boolean saveLog() {
+    public boolean saveLog() {
         boolean successful = true;
         try {
             Files.copy(new File("events.log").toPath(), new File("events_" + Long.toString(System.currentTimeMillis()) + ".log").toPath(), StandardCopyOption.COPY_ATTRIBUTES);
@@ -171,7 +250,7 @@ public final class BotActions {
         return successful;
     }
 
-    public static void downloadUpdate(String url, IDiscordClient client) {
+    /*public void downloadUpdate(String url) {
         LOG.info("Downloading new .jar");
         File jarFile = new File("sovietBot-master.jar");
         File backupFile = new File("sovietBot-backup.jar");
@@ -200,7 +279,7 @@ public final class BotActions {
         } catch (IOException ex) {
             LOG.warn("Unable to delete backup after successful extraction", ex);
         }
-        BotActions.saveLog();
+        saveLog();
         try {
             sendMessage(new MessageBuilder(client).withContent("Updated successfully.").withChannel(client.getOrCreatePMChannel(client.getUserByID("141981833951838208"))));
         } catch (DiscordException ex) {
@@ -208,6 +287,5 @@ public final class BotActions {
         } catch (RateLimitException ex) {
             //todo: Fix ratelimits
         }
-        BotActions.terminate(true, client);
-    }
+    }*/
 }

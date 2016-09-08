@@ -1,7 +1,8 @@
 package rr.industries.commands;
 
-import rr.industries.SovietBot;
-import rr.industries.util.*;
+import rr.industries.util.CommContext;
+import rr.industries.util.CommandInfo;
+import rr.industries.util.Permissions;
 import sx.blah.discord.util.MessageBuilder;
 
 @CommandInfo(
@@ -14,11 +15,11 @@ public class Prefix implements Command {
     @Override
     public void execute(CommContext cont) {
         if (cont.getArgs().size() >= 2) {
-            SovietBot.getBot().config.commChar = cont.getArgs().get(1);
-            BotActions.sendMessage(new MessageBuilder(cont.getClient()).withChannel(cont.getMessage().getMessage().getChannel())
+            cont.getConfig().commChar = cont.getArgs().get(1);
+            cont.getActions().sendMessage(new MessageBuilder(cont.getClient()).withChannel(cont.getMessage().getMessage().getChannel())
                     .withContent("Command Prefix changed to `" + cont.getArgs().get(1) + "`"));
         } else {
-            Logging.missingArgs(cont.getMessage(), "prefix", cont.getArgs(), LOG);
+            cont.getActions().missingArgs(cont.getMessage().getMessage().getChannel());
         }
     }
 }

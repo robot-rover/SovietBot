@@ -2,7 +2,6 @@
 .index/
 *.log
 dependency-reduced-pom.xml
-events.log
 nbactions.xml
 sovietBot.iml
 target/

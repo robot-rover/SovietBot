@@ -25,7 +25,7 @@ public class SovietBot {
 
     public static final Logger LOG = LoggerFactory.getLogger(SovietBot.class);
     private static Instance bot;
-    public static ClassLoader resourceLoader = Instance.class.getClassLoader();
+    public static final ClassLoader resourceLoader = Instance.class.getClassLoader();
 
     public static final String version = "1.2.2";
     public static final String botName = "SovietBot";
@@ -39,16 +39,15 @@ public class SovietBot {
         LOG.info("\n------------------------------------------------------------------------\n"
                 + "### " + botName + " v" + version + " ### "
                 + "\n------------------------------------------------------------------------");
-        bot = new Instance();
         try {
-            bot.login();
+            bot = new Instance();
         } catch (DiscordException e) {
             LOG.warn("Bot could not start", e);
         }
     }
 
-    public static Instance getBot() {
+    /*public static Instance getBot() {
         return bot;
-    }
+    }*/
 
 }

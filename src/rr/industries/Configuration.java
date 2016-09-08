@@ -1,9 +1,9 @@
 package rr.industries;
 
 public class Configuration {
-    String botName;
-    String botAvatar;
+    public String botName;
+    public String botAvatar;
     public String commChar;
-    String token;
-    String secret;
+    public String token;
+    public String secret;
 }

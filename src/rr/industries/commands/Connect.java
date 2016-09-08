@@ -3,7 +3,6 @@ package rr.industries.commands;
 import rr.industries.util.BotActions;
 import rr.industries.util.CommContext;
 import rr.industries.util.CommandInfo;
-import rr.industries.util.Logging;
 import sx.blah.discord.handle.obj.IVoiceChannel;
 import sx.blah.discord.util.MissingPermissionsException;
 
@@ -36,15 +35,15 @@ public class Connect implements Command {
                     if (!next.get(0).isConnected())
                         next.get(0).join();
                 } else {
-                    Logging.notFound(cont.getMessage(), "connect", "Voice Channel", channelName, LOG);
+                    cont.getActions().notFound(cont.getMessage(), "connect", "Voice Channel", channelName, LOG);
                 }
             } catch (MissingPermissionsException ex) {
-                Logging.missingPermissions(cont.getMessage().getMessage().getChannel(), "connect", ex, LOG);
+                cont.getActions().missingPermissions(cont.getMessage().getMessage().getChannel(), ex);
             }
         } else {
             List<IVoiceChannel> next = cont.getMessage().getMessage().getAuthor().getConnectedVoiceChannels();
             if (next.size() >= 1) {
-                BotActions.connectToChannel(next.get(0), cont.getClient().getConnectedVoiceChannels());
+                cont.getActions().connectToChannel(next.get(0), cont.getClient().getConnectedVoiceChannels());
             }
         }
     }

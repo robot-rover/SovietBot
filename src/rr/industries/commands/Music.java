@@ -4,10 +4,8 @@ import net.dv8tion.d4j.player.MusicPlayer;
 import net.dv8tion.jda.player.Playlist;
 import net.dv8tion.jda.player.source.AudioInfo;
 import net.dv8tion.jda.player.source.AudioSource;
-import rr.industries.util.BotActions;
 import rr.industries.util.CommContext;
 import rr.industries.util.CommandInfo;
-import rr.industries.util.Logging;
 import sx.blah.discord.handle.audio.IAudioProvider;
 import sx.blah.discord.handle.obj.IMessage;
 import sx.blah.discord.util.MessageBuilder;
@@ -29,7 +27,7 @@ public class Music implements Command {
     public void execute(CommContext cont) {
         AudioPlayer aPlayer = getAudioPlayerForGuild(cont.getMessage().getMessage().getGuild());
         if (cont.getArgs().size() < 2) {
-            Logging.missingArgs(cont.getMessage(), "music", cont.getArgs(), LOG);
+            cont.getActions().missingArgs(cont.getMessage().getMessage().getChannel());
         } else if (cont.getArgs().get(1).equals("skip")) {
             IAudioProvider provider = aPlayer.getCurrentTrack().getProvider();
             if (provider instanceof MusicPlayer) {
@@ -70,15 +68,13 @@ public class Music implements Command {
                 message = "```Queue is Empty";
             }
             message = message + "```";
-            IMessage delete = BotActions.sendMessage(new MessageBuilder(cont.getClient()).withContent(message).withChannel(cont.getMessage().getMessage().getChannel()));
-            BotActions.delayDelete(delete, 15000);
+            IMessage delete = cont.getActions().sendMessage(new MessageBuilder(cont.getClient()).withContent(message).withChannel(cont.getMessage().getMessage().getChannel()));
+            cont.getActions().delayDelete(delete, 15000);
         } else {
-            LOG.info("starting music");
             MusicPlayer player = new MusicPlayer();
             player.setVolume(1);
             aPlayer.queue(player);
             String url = cont.getArgs().get(1);
-            LOG.info("making playlist");
             Playlist playlist;
             try {
                 playlist = Playlist.getPlaylist(url);
@@ -86,9 +82,7 @@ public class Music implements Command {
                 LOG.warn("The YT-DL playlist process resulted in a null or zero-length INFO!");
                 return;
             }
-            LOG.info("got playlist");
             ConcurrentLinkedQueue<AudioSource> sources = new ConcurrentLinkedQueue<>(playlist.getSources());
-            LOG.info("playlist into array");
             for (AudioSource source : sources) {
                 AudioInfo info = source.getInfo();
                 List<AudioSource> queue = player.getAudioQueue();

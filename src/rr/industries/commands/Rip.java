@@ -1,6 +1,5 @@
 package rr.industries.commands;
 
-import rr.industries.util.BotActions;
 import rr.industries.util.CommContext;
 import rr.industries.util.CommandInfo;
 import rr.industries.util.Permissions;
@@ -38,6 +37,6 @@ public class Rip implements Command {
                     message.appendContent("%20");
             }
         }
-        BotActions.sendMessage(message);
+        cont.getActions().sendMessage(message);
     }
 }

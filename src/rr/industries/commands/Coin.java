@@ -1,6 +1,5 @@
 package rr.industries.commands;
 
-import rr.industries.util.BotActions;
 import rr.industries.util.CommContext;
 import rr.industries.util.CommandInfo;
 import sx.blah.discord.util.MessageBuilder;
@@ -18,6 +17,6 @@ public class Coin implements Command {
         } else {
             message = "Tails";
         }
-        BotActions.sendMessage(new MessageBuilder(cont.getClient()).withContent(message).withChannel(cont.getMessage().getMessage().getChannel()));
+        cont.getActions().sendMessage(new MessageBuilder(cont.getClient()).withContent(message).withChannel(cont.getMessage().getMessage().getChannel()));
     }
 }

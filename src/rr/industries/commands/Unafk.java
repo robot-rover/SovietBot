@@ -1,6 +1,8 @@
 package rr.industries.commands;
 
-import rr.industries.util.*;
+import rr.industries.util.CommContext;
+import rr.industries.util.CommandInfo;
+import rr.industries.util.Permissions;
 import sx.blah.discord.handle.obj.IUser;
 import sx.blah.discord.handle.obj.IVoiceChannel;
 import sx.blah.discord.util.DiscordException;
@@ -19,7 +21,7 @@ public class Unafk implements Command {
         boolean found = false;
         IVoiceChannel afk = cont.getMessage().getMessage().getGuild().getAFKChannel();
         if (afk == null) {
-            BotActions.sendMessage(new MessageBuilder(cont.getClient()).withContent("There is no AFK Channel.").withChannel(cont.getMessage().getMessage().getChannel()));
+            cont.getActions().sendMessage(new MessageBuilder(cont.getClient()).withContent("There is no AFK Channel.").withChannel(cont.getMessage().getMessage().getChannel()));
             return;
         }
         IUser[] Users = cont.getMessage().getMessage().getGuild().getUsers().toArray(new IUser[0]);
@@ -44,19 +46,21 @@ public class Unafk implements Command {
                 message = message + "User Found in AFK: " + user.getName() + " - Moving to " + back.toString();
                 try {
                     user.moveToVoiceChannel(back);
-                } catch (DiscordException | RateLimitException ex) {
-                    Logging.error(cont.getMessage().getMessage().getGuild(), "unafk", ex, LOG);
+                } catch (DiscordException ex) {
+                    cont.getActions().customException("Unafk", ex.getMessage(), ex, LOG, true);
                 } catch (MissingPermissionsException ex) {
-                    Logging.missingPermissions(cont.getMessage().getMessage().getChannel(), "unafk", ex, LOG);
+                    cont.getActions().missingPermissions(cont.getMessage().getMessage().getChannel(), ex);
                     return;
+                } catch (RateLimitException ex) {
+                    //todo: impl ratelimit
                 }
             }
         }
         if (!found) {
-            BotActions.sendMessage(new MessageBuilder(cont.getClient()).withContent("No Users found in AFK Channel").withChannel(cont.getMessage().getMessage().getChannel()));
+            cont.getActions().sendMessage(new MessageBuilder(cont.getClient()).withContent("No Users found in AFK Channel").withChannel(cont.getMessage().getMessage().getChannel()));
 
         } else {
-            BotActions.sendMessage(new MessageBuilder(cont.getClient()).withContent(message).withChannel(cont.getMessage().getMessage().getChannel()));
+            cont.getActions().sendMessage(new MessageBuilder(cont.getClient()).withContent(message).withChannel(cont.getMessage().getMessage().getChannel()));
         }
     }
 }

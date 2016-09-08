@@ -9,9 +9,6 @@ import rr.industries.util.CommandInfo;
 
 import java.util.Random;
 
-/**
- * Created by Sam on 8/28/2016.
- */
 @CommandInfo(commandName = "help", helpText = "derpydoodahday")
 public interface Command {
     Random rn = new Random();

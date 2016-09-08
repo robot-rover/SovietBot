@@ -1,6 +1,5 @@
 package rr.industries.commands;
 
-import rr.industries.util.BotActions;
 import rr.industries.util.CommContext;
 import rr.industries.util.CommandInfo;
 import rr.industries.util.Parsable;
@@ -36,9 +35,9 @@ public class Quote implements Command {
     @Override
     public void execute(CommContext cont) {
         if (cont.getArgs().size() >= 2 && Parsable.tryInt(cont.getArgs().get(1))) {
-            BotActions.sendMessage(new MessageBuilder(cont.getClient()).withContent(quotes[Integer.parseInt(cont.getArgs().get(1))]).withChannel(cont.getMessage().getMessage().getChannel()));
+            cont.getActions().sendMessage(new MessageBuilder(cont.getClient()).withContent(quotes[Integer.parseInt(cont.getArgs().get(1))]).withChannel(cont.getMessage().getMessage().getChannel()));
         } else {
-            BotActions.sendMessage(new MessageBuilder(cont.getClient()).withContent(quotes[rn.nextInt(quotes.length)]).withChannel(cont.getMessage().getMessage().getChannel()));
+            cont.getActions().sendMessage(new MessageBuilder(cont.getClient()).withContent(quotes[rn.nextInt(quotes.length)]).withChannel(cont.getMessage().getMessage().getChannel()));
         }
     }
 }

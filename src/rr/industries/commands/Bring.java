@@ -1,6 +1,8 @@
 package rr.industries.commands;
 
-import rr.industries.util.*;
+import rr.industries.util.CommContext;
+import rr.industries.util.CommandInfo;
+import rr.industries.util.Permissions;
 import sx.blah.discord.handle.obj.IUser;
 import sx.blah.discord.handle.obj.IVoiceChannel;
 import sx.blah.discord.util.DiscordException;
@@ -8,9 +10,6 @@ import sx.blah.discord.util.MessageBuilder;
 import sx.blah.discord.util.MissingPermissionsException;
 import sx.blah.discord.util.RateLimitException;
 
-/**
- * Created by Sam on 8/28/2016.
- */
 @CommandInfo(
         commandName = "bring",
         helpText = "Brings all current users of a server to you.",
@@ -45,19 +44,21 @@ public class Bring implements Command {
                 try {
                     user.moveToVoiceChannel(back);
                 } catch (DiscordException ex) {
-                    Logging.error(cont.getMessage().getMessage().getGuild(), "bring", ex, LOG);
+                    cont.getActions().customException("Bring", ex.getErrorMessage(), ex, LOG, true);
                 } catch (MissingPermissionsException ex) {
-                    Logging.missingPermissions(cont.getMessage().getMessage().getChannel(), "bring", ex, LOG);
+                    cont.getActions().missingPermissions(cont.getMessage().getMessage().getChannel(), ex);
                     return;
                 } catch (RateLimitException ex) {
-                    Logging.rateLimit(ex, this::execute, cont, LOG);
+                    //todo: implement ratelimit
                 }
             }
         }
         if (!found) {
-            BotActions.sendMessage(new MessageBuilder(cont.getClient()).withContent("No Users found in Outside of your Channel").withChannel(cont.getMessage().getMessage().getChannel()));
+            cont.getActions().sendMessage(new MessageBuilder(cont.getClient()).withContent("No Users found in Outside of your Channel")
+                    .withChannel(cont.getMessage().getMessage().getChannel()));
         } else {
-            BotActions.sendMessage(new MessageBuilder(cont.getClient()).withContent(message).withChannel(cont.getMessage().getMessage().getChannel()));
+            cont.getActions().sendMessage(new MessageBuilder(cont.getClient()).withContent(message)
+                    .withChannel(cont.getMessage().getMessage().getChannel()));
         }
     }
 }
