@@ -10,3 +10,4 @@ target/
 /youtube-dl
 configuration.json
 /token.txt
+sovietBot.db

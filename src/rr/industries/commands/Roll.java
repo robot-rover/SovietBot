@@ -1,8 +1,8 @@
 package rr.industries.commands;
 
+import rr.industries.util.BotUtils;
 import rr.industries.util.CommContext;
 import rr.industries.util.CommandInfo;
-import rr.industries.util.Parsable;
 import sx.blah.discord.util.MessageBuilder;
 
 @CommandInfo(
@@ -18,11 +18,11 @@ public class Roll implements Command {
         int d = 0;
         try {
             d = cont.getArgs().get(1).indexOf("d");
-            dnd = cont.getArgs().get(1).contains("d") && Parsable.tryInt(cont.getArgs().get(1).substring(0, d)) && Parsable.tryInt(cont.getArgs().get(1).substring(d + 1));
+            dnd = cont.getArgs().get(1).contains("d") && BotUtils.tryInt(cont.getArgs().get(1).substring(0, d)) && BotUtils.tryInt(cont.getArgs().get(1).substring(d + 1));
         } catch (IndexOutOfBoundsException ex) {
             dnd = false;
         }
-        if (cont.getArgs().size() >= 2 && Parsable.tryInt(cont.getArgs().get(1))) {
+        if (cont.getArgs().size() >= 2 && BotUtils.tryInt(cont.getArgs().get(1))) {
             roll = Integer.parseInt(cont.getArgs().get(1));
             if (roll < 1) {
                 cont.getActions().sendMessage(new MessageBuilder(cont.getClient()).withContent("Rolling 0 to 0: 0").withChannel(cont.getMessage().getMessage().getChannel()));

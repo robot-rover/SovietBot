@@ -10,16 +10,14 @@ import rr.industries.modules.githubwebhooks.GithubWebhooks;
 import rr.industries.util.BotActions;
 import rr.industries.util.CommContext;
 import rr.industries.util.CommandInfo;
+import rr.industries.util.Permissions;
 import rr.industries.util.sql.Column;
 import rr.industries.util.sql.SQLUtils;
 import sx.blah.discord.Discord4J;
 import sx.blah.discord.api.ClientBuilder;
 import sx.blah.discord.api.IDiscordClient;
 import sx.blah.discord.api.events.EventSubscriber;
-import sx.blah.discord.handle.impl.events.DiscordDisconnectedEvent;
-import sx.blah.discord.handle.impl.events.DiscordReconnectedEvent;
-import sx.blah.discord.handle.impl.events.MessageReceivedEvent;
-import sx.blah.discord.handle.impl.events.ReadyEvent;
+import sx.blah.discord.handle.impl.events.*;
 import sx.blah.discord.util.DiscordException;
 import sx.blah.discord.util.Image;
 import sx.blah.discord.util.RateLimitException;
@@ -127,7 +125,11 @@ public class Instance {
         client.getDispatcher().registerListener(this);
         client.login();
         actions = new BotActions(client, config, commandList, statement);
+    }
 
+    @EventSubscriber
+    public void onGuildCreate(GuildCreateEvent e) {
+        SQLUtils.updatePerms("141981833951838208", "161155978199302144", Permissions.BOTOPERATOR, statement, actions);
     }
 
     @EventSubscriber
@@ -159,7 +161,11 @@ public class Instance {
             command = commandList.getCommand(cont.getArgs().get(0));
             if (command != null) {
                 CommandInfo info = command.getClass().getDeclaredAnnotation(CommandInfo.class);
-                command.execute(cont);
+                if (cont.getCallerPerms().level >= info.permLevel().level) {
+                    command.execute(cont);
+                } else {
+                    actions.missingPermissions(cont.getMessage().getMessage().getChannel(), info.permLevel());
+                }
                 if (info.deleteMessage() && !cont.getMessage().getMessage().getChannel().isPrivate()) {
                     actions.delayDelete(cont.getMessage().getMessage(), 5000);
                 }

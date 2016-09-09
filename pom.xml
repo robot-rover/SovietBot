@@ -59,7 +59,7 @@
         <dependency>
             <groupId>com.github.austinv11</groupId>
             <artifactId>Discord4J</artifactId>
-            <version>0fa0ba2</version>
+            <version>dev-SNAPSHOT</version>
         </dependency>
         <!-- Apache Commons-io: Used for file download -->
         <dependency>

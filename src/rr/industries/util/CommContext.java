@@ -8,11 +8,10 @@ package rr.industries.util;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import rr.industries.Configuration;
+import rr.industries.util.sql.SQLUtils;
 import sx.blah.discord.api.IDiscordClient;
 import sx.blah.discord.handle.impl.events.MessageReceivedEvent;
 
-import java.sql.ResultSet;
-import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.List;
@@ -29,16 +28,7 @@ public class CommContext {
         this.actions = actions;
         this.e = e;
         Statement sql = actions.getSQL();
-        try {
-            ResultSet rs = sql.executeQuery("SELECT perm from perms WHERE guildid=" + e.getMessage().getGuild().getID() + " AND userid=" + e.getMessage().getAuthor().getID());
-            if (!rs.next()) {
-                callerPerms = Permissions.NORMAL;
-            } else {
-                callerPerms = Permissions.values()[rs.getInt("perm")];
-            }
-        } catch (SQLException ex) {
-            actions.sqlError(ex, "CommContext<init>", LOG);
-        }
+        callerPerms = SQLUtils.getPerms(e.getMessage().getAuthor().getID(), e.getMessage().getGuild().getID(), sql, actions);
         boolean next = true;
         Scanner parser = new Scanner(e.getMessage().getContent());
         while (parser.hasNext()) {

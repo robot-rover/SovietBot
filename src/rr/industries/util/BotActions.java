@@ -116,6 +116,10 @@ public final class BotActions {
         sendMessage(new MessageBuilder(client).withChannel(channel).withContent(ex.getErrorMessage()));
     }
 
+    public void missingPermissions(IChannel channel, Permissions neededPerm) {
+        sendMessage(new MessageBuilder(client).withChannel(channel).withContent("You need to be a" + BotUtils.startsWithVowel(neededPerm.title, "n **", " **") + neededPerm.title + "** (" + neededPerm.level + ") to do that!"));
+    }
+
     public void missingArgs(IChannel channel) {
         sendMessage(new MessageBuilder(client).withChannel(channel).withContent("You are missing some arguments"));
     }
@@ -155,7 +159,6 @@ public final class BotActions {
         } catch (DiscordException ex) {
             customException("delayDelete", ex.getErrorMessage(), ex, LOG, true);
         }
-
     }
 
     public void messageOwner(String message, boolean notify) {

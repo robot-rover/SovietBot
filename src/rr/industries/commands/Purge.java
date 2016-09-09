@@ -1,8 +1,8 @@
 package rr.industries.commands;
 
+import rr.industries.util.BotUtils;
 import rr.industries.util.CommContext;
 import rr.industries.util.CommandInfo;
-import rr.industries.util.Parsable;
 import rr.industries.util.Permissions;
 import sx.blah.discord.util.*;
 
@@ -22,7 +22,7 @@ public class Purge implements Command {
             cont.getActions().missingArgs(cont.getMessage().getMessage().getChannel());
             return;
         }
-        if (!Parsable.tryInt(cont.getArgs().get(1))) {
+        if (!BotUtils.tryInt(cont.getArgs().get(1))) {
             cont.getActions().wrongArgs(cont.getMessage().getMessage().getChannel());
             return;
         }

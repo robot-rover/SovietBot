@@ -4,6 +4,7 @@ import com.sun.istack.internal.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import rr.industries.util.BotActions;
+import rr.industries.util.BotUtils;
 import rr.industries.util.Permissions;
 
 import java.sql.ResultSet;
@@ -84,5 +85,19 @@ public class SQLUtils {
         } catch (SQLException ex) {
             actions.sqlError(ex, "CommContext<init>", LOG);
         }
+    }
+
+    public static Permissions getPerms(String userID, String guildID, Statement executor, BotActions actions) {
+        try {
+            ResultSet rs = executor.executeQuery("SELECT perm from perms WHERE guildid=" + guildID + " AND userid=" + userID);
+            if (!rs.next()) {
+                return Permissions.NORMAL;
+            } else {
+                return BotUtils.toPerms(rs.getInt("perm"));
+            }
+        } catch (SQLException ex) {
+            actions.sqlError(ex, "CommContext<init>", LOG);
+        }
+        return Permissions.NORMAL;
     }
 }
