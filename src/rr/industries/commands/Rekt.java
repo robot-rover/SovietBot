@@ -1,8 +1,6 @@
 package rr.industries.commands;
 
-import rr.industries.util.CommContext;
-import rr.industries.util.CommandInfo;
-import rr.industries.util.Permissions;
+import rr.industries.util.*;
 
 import javax.sound.sampled.AudioInputStream;
 import javax.sound.sampled.UnsupportedAudioFileException;
@@ -42,8 +40,10 @@ public class Rekt implements Command {
         }
     }
 
-
-    @Override
+    @SubCommand(name = "", Syntax = {
+            @Syntax(helpText = "Plays a random rekt clip", args = {}),
+            @Syntax(helpText = "Plays the specified rekt clip", args = {Arguments.TEXT}, options = {"wombo", "wrong", "airhorn", "never", "scope", "nope"})
+    })
     public void execute(CommContext cont) {
         int i = 0;
         AudioInputStream[] sources = sfx;

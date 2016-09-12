@@ -1,10 +1,7 @@
 package rr.industries.commands;
 
-import rr.industries.util.CommContext;
-import rr.industries.util.CommandInfo;
-import rr.industries.util.Permissions;
+import rr.industries.util.*;
 import sx.blah.discord.util.DiscordException;
-import sx.blah.discord.util.MessageBuilder;
 import sx.blah.discord.util.MissingPermissionsException;
 import sx.blah.discord.util.RateLimitException;
 
@@ -16,18 +13,15 @@ import sx.blah.discord.util.RateLimitException;
 )
 public class Restart implements Command {
 
-    @Override
+    @SubCommand(name = "", Syntax = {@Syntax(helpText = "The process running the bot stops and restarts", args = {})})
     public void execute(CommContext cont) {
-
-        if (!cont.getMessage().getMessage().getAuthor().getID().equals("141981833951838208")) {
-            cont.getActions().sendMessage(new MessageBuilder(cont.getClient()).withContent("Communism marches on!").withChannel(cont.getMessage().getMessage().getChannel()));
-            return;
-        }
         if (!cont.getMessage().getMessage().getChannel().isPrivate()) {
             try {
                 cont.getMessage().getMessage().delete();
-            } catch (MissingPermissionsException | RateLimitException | DiscordException ex) {
+            } catch (RateLimitException | DiscordException ex) {
                 LOG.debug("Error while deleting restart command", ex);
+            } catch (MissingPermissionsException ex) {
+                //fail Silently
             }
         }
         cont.getActions().terminate(true);

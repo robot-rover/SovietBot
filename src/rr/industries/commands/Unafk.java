@@ -1,8 +1,6 @@
 package rr.industries.commands;
 
-import rr.industries.util.CommContext;
-import rr.industries.util.CommandInfo;
-import rr.industries.util.Permissions;
+import rr.industries.util.*;
 import sx.blah.discord.handle.obj.IUser;
 import sx.blah.discord.handle.obj.IVoiceChannel;
 import sx.blah.discord.util.DiscordException;
@@ -16,6 +14,7 @@ import sx.blah.discord.util.RateLimitException;
         permLevel = Permissions.ADMIN
 )
 public class Unafk implements Command {
+    @SubCommand(name = "", Syntax = {@Syntax(helpText = "All players in the AFK channel will be moved to your channel", args = {})})
     public void execute(CommContext cont) {
         String message = "";
         boolean found = false;

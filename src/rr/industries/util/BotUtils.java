@@ -5,6 +5,7 @@
  */
 package rr.industries.util;
 
+import java.util.Calendar;
 import java.util.regex.Pattern;
 
 public class BotUtils {
@@ -44,5 +45,9 @@ public class BotUtils {
             }
         }
         throw new IndexOutOfBoundsException("The level " + level + "is out of the range of Permissions");
+    }
+
+    public static String getPrettyTime(Calendar time) {
+        return (time.get(Calendar.HOUR) == 0 ? "12" : time.get(Calendar.HOUR)) + ":" + String.format("%2s", time.get(Calendar.MINUTE)).replace(" ", "0") + " " + (time.get(Calendar.AM_PM) == 1 ? "PM" : "AM");
     }
 }

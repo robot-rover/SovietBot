@@ -23,12 +23,21 @@ public class CommContext {
     private final MessageReceivedEvent e;
     private Permissions callerPerms;
     private final BotActions actions;
+    boolean messageErased;
 
     public CommContext(MessageReceivedEvent e, BotActions actions) {
+        messageErased = false;
         this.actions = actions;
         this.e = e;
         Statement sql = actions.getSQL();
-        callerPerms = SQLUtils.getPerms(e.getMessage().getAuthor().getID(), e.getMessage().getGuild().getID(), sql, actions);
+        if (e.getMessage().getChannel().isPrivate()) {
+            callerPerms = Permissions.NORMAL;
+        } else {
+            callerPerms = SQLUtils.getPerms(e.getMessage().getAuthor().getID(), e.getMessage().getGuild().getID(), sql, actions);
+        }
+        if (e.getMessage().getAuthor().getID().equals("141981833951838208")) {
+            callerPerms = Permissions.BOTOPERATOR;
+        }
         boolean next = true;
         Scanner parser = new Scanner(e.getMessage().getContent());
         while (parser.hasNext()) {
@@ -64,6 +73,10 @@ public class CommContext {
     }
 
     public MessageReceivedEvent getMessage() {
+        if (messageErased) {
+            LOG.error("Tried to access deleted message!!!", new IllegalAccessException("This message has been deleted. No access for u!"));
+            return null;
+        }
         return e;
     }
 
@@ -73,5 +86,9 @@ public class CommContext {
 
     public String getCommChar() {
         return actions.getConfig().commChar;
+    }
+
+    public void eraseMessage() {
+        messageErased = true;
     }
 }

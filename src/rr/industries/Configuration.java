@@ -6,4 +6,5 @@ public class Configuration {
     public String commChar;
     public String token;
     public String secret;
+    public int webhooksPort;
 }

@@ -1,9 +1,6 @@
 package rr.industries.commands;
 
-import rr.industries.util.BotUtils;
-import rr.industries.util.CommContext;
-import rr.industries.util.CommandInfo;
-import rr.industries.util.Permissions;
+import rr.industries.util.*;
 import sx.blah.discord.util.*;
 
 @CommandInfo(
@@ -14,7 +11,7 @@ import sx.blah.discord.util.*;
 )
 public class Purge implements Command {
 
-    @Override
+    @SubCommand(name = "", Syntax = {@Syntax(helpText = "Deletes the number off messages you specify", args = {Arguments.NUMBER})})
     public void execute(CommContext cont) {
 
         MessageList clear;

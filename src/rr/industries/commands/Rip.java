@@ -1,8 +1,6 @@
 package rr.industries.commands;
 
-import rr.industries.util.CommContext;
-import rr.industries.util.CommandInfo;
-import rr.industries.util.Permissions;
+import rr.industries.util.*;
 import sx.blah.discord.util.MessageBuilder;
 
 import java.util.regex.Pattern;
@@ -14,7 +12,7 @@ import java.util.regex.Pattern;
 )
 public class Rip implements Command {
 
-    @Override
+    @SubCommand(name = "", Syntax = {@Syntax(helpText = "Specify the thing(s) that are rip", args = {Arguments.TEXT})})
     public void execute(CommContext cont) {
         String channelName;
         Pattern p = Pattern.compile("<@!?[0-9]{18}>");

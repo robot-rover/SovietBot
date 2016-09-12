@@ -8,7 +8,6 @@ import rr.industries.util.BotActions;
 import spark.Request;
 import spark.Response;
 import spark.Spark;
-import sx.blah.discord.api.IDiscordClient;
 import sx.blah.discord.util.MessageBuilder;
 
 import javax.crypto.Mac;
@@ -32,8 +31,6 @@ public class GithubWebhooks implements Module {
 
     private final List<ChannelSettings> channels = new ArrayList<>();
     private final Gson gson = new Gson();
-    private final IDiscordClient client;
-    private final int port;
     private final Mac mac;
     private boolean isEnabled;
     private final BotActions actions;
@@ -41,13 +38,8 @@ public class GithubWebhooks implements Module {
 
     /**
      * Should be initalized in ReadyEvent
-     *
-     * @param port   The port to bind Spark to.
-     * @param client The Client of the discord bot.
      */
-    public GithubWebhooks(int port, IDiscordClient client, BotActions actions) {
-        this.client = client;
-        this.port = port;
+    public GithubWebhooks(BotActions actions) {
         isEnabled = false;
         this.actions = actions;
 
@@ -66,7 +58,7 @@ public class GithubWebhooks implements Module {
 
     @Override
     public void enable() {
-        Spark.port(port);
+        Spark.port(actions.getConfig().webhooksPort);
         Spark.post("/github", (Request request, Response response) -> {
             if (!"application/json".equals(request.headers("Content-Type"))) {
                 LOG.warn("Received Non-JSON POST");
@@ -97,7 +89,7 @@ public class GithubWebhooks implements Module {
                 Ping ping = gson.fromJson(request.body(), Ping.class);
                 String pingMessage = "Ping from webhook " + ping.hook_id + " with zen " + ping.zen;
                 LOG.info(pingMessage);
-                actions.sendMessage(new MessageBuilder(client).withContent(pingMessage).withChannel(client.getOrCreatePMChannel(client.getUserByID("141981833951838208"))));
+                actions.sendMessage(new MessageBuilder(actions.getClient()).withContent(pingMessage).withChannel(actions.getClient().getOrCreatePMChannel(actions.getClient().getUserByID("141981833951838208"))));
             }
             // 👌 OK
             response.status(200);
@@ -123,7 +115,7 @@ public class GithubWebhooks implements Module {
             return "I'm a teapot";
         });
 
-        LOG.info("Initialized webhooks on port " + port);
+        LOG.info("Initialized webhooks on port " + actions.getConfig().webhooksPort);
         isEnabled = true;
     }
 
@@ -146,7 +138,7 @@ public class GithubWebhooks implements Module {
 
     private void sendMessageToChannels(String repo, String event, String content) {
         LOG.info("Sent a webhook message to channels for event " + event);
-        actions.sendMessage(new MessageBuilder(client).withContent(content).withChannel(client.getChannelByID("161155978199302144")));
+        actions.sendMessage(new MessageBuilder(actions.getClient()).withContent(content).withChannel(actions.getClient().getChannelByID("161155978199302144")));
     }
 
     public String getJsonFromUrl(String address) throws IOException {

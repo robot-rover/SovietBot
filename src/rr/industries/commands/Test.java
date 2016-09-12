@@ -1,8 +1,9 @@
 package rr.industries.commands;
 
-import rr.industries.util.CommContext;
-import rr.industries.util.CommandInfo;
-import rr.industries.util.Permissions;
+import rr.industries.util.*;
+import sx.blah.discord.util.DiscordException;
+import sx.blah.discord.util.MissingPermissionsException;
+import sx.blah.discord.util.RateLimitException;
 
 @CommandInfo(
         commandName = "test",
@@ -10,8 +11,16 @@ import rr.industries.util.Permissions;
         permLevel = Permissions.BOTOPERATOR
 )
 public class Test implements Command {
-    @Override
-    public void execute(CommContext cont) {
-
+    @SubCommand(name = "tester", Syntax = {@Syntax(helpText = "Test the tester test", args = {})})
+    public void testSub(CommContext cont) {
+        try {
+            cont.getMessage().getMessage().reply("The test worked");
+        } catch (MissingPermissionsException e) {
+            e.printStackTrace();
+        } catch (RateLimitException e) {
+            e.printStackTrace();
+        } catch (DiscordException e) {
+            e.printStackTrace();
+        }
     }
 }

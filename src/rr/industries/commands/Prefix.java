@@ -1,18 +1,17 @@
 package rr.industries.commands;
 
-import rr.industries.util.CommContext;
-import rr.industries.util.CommandInfo;
-import rr.industries.util.Permissions;
+import rr.industries.util.*;
 import sx.blah.discord.util.MessageBuilder;
 
 @CommandInfo(
         commandName = "prefix",
-        helpText = "Changes the character(s) you put in front of commands",
+        helpText = "Changes the character(s) of the bot",
         permLevel = Permissions.BOTOPERATOR
 )
+//todo: Guild specific command character
 public class Prefix implements Command {
 
-    @Override
+    @SubCommand(name = "", Syntax = {@Syntax(helpText = "The command character is changed to the value you specify", args = {Arguments.TEXT})})
     public void execute(CommContext cont) {
         if (cont.getArgs().size() >= 2) {
             cont.getConfig().commChar = cont.getArgs().get(1);

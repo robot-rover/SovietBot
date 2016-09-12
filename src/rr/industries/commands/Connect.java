@@ -1,8 +1,6 @@
 package rr.industries.commands;
 
-import rr.industries.util.BotActions;
-import rr.industries.util.CommContext;
-import rr.industries.util.CommandInfo;
+import rr.industries.util.*;
 import sx.blah.discord.handle.obj.IVoiceChannel;
 import sx.blah.discord.util.MissingPermissionsException;
 
@@ -15,12 +13,15 @@ import java.util.regex.Pattern;
         helpText = "Connects and disconnects the bot from voice channels."
 )
 public class Connect implements Command {
-    @Override
+    @SubCommand(name = "/", Syntax = {@Syntax(helpText = "Disconnects the bot from all voice channels", args = {})})
+    public void disconnect(CommContext cont) {
+        BotActions.disconnectFromChannel(cont.getMessage().getMessage().getGuild(), cont.getClient().getConnectedVoiceChannels());
+    }
+
+    @SubCommand(name = "", Syntax = {@Syntax(helpText = "Connects the bot to the Voice Channel provided", args = {Arguments.VOICECHANNEL})})
     public void execute(CommContext cont) {
 
-        if (cont.getArgs().size() >= 2 && cont.getArgs().get(1).equals("/")) {
-            BotActions.disconnectFromChannel(cont.getMessage().getMessage().getGuild(), cont.getClient().getConnectedVoiceChannels());
-        } else if (cont.getArgs().size() >= 2) {
+        if (cont.getArgs().size() >= 2) {
             try {
                 String channelName;
                 Pattern p = Pattern.compile("\".+\"");

@@ -2,6 +2,8 @@ package rr.industries.commands;
 
 import rr.industries.util.CommContext;
 import rr.industries.util.CommandInfo;
+import rr.industries.util.SubCommand;
+import rr.industries.util.Syntax;
 import sx.blah.discord.util.MessageBuilder;
 
 import java.io.BufferedReader;
@@ -17,7 +19,7 @@ import java.net.URLConnection;
         helpText = "Posts a random cat picture."
 )
 public class Cat implements Command {
-    @Override
+    @SubCommand(name = "", Syntax = {@Syntax(helpText = "Sends a random picture of a cat in a text channel", args = {})})
     public void execute(CommContext cont) {
 
         URL url;

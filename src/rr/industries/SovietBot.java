@@ -27,27 +27,20 @@ public class SovietBot {
     private static Instance bot;
     public static final ClassLoader resourceLoader = Instance.class.getClassLoader();
 
-    public static final String version = "1.2.2";
     public static final String botName = "SovietBot";
     public static final String frameName = sx.blah.discord.Discord4J.NAME;
     public static final String frameVersion = sx.blah.discord.Discord4J.VERSION;
     public static final String helpCommand = "help";
     public static final String author = "robot_rover";
-    public static final String invite = "https://discordapp.com/oauth2/authorize?&client_id=184445488093724672&scope=bot&permissions=19950624";
+    public static final String invite = "https://discordapp.com/oauth2/authorize?&client_id=184445488093724672&scope=bot&permissions=87354385";
 
     public static void main(String[] args) {
-        LOG.info("\n------------------------------------------------------------------------\n"
-                + "### " + botName + " v" + version + " ### "
-                + "\n------------------------------------------------------------------------");
+        LOG.info("\n------------------------------------------------------------------------\n### {} ###\n------------------------------------------------------------------------", botName);
         try {
             bot = new Instance();
         } catch (DiscordException e) {
             LOG.warn("Bot could not start", e);
         }
     }
-
-    /*public static Instance getBot() {
-        return bot;
-    }*/
 
 }

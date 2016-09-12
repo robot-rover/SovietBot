@@ -1,9 +1,6 @@
 package rr.industries.commands;
 
-import rr.industries.SovietBot;
-import rr.industries.util.CommContext;
-import rr.industries.util.CommandInfo;
-import rr.industries.util.Permissions;
+import rr.industries.util.*;
 import sx.blah.discord.Discord4J;
 import sx.blah.discord.util.MessageBuilder;
 
@@ -11,16 +8,17 @@ import java.time.format.DateTimeFormatter;
 
 @CommandInfo(
         commandName = "env",
-        helpText = "Displays statistics about the bot's operating environment.",
+        helpText = "Displays stats about the bot",
         permLevel = Permissions.BOTOPERATOR
 )
 public class Environment implements Command {
     private static final int byteToMegabyte = 1048576;
-    @Override
+
+    @SubCommand(name = "", Syntax = {@Syntax(helpText = "Display's statistics about the bots operating environment", args = {})})
     public void execute(CommContext cont) {
         MessageBuilder message = new MessageBuilder(cont.getClient()).withChannel(cont.getMessage().getMessage().getChannel()).withContent("```markdown\n");
         Runtime runtime = Runtime.getRuntime();
-        message.appendContent("# SovietBot v" + SovietBot.version + " System Environment #\n");
+        message.appendContent("# SovietBot System Environment #\n");
         message.appendContent("<API> Discord4J v" + Discord4J.VERSION + "\n");
         message.appendContent("<Memory> " + (double) runtime.totalMemory() / (double) byteToMegabyte + " MB / " + (double) runtime.maxMemory() / (double) byteToMegabyte + " MB\n");
         message.appendContent("<OS> " + System.getProperty("os.name") + " v" + System.getProperty("os.version") + "\n");

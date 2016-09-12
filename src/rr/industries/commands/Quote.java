@@ -1,8 +1,6 @@
 package rr.industries.commands;
 
-import rr.industries.util.BotUtils;
-import rr.industries.util.CommContext;
-import rr.industries.util.CommandInfo;
+import rr.industries.util.*;
 import sx.blah.discord.util.MessageBuilder;
 
 @CommandInfo(
@@ -32,7 +30,7 @@ public class Quote implements Command {
         };
     }
 
-    @Override
+    @SubCommand(name = "", Syntax = {@Syntax(helpText = "Danger, this command is very dank", args = {})})
     public void execute(CommContext cont) {
         if (cont.getArgs().size() >= 2 && BotUtils.tryInt(cont.getArgs().get(1))) {
             cont.getActions().sendMessage(new MessageBuilder(cont.getClient()).withContent(quotes[Integer.parseInt(cont.getArgs().get(1))]).withChannel(cont.getMessage().getMessage().getChannel()));

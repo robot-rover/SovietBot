@@ -1,8 +1,6 @@
 package rr.industries.commands;
 
-import rr.industries.util.BotUtils;
-import rr.industries.util.CommContext;
-import rr.industries.util.CommandInfo;
+import rr.industries.util.*;
 import sx.blah.discord.util.MessageBuilder;
 
 @CommandInfo(
@@ -11,7 +9,11 @@ import sx.blah.discord.util.MessageBuilder;
 )
 public class Roll implements Command {
 
-    @Override
+    @SubCommand(name = "", Syntax = {
+            @Syntax(helpText = "Rolls a number 1-100", args = {}),
+            @Syntax(helpText = "Rolls a number 1-#", args = {Arguments.NUMBER}),
+            @Syntax(helpText = "Rolls the dice RP style. Rolls a number 1-Y, X times", args = {Arguments.DND})
+    })
     public void execute(CommContext cont) {
         int roll;
         boolean dnd;

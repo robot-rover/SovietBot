@@ -1,8 +1,6 @@
 package rr.industries.commands;
 
-import rr.industries.util.CommContext;
-import rr.industries.util.CommandInfo;
-import rr.industries.util.Permissions;
+import rr.industries.util.*;
 import sx.blah.discord.handle.obj.IUser;
 import sx.blah.discord.handle.obj.IVoiceChannel;
 import sx.blah.discord.util.DiscordException;
@@ -15,19 +13,18 @@ import sx.blah.discord.util.RateLimitException;
         permLevel = Permissions.ADMIN
 )
 public class Disconnect implements Command {
-    @Override
+    @SubCommand(name = "", Syntax = {@Syntax(helpText = "Disconnects the mentioned user", args = {Arguments.MENTION})})
     public void execute(CommContext cont) {
 
         if (cont.getArgs().size() < 2) {
             cont.getActions().missingArgs(cont.getMessage().getMessage().getChannel());
-        }
-        IUser user;
-        try {
-            user = cont.getMessage().getMessage().getMentions().get(0);
-        } catch (IndexOutOfBoundsException ex) {
-            cont.getActions().missingArgs(cont.getMessage().getMessage().getChannel());
             return;
         }
+        if (cont.getMessage().getMessage().getMentions().size() == 0) {
+            cont.getActions().wrongArgs(cont.getMessage().getMessage().getChannel());
+            return;
+        }
+        IUser user = cont.getMessage().getMessage().getMentions().get(0);
         IVoiceChannel remove = null;
         try {
             remove = cont.getMessage().getMessage().getGuild().createVoiceChannel("Disconnect");

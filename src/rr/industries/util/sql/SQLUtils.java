@@ -89,7 +89,7 @@ public class SQLUtils {
 
     public static Permissions getPerms(String userID, String guildID, Statement executor, BotActions actions) {
         try {
-            ResultSet rs = executor.executeQuery("SELECT perm from perms WHERE guildid=" + guildID + " AND userid=" + userID);
+            ResultSet rs = executor.executeQuery("SELECT perm from perms WHERE guildid='" + guildID + "' AND userid='" + userID + "'");
             if (!rs.next()) {
                 return Permissions.NORMAL;
             } else {
@@ -99,5 +99,53 @@ public class SQLUtils {
             actions.sqlError(ex, "CommContext<init>", LOG);
         }
         return Permissions.NORMAL;
+    }
+
+    public static ResultSet queryValue(String table, String columns, @Nullable String conditions, Statement executor) throws SQLException {
+        return executor.executeQuery("Select " + columns + " from " + table + " where " + conditions);
+    }
+
+    /*public static void setValue(String table, String column, String value, Map<String, String> conditions, Statement executor) throws SQLException {
+        String wheres = "";
+        String init = "";
+        String columnList = "";
+        Iterator<String> it = conditions.keySet().iterator();
+        while(it.hasNext()){
+            String addKey = it.next();
+            String addValue = conditions.get(addKey);
+            wheres = wheres.concat(addKey + "='" + addValue + "', ");
+            init = init.concat()
+        }
+        ResultSet rs = executor.executeQuery("Select" + column + " from " + table + " where" + wheres);
+        if(rs.next()){
+            executor.execute("UPDATE " + table + " Set " + column + "=" + value + " WHERE " + wheres);
+        } else {
+            executor.execute("INSERT INTO " + table + " VALUES(" + values + ");");
+        }
+    }*/
+    public static String getTimezone(String userID, Statement executor, BotActions actions) {
+        String timezone = null;
+        try {
+            ResultSet rs = executor.executeQuery("SELECT timezone From users where userid=" + userID + "");
+            if (rs.next()) {
+                timezone = rs.getString("timezone");
+            }
+        } catch (SQLException ex) {
+            actions.sqlError(ex, "getTimezone", LOG);
+        }
+        return timezone;
+    }
+
+    public static void setTimezone(String userID, String timezone, Statement executor, BotActions actions) {
+        try {
+            ResultSet rs = executor.executeQuery("Select timezone from users where userid='" + userID + "'");
+            if (rs.next()) {
+                executor.execute("UPDATE users Set timezone='" + timezone + "' WHERE userid=" + userID);
+            } else {
+                executor.execute("INSERT INTO users VALUES('" + userID + "', '" + timezone + "');");
+            }
+        } catch (SQLException ex) {
+            actions.sqlError(ex, "setTimezone", LOG);
+        }
     }
 }

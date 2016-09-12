@@ -1,8 +1,6 @@
 package rr.industries.commands;
 
-import rr.industries.util.CommContext;
-import rr.industries.util.CommandInfo;
-import rr.industries.util.Permissions;
+import rr.industries.util.*;
 import sx.blah.discord.handle.obj.IUser;
 import sx.blah.discord.handle.obj.IVoiceChannel;
 import sx.blah.discord.util.DiscordException;
@@ -15,8 +13,9 @@ import sx.blah.discord.util.RateLimitException;
         helpText = "Brings all current users of a server to you.",
         permLevel = Permissions.ADMIN
 )
+//todo: @mention to bring one user to your channel
 public class Bring implements Command {
-    @Override
+    @SubCommand(name = "", Syntax = {@Syntax(helpText = "Moves all users connected to a voice channel to your channel", args = {})})
     public void execute(CommContext cont) {
 
         String message = "";

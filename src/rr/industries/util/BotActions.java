@@ -142,15 +142,17 @@ public final class BotActions {
         }
     }
 
-    public void delayDelete(IMessage message, int delay) {
+    public void delayDelete(IMessage message, int delay, CommContext cont) {
         try {
             Thread.sleep(delay);
         } catch (InterruptedException ex) {
             threadInterrupted(ex, "onMessage", SovietBot.LOG);
         }
         try {
-            if (Instance.loggedIn)
+            if (Instance.loggedIn) {
                 message.delete();
+                cont.eraseMessage();
+            }
         } catch (MissingPermissionsException ex) {
             //fail silently
             SovietBot.LOG.debug("Did not delete message, missing permissions");
