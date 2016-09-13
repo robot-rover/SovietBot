@@ -23,10 +23,8 @@ public class CommContext {
     private final MessageReceivedEvent e;
     private Permissions callerPerms;
     private final BotActions actions;
-    boolean messageErased;
 
     public CommContext(MessageReceivedEvent e, BotActions actions) {
-        messageErased = false;
         this.actions = actions;
         this.e = e;
         Statement sql = actions.getSQL();
@@ -73,10 +71,6 @@ public class CommContext {
     }
 
     public MessageReceivedEvent getMessage() {
-        if (messageErased) {
-            LOG.error("Tried to access deleted message!!!", new IllegalAccessException("This message has been deleted. No access for u!"));
-            return null;
-        }
         return e;
     }
 
@@ -86,9 +80,5 @@ public class CommContext {
 
     public String getCommChar() {
         return actions.getConfig().commChar;
-    }
-
-    public void eraseMessage() {
-        messageErased = true;
     }
 }

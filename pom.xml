@@ -81,11 +81,11 @@
             <version>1.1.6</version>
         </dependency>
         <!-- Discord4J local testing branch -->
-        <!-- <dependency>
-             <groupId>sx.blah</groupId>
-             <artifactId>Discord4J</artifactId>
-             <version>2.5.4</version>
-         </dependency>-->
+        <!--<dependency>
+            <groupId>sx.blah</groupId>
+            <artifactId>Discord4J</artifactId>
+            <version>2.6.1-SNAPSHOT</version>
+        </dependency>-->
     </dependencies>
 
     <build>

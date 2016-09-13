@@ -142,7 +142,7 @@ public final class BotActions {
         }
     }
 
-    public void delayDelete(IMessage message, int delay, CommContext cont) {
+    public void delayDelete(IMessage message, int delay) {
         try {
             Thread.sleep(delay);
         } catch (InterruptedException ex) {
@@ -151,7 +151,6 @@ public final class BotActions {
         try {
             if (Instance.loggedIn) {
                 message.delete();
-                cont.eraseMessage();
             }
         } catch (MissingPermissionsException ex) {
             //fail silently

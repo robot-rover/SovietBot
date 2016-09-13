@@ -207,15 +207,17 @@ public class Instance {
                         } catch (IllegalAccessException ex) {
                             actions.customException("onMessage", "Could not access subcommand", ex, LOG, true);
                         } catch (InvocationTargetException ex) {
-                            actions.customException("onMessage", "Subcommand Invocation Failed", ex, LOG, true);
+                            if (ex.getCause() instanceof Exception)
+                                actions.customException("onMessage", "Subcommand Invocation Failed", (Exception) ex.getCause(), LOG, true);
                         }
                         if (info.deleteMessage() && !cont.getMessage().getMessage().getChannel().isPrivate()) {
-                            actions.delayDelete(cont.getMessage().getMessage(), 0, cont);
+                            actions.delayDelete(cont.getMessage().getMessage(), 2500);
                         }
                     }
                 }
             }
         }
+        Thread.currentThread().interrupt();
     }
 
     @EventSubscriber
