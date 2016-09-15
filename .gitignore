@@ -11,3 +11,5 @@ target/
 configuration.json
 /token.txt
 sovietBot.db
+/sovietBot.db-journal
+/SovietBot

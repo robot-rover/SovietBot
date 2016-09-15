@@ -30,6 +30,7 @@ public class Help implements Command {
                 CommandInfo commandInfo = command.getClass().getDeclaredAnnotation(CommandInfo.class);
                 message.appendContent("```markdown\n");
                 message.appendContent("# " + cont.getActions().getConfig().commChar + commandInfo.commandName() + " - " + commandInfo.helpText() + " #\n");
+                message.appendContent("For more help, visit <" + SovietBot.website + "commands/" + commandInfo.commandName() + ".html>\n");
                 SubCommand mainSubCommand = null;
                 List<SubCommand> subCommands = new ArrayList<>();
                 for (Method method : command.getClass().getDeclaredMethods()) {
@@ -74,6 +75,7 @@ public class Help implements Command {
         } else {
             message.appendContent("```markdown\n# " + SovietBot.botName + " - \"" + cont.getCommChar() + "\" #\n");
             message.appendContent("For more help type >help <command>...\n");
+            message.appendContent("Or visit <" + SovietBot.website + ">\n");
             for (Permissions perm : Permissions.values()) {
                 message.appendContent("[Permission]: " + perm.title + "\n");
                 cont.getActions().getCommands().getCommandList().stream().filter(comm -> comm.getClass().getDeclaredAnnotation(CommandInfo.class).permLevel().equals(perm)).forEach(comm -> {

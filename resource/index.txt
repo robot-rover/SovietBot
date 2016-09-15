@@ -1,0 +1,38 @@
+<h1>SovietBot</h1>
+
+<h2>Welcome to SovietBot's Website</h2>
+
+<p>
+    Is a <a href="https://discordapp.com/">Discord</a> Bot written in Java. It uses the API <a href="https://github.com/austinv11/Discord4J">Discord4J</a> for interfacing with Discord and <a href="https://github.com/DV8FromTheWorld/JDA-Player">JDA Player</a>.
+    SovietBot is under heavy constant development, but it is kept online almost all the time. expect about 5-10 minutes of downtime per day for maintenance and updating.
+</p>
+<h2>Need Help?</h2>
+<p>
+  You can find a list of all of SovietBot's Commands <a href="commandList.html">here</a>
+</p>
+<h2>Invite Link</h2>
+
+<p><strong><a href="https://discordapp.com/oauth2/authorize?&amp;client_id=184445488093724672&amp;scope=bot&amp;permissions=19950624">https://discordapp.com/oauth2/authorize?&amp;client_id=184445488093724672&amp;scope=bot&amp;permissions=19950624</a></strong></p>
+
+<p>Feel free to invite this bot to your server, it has many great features, such as</p>
+
+<ul>
+<li>Music Streaming from Youtube and Soundcloud</li>
+<li>Removing up to 99 messages from chat at once</li>
+<li>Per user Permissions: Normal, Regular, Moderator, and Admin.</li>
+<li>Funneling pure <strong>Dank</strong> into voice channels</li>
+<li>Telling "In Soviet Russia" jokes</li>
+</ul>
+<p><em>and much more...</em></p>
+
+<h2>Credits</h2>
+
+<ul>
+<li>The <a href="https://discord.gg/NxGAeCY">Discord4J</a> community for providing guidance on the Discord4J API and Java in general. I could never have gotten this far without you guys!</li>
+<li>
+    <a href="https://github.com/chrislo27" class="user-mention">@chrislo27</a> for Giving me the basis of my webhooks module
+</li>
+<li>
+    <a href="https://github.com/austinv11" class="user-mention">@austinv11</a> for maintaining and developing Discord4J
+</li>
+</ul>

@@ -25,12 +25,6 @@
             <artifactId>sqlite-jdbc</artifactId>
             <version>3.8.11.2</version>
         </dependency>
-        <!-- HTTP Client: Send Webhook POST -->
-        <dependency>
-            <groupId>org.apache.httpcomponents</groupId>
-            <artifactId>httpclient</artifactId>
-            <version>4.5.2</version>
-        </dependency>
         <!-- Spark: Websocket Server -->
         <dependency>
             <groupId>com.sparkjava</groupId>
@@ -54,6 +48,12 @@
                     <groupId>com.github.austinv11</groupId>
                 </exclusion>
             </exclusions>
+        </dependency>
+        <!-- HTTP Client: Send Webhook POST -->
+        <dependency>
+            <groupId>org.apache.httpcomponents</groupId>
+            <artifactId>httpclient</artifactId>
+            <version>4.5.2</version>
         </dependency>
         <!--Discord4J: Base API for discord -->
         <dependency>
@@ -79,6 +79,12 @@
             <groupId>ch.qos.logback</groupId>
             <artifactId>logback-classic</artifactId>
             <version>1.1.6</version>
+        </dependency>
+        <!--Nullity Inference-->
+        <dependency>
+            <groupId>org.jetbrains</groupId>
+            <artifactId>annotations</artifactId>
+            <version>15.0</version>
         </dependency>
         <!-- Discord4J local testing branch -->
         <!--<dependency>

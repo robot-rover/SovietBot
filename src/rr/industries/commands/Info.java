@@ -20,7 +20,8 @@ public class Info implements Command {
                 "# " + botName + " #\n" +
                 "Created with " + frameName + " version " + frameVersion + "\n" +
                 "[For help type](" + cont.getCommChar() + helpCommand + ")\n" + "This bot was created by <" + author + ">\n" +
-                "[Invite Link](" + SovietBot.invite + ")" +
+                "[Invite Link](" + SovietBot.invite + ")\n" +
+                "[Website](" + SovietBot.website + ")\n" +
                 "```";
         cont.getActions().sendMessage(new MessageBuilder(cont.getClient()).withContent(message).withChannel(cont.getMessage().getMessage().getChannel()));
     }

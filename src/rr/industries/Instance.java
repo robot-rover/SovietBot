@@ -4,7 +4,7 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import rr.industries.commands.*;
+import rr.industries.commands.Command;
 import rr.industries.modules.Module;
 import rr.industries.modules.UTCStatus;
 import rr.industries.modules.githubwebhooks.GithubWebhooks;
@@ -21,14 +21,10 @@ import sx.blah.discord.util.Image;
 import sx.blah.discord.util.MessageBuilder;
 import sx.blah.discord.util.RateLimitException;
 
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.FileReader;
-import java.io.IOException;
+import java.io.*;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.nio.file.Files;
-import java.nio.file.StandardCopyOption;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
@@ -37,7 +33,6 @@ import java.util.Arrays;
 import java.util.List;
 
 import static rr.industries.SovietBot.botName;
-import static rr.industries.SovietBot.resourceLoader;
 
 /**
  * todo: Add Permissions
@@ -71,26 +66,20 @@ public class Instance {
     private Statement statement;
     private BotActions actions;
     private Module updateStatus;
+    private static Gson gson = new Gson();
 
     Instance() throws DiscordException {
-        List<Command> commands = Arrays.asList(
-                new Bring(), new Cat(), new Coin(), new Connect(),
-                new Disconnect(), new Help(), new Info(), new Invite(), new Log(), new Music(),
-                new Purge(), new Quote(), new Rekt(), new Restart(), new Roll(), new Stop(),
-                new Unafk(), new Uptime(), new Weather(), new Prefix(), new Rip(),
-                new Environment(), new Echo(), new Test(), new Perms(), new Time());
         webHooks = null;
         Discord4J.disableChannelWarnings();
         LOG.info("Looking for config at: " + configFile.getAbsolutePath());
         if (!configFile.exists()) {
             LOG.warn("config not found, generating new one...");
             try {
-                Files.copy(resourceLoader.getResourceAsStream("defaultConfiguration.json"), configFile.toPath(), StandardCopyOption.REPLACE_EXISTING);
-            } catch (NullPointerException ex) {
-                LOG.error("default config.json not found. exiting...", ex);
-                System.exit(1);
-            } catch (IOException ex) {
-                LOG.error("failed to initialize new config file. exiting...", ex);
+                BufferedWriter writer = Files.newBufferedWriter(configFile.toPath());
+                writer.write(gson.toJson(SovietBot.defaultConfig));
+                writer.close();
+            } catch (IOException e) {
+                LOG.error("Could not initialize new configuration. exiting");
                 System.exit(1);
             }
         } else {
@@ -105,7 +94,12 @@ public class Instance {
         }
         Gson gson = new GsonBuilder().create();
         config = gson.fromJson(fileReader, Configuration.class);
-        commandList = new CommandList(commands);
+        try {
+            fileReader.close();
+        } catch (IOException ex) {
+            LOG.warn("Could not close Config Reader", ex);
+        }
+        commandList = new CommandList(SovietBot.commands);
         Connection connection;
         List<Column> permsColumns = Arrays.asList(
                 new Column("guildid", "text", false),
