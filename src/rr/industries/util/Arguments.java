@@ -7,7 +7,8 @@ package rr.industries.util;
  */
 public enum Arguments {
     NUMBER("<#>"), MENTION("@<\u200BUser>"), TIMEZONE("GMT<+or-><#>"), LINK("<http://www.xxx.xxx>"),
-    TEXTCHANNEL("#<Channel>"), VOICECHANNEL("<VoiceChannel>"), TEXT("<Some_Words>"), COMMAND("<Command>"), DND("<X>d<Y>");
+    TEXTCHANNEL("#<Channel>"), VOICECHANNEL("<VoiceChannel>"), TEXT("<Some_Words>"), COMMAND("<Command>"), DND("<X>d<Y>"),
+    MENTIONROLE("<@\u200BRole>");
     public final String text;
 
     Arguments(String text) {

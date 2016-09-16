@@ -5,6 +5,7 @@ import com.google.gson.GsonBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import rr.industries.commands.Command;
+import rr.industries.modules.Console;
 import rr.industries.modules.Module;
 import rr.industries.modules.UTCStatus;
 import rr.industries.modules.githubwebhooks.GithubWebhooks;
@@ -70,10 +71,10 @@ public class Instance {
     private Statement statement;
     private BotActions actions;
     private Module updateStatus;
+    private Module console;
     public static Gson gson = new GsonBuilder().setPrettyPrinting().serializeNulls().create();
 
     Instance() throws DiscordException {
-        webHooks = null;
         Discord4J.disableChannelWarnings();
         config = loadConfig(configFile, gson.toJson(defaultConfig), Configuration.class).orElse(null);
         if (config == null) {
@@ -133,6 +134,8 @@ public class Instance {
 
     @EventSubscriber
     public void onReady(ReadyEvent e) throws DiscordException, RateLimitException {
+        console = new Console(actions);
+        console.enable();
         updateStatus = new UTCStatus(client);
         updateStatus.enable();
         Discord4J.disableChannelWarnings();
