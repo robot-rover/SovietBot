@@ -126,9 +126,9 @@ public class Instance {
 
     @EventSubscriber
     public void onGuildCreate(GuildCreateEvent e) {
+        SQLUtils.updatePerms(e.getGuild().getOwnerID(), e.getGuild().getID(), Permissions.ADMIN, statement, actions);
         for (String op : config.operators)
             SQLUtils.updatePerms(op, e.getGuild().getID(), Permissions.BOTOPERATOR, statement, actions);
-        SQLUtils.updatePerms(e.getGuild().getOwnerID(), e.getGuild().getID(), Permissions.ADMIN, statement, actions);
         LOG.info("Connected to Guild: " + e.getGuild().getName() + " (" + e.getGuild().getID() + ")");
     }
 

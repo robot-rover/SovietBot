@@ -3,6 +3,7 @@ package rr.industries.commands;
 import rr.industries.CommandList;
 import rr.industries.SovietBot;
 import rr.industries.util.*;
+import rr.industries.util.sql.SQLUtils;
 import sx.blah.discord.util.MessageBuilder;
 
 import java.lang.reflect.Method;
@@ -81,6 +82,9 @@ public class Help implements Command {
             message.appendContent("For more help type >help <command>...\n");
             message.appendContent("Or visit <" + SovietBot.website + ">\n");
             for (Permissions perm : Permissions.values()) {
+                if (perm.equals(Permissions.BOTOPERATOR) && !SQLUtils.getPerms(cont.getMessage().getMessage().getAuthor().getID(), cont.getMessage().getMessage().getGuild().getID(), cont.getActions().getSQL(), cont.getActions()).equals(Permissions.BOTOPERATOR)) {
+                    continue;
+                }
                 message.appendContent("[Permission]: " + perm.title + "\n");
                 cont.getActions().getCommands().getCommandList().stream().filter(comm -> comm.getClass().getDeclaredAnnotation(CommandInfo.class).permLevel().equals(perm)).forEach(comm -> {
                     CommandInfo info = comm.getClass().getDeclaredAnnotation(CommandInfo.class);
