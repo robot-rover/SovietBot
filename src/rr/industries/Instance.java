@@ -22,6 +22,7 @@ import sx.blah.discord.util.MessageBuilder;
 import sx.blah.discord.util.RateLimitException;
 
 import java.io.*;
+import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.nio.file.Files;
@@ -31,8 +32,10 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Optional;
 
 import static rr.industries.SovietBot.botName;
+import static rr.industries.SovietBot.defaultConfig;
 
 /**
  * todo: Add Permissions
@@ -58,6 +61,7 @@ import static rr.industries.SovietBot.botName;
 public class Instance {
     public static final Logger LOG = LoggerFactory.getLogger(Instance.class);
     private static final File configFile = new File("configuration.json");
+    private static final File opFile = new File("botOperators.json");
     public static volatile boolean loggedIn = true;
     private final Configuration config;
     private final CommandList commandList;
@@ -66,38 +70,24 @@ public class Instance {
     private Statement statement;
     private BotActions actions;
     private Module updateStatus;
-    private static Gson gson = new Gson();
+    public static Gson gson = new GsonBuilder().setPrettyPrinting().serializeNulls().create();
 
     Instance() throws DiscordException {
         webHooks = null;
         Discord4J.disableChannelWarnings();
-        LOG.info("Looking for config at: " + configFile.getAbsolutePath());
-        if (!configFile.exists()) {
-            LOG.warn("config not found, generating new one...");
+        config = loadConfig(configFile, gson.toJson(defaultConfig), Configuration.class).orElse(null);
+        if (config == null) {
+            LOG.info("One or more config files are empty, Exiting...");
+            System.exit(0);
+        }
+        for (Field f : config.getClass().getFields()) {
             try {
-                BufferedWriter writer = Files.newBufferedWriter(configFile.toPath());
-                writer.write(gson.toJson(SovietBot.defaultConfig));
-                writer.close();
-            } catch (IOException e) {
-                LOG.error("Could not initialize new configuration. exiting");
-                System.exit(1);
+                if (f.get(config) == null) {
+                    f.set(config, f.get(defaultConfig));
+                }
+            } catch (IllegalAccessException e) {
+                LOG.error("Error Defaulting Nulls");
             }
-        } else {
-            LOG.info("config found");
-        }
-        FileReader fileReader = null;
-        try {
-            fileReader = new FileReader(configFile);
-        } catch (FileNotFoundException ex) {
-            LOG.error("Config file not found and was not rebuild. exiting", ex);
-            System.exit(1);
-        }
-        Gson gson = new GsonBuilder().create();
-        config = gson.fromJson(fileReader, Configuration.class);
-        try {
-            fileReader.close();
-        } catch (IOException ex) {
-            LOG.warn("Could not close Config Reader", ex);
         }
         commandList = new CommandList();
         Connection connection;
@@ -135,7 +125,8 @@ public class Instance {
 
     @EventSubscriber
     public void onGuildCreate(GuildCreateEvent e) {
-        SQLUtils.updatePerms("141981833951838208", e.getGuild().getID(), Permissions.BOTOPERATOR, statement, actions);
+        for (String op : config.operators)
+            SQLUtils.updatePerms(op, e.getGuild().getID(), Permissions.BOTOPERATOR, statement, actions);
         SQLUtils.updatePerms(e.getGuild().getOwnerID(), e.getGuild().getID(), Permissions.ADMIN, statement, actions);
         LOG.info("Connected to Guild: " + e.getGuild().getName() + " (" + e.getGuild().getID() + ")");
     }
@@ -227,5 +218,27 @@ public class Instance {
         } else {
             LOG.warn("Disconnected Unexpectedly: " + e.getReason().name(), e);
         }
+    }
+
+    private <T> Optional<T> loadConfig(File file, String defaultValue, Class<T> t) {
+        LOG.info("Looking for File at: " + file.getAbsolutePath());
+        if (!file.exists()) {
+            LOG.warn("File not found, generating new one...");
+            try (BufferedWriter writer = Files.newBufferedWriter(file.toPath())) {
+                writer.write(defaultValue);
+            } catch (IOException e) {
+                LOG.error("Could not initialize new File");
+            }
+            LOG.info("Please configure generated Files");
+            return Optional.empty();
+        }
+        try (FileReader fileReader = new FileReader(file)) {
+            return Optional.ofNullable(gson.fromJson(fileReader, t));
+        } catch (FileNotFoundException ex) {
+            LOG.error("Config file not found and was not generated", ex);
+        } catch (IOException ex) {
+            LOG.warn("Exception Reading " + file.getName(), ex);
+        }
+        return Optional.empty();
     }
 }
