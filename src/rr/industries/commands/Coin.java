@@ -1,5 +1,6 @@
 package rr.industries.commands;
 
+import rr.industries.CommandList;
 import rr.industries.util.CommContext;
 import rr.industries.util.CommandInfo;
 import rr.industries.util.SubCommand;
@@ -11,6 +12,9 @@ import sx.blah.discord.util.MessageBuilder;
         helpText = "Flips a coin."
 )
 public class Coin implements Command {
+    static {
+        CommandList.defaultCommandList.add(Coin.class);
+    }
     @SubCommand(name = "", Syntax = {@Syntax(helpText = "Says either heads or tails", args = {})})
     public void execute(CommContext cont) {
         String message;

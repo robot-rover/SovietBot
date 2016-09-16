@@ -1,5 +1,6 @@
 package rr.industries.commands;
 
+import rr.industries.CommandList;
 import rr.industries.util.*;
 import rr.industries.util.sql.SQLUtils;
 import sx.blah.discord.handle.obj.IUser;
@@ -18,6 +19,9 @@ import java.sql.SQLException;
         commandName = "perms",
         helpText = "Gets and Sets permissions for users of a server")
 public class Perms implements Command {
+    static {
+        CommandList.defaultCommandList.add(Perms.class);
+    }
     @SubCommand(name = "", Syntax = {@Syntax(helpText = "[Coming Soon] the perms system is being revamped", args = {})})
     public void execute(CommContext cont) {
         cont.getActions().sendMessage(new MessageBuilder(cont.getClient()).withChannel(cont.getMessage().getMessage().getChannel())

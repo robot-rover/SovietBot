@@ -1,5 +1,6 @@
 package rr.industries.commands;
 
+import rr.industries.CommandList;
 import rr.industries.util.*;
 import sx.blah.discord.util.MessageBuilder;
 
@@ -10,6 +11,9 @@ import sx.blah.discord.util.MessageBuilder;
         permLevel = Permissions.BOTOPERATOR
 )
 public class Weather implements Command {
+    static {
+        CommandList.defaultCommandList.add(Weather.class);
+    }
     @SubCommand(name = "", Syntax = {@Syntax(helpText = "[Coming Soon]", args = {})})
     public void execute(CommContext cont) {
         cont.getActions().sendMessage(new MessageBuilder(cont.getClient()).withContent("Coming Soon!").withChannel(cont.getMessage().getMessage().getChannel()));

@@ -1,5 +1,6 @@
 package rr.industries.commands;
 
+import rr.industries.CommandList;
 import rr.industries.util.*;
 import sx.blah.discord.util.DiscordException;
 import sx.blah.discord.util.MessageBuilder;
@@ -13,6 +14,9 @@ import sx.blah.discord.util.RateLimitException;
         deleteMessage = false
 )
 public class Stop implements Command {
+    static {
+        CommandList.defaultCommandList.add(Stop.class);
+    }
     @SubCommand(name = "", Syntax = {@Syntax(helpText = "Stops the proccess running the bot", args = {})})
     public void execute(CommContext cont) {
         if (cont != null) {

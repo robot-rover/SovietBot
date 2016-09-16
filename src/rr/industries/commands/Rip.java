@@ -1,5 +1,6 @@
 package rr.industries.commands;
 
+import rr.industries.CommandList;
 import rr.industries.util.*;
 import sx.blah.discord.util.MessageBuilder;
 
@@ -11,6 +12,9 @@ import java.util.regex.Pattern;
         permLevel = Permissions.REGULAR
 )
 public class Rip implements Command {
+    static {
+        CommandList.defaultCommandList.add(Rip.class);
+    }
 
     @SubCommand(name = "", Syntax = {@Syntax(helpText = "Specify the thing(s) that are rip", args = {Arguments.TEXT})})
     public void execute(CommContext cont) {

@@ -1,5 +1,6 @@
 package rr.industries.commands;
 
+import rr.industries.CommandList;
 import rr.industries.SovietBot;
 import rr.industries.util.CommContext;
 import rr.industries.util.CommandInfo;
@@ -14,6 +15,9 @@ import static rr.industries.SovietBot.*;
         helpText = "Displays basic bot info."
 )
 public class Info implements Command {
+    static {
+        CommandList.defaultCommandList.add(Info.class);
+    }
     @SubCommand(name = "", Syntax = {@Syntax(helpText = "Shows you interesting things such as the bots author and invite link", args = {})})
     public void execute(CommContext cont) {
         String message = "```markdown\n" +

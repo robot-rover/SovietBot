@@ -1,5 +1,6 @@
 package rr.industries.commands;
 
+import rr.industries.CommandList;
 import rr.industries.util.*;
 import sx.blah.discord.util.MessageBuilder;
 
@@ -8,6 +9,9 @@ import sx.blah.discord.util.MessageBuilder;
         helpText = "Tells an \"In Soviet Russia\" joke."
 )
 public class Quote implements Command {
+    static {
+        CommandList.defaultCommandList.add(Quote.class);
+    }
     private final String[] quotes;
     public Quote() {
         quotes = new String[]{

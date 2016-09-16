@@ -1,5 +1,6 @@
 package rr.industries.commands;
 
+import rr.industries.CommandList;
 import rr.industries.util.*;
 import sx.blah.discord.handle.obj.IUser;
 import sx.blah.discord.handle.obj.IVoiceChannel;
@@ -13,6 +14,9 @@ import sx.blah.discord.util.RateLimitException;
         permLevel = Permissions.ADMIN
 )
 public class Disconnect implements Command {
+    static {
+        CommandList.defaultCommandList.add(Disconnect.class);
+    }
     @SubCommand(name = "", Syntax = {@Syntax(helpText = "Disconnects the mentioned user", args = {Arguments.MENTION})})
     public void execute(CommContext cont) {
 

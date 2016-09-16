@@ -4,6 +4,7 @@ import net.dv8tion.d4j.player.MusicPlayer;
 import net.dv8tion.jda.player.Playlist;
 import net.dv8tion.jda.player.source.AudioInfo;
 import net.dv8tion.jda.player.source.AudioSource;
+import rr.industries.CommandList;
 import rr.industries.util.*;
 import sx.blah.discord.handle.audio.IAudioProvider;
 import sx.blah.discord.handle.obj.IMessage;
@@ -22,6 +23,9 @@ import static sx.blah.discord.util.audio.AudioPlayer.getAudioPlayerForGuild;
 )
 //todo: Music Loading Progress Bar
 public class Music implements Command {
+    static {
+        CommandList.defaultCommandList.add(Music.class);
+    }
     @SubCommand(name = "list", Syntax = {@Syntax(helpText = "Shows you what tracks are queued up", args = {})})
     public void playlist(CommContext cont) {
         AudioPlayer aPlayer = getAudioPlayerForGuild(cont.getMessage().getMessage().getGuild());

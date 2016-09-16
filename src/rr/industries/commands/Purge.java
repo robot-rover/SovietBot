@@ -1,5 +1,6 @@
 package rr.industries.commands;
 
+import rr.industries.CommandList;
 import rr.industries.util.*;
 import sx.blah.discord.util.*;
 
@@ -10,6 +11,9 @@ import sx.blah.discord.util.*;
         deleteMessage = false
 )
 public class Purge implements Command {
+    static {
+        CommandList.defaultCommandList.add(Purge.class);
+    }
 
     @SubCommand(name = "", Syntax = {@Syntax(helpText = "Deletes the number off messages you specify", args = {Arguments.NUMBER})})
     public void execute(CommContext cont) {

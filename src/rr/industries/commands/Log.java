@@ -7,6 +7,7 @@ import org.apache.http.client.methods.HttpPost;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.HttpClients;
 import org.apache.http.util.EntityUtils;
+import rr.industries.CommandList;
 import rr.industries.util.*;
 import sx.blah.discord.util.MessageBuilder;
 
@@ -22,6 +23,9 @@ import java.util.concurrent.atomic.AtomicReference;
         permLevel = Permissions.BOTOPERATOR
 )
 public class Log implements Command {
+    static {
+        CommandList.defaultCommandList.add(Log.class);
+    }
     @SubCommand(name = "full", Syntax = {@Syntax(helpText = "Uploads the log at Debug Level", args = {})})
     public void fullLog(CommContext cont) {
         uploadLog(new File("debug.log").toPath(), cont);

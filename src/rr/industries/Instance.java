@@ -99,7 +99,7 @@ public class Instance {
         } catch (IOException ex) {
             LOG.warn("Could not close Config Reader", ex);
         }
-        commandList = new CommandList(SovietBot.commands);
+        commandList = new CommandList();
         Connection connection;
         List<Column> permsColumns = Arrays.asList(
                 new Column("guildid", "text", false),

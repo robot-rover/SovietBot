@@ -1,5 +1,6 @@
 package rr.industries.commands;
 
+import rr.industries.CommandList;
 import rr.industries.util.*;
 import sx.blah.discord.handle.obj.IVoiceChannel;
 import sx.blah.discord.util.MissingPermissionsException;
@@ -13,6 +14,9 @@ import java.util.regex.Pattern;
         helpText = "Connects and disconnects the bot from voice channels."
 )
 public class Connect implements Command {
+    static {
+        CommandList.defaultCommandList.add(Connect.class);
+    }
     @SubCommand(name = "/", Syntax = {@Syntax(helpText = "Disconnects the bot from all voice channels", args = {})})
     public void disconnect(CommContext cont) {
         BotActions.disconnectFromChannel(cont.getMessage().getMessage().getGuild(), cont.getClient().getConnectedVoiceChannels());

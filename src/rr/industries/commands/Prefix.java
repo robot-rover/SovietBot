@@ -1,5 +1,6 @@
 package rr.industries.commands;
 
+import rr.industries.CommandList;
 import rr.industries.util.*;
 import sx.blah.discord.util.MessageBuilder;
 
@@ -10,7 +11,9 @@ import sx.blah.discord.util.MessageBuilder;
 )
 //todo: Guild specific command character
 public class Prefix implements Command {
-
+    static {
+        CommandList.defaultCommandList.add(Prefix.class);
+    }
     @SubCommand(name = "", Syntax = {@Syntax(helpText = "The command character is changed to the value you specify", args = {Arguments.TEXT})})
     public void execute(CommContext cont) {
         if (cont.getArgs().size() >= 2) {
