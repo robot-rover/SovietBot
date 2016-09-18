@@ -17,30 +17,22 @@ Total:          19950624
  */
 package rr.industries;
 
+import gigadot.rebound.Rebound;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import rr.industries.commands.*;
+import rr.industries.commands.Command;
 import rr.industries.util.GenHelpDocs;
 import sx.blah.discord.util.DiscordException;
 
-import java.util.Arrays;
-import java.util.List;
-
 public class SovietBot {
-
-    public static final Logger LOG = LoggerFactory.getLogger(SovietBot.class);
-    public static final ClassLoader resourceLoader = Instance.class.getClassLoader();
-    public static final List<Command> commands;
-    public static final Configuration defaultConfig = new Configuration("SovietBot", "person.jpeg", ">", "", "", 1000, new String[0]);
-
     static {
-        commands = Arrays.asList(
-                new Bring(), new Cat(), new Coin(), new Connect(),
-                new Disconnect(), new Help(), new Info(), new Invite(), new Log(), new Music(),
-                new Purge(), new Quote(), new Rekt(), new Restart(), new Roll(), new Stop(),
-                new Unafk(), new Uptime(), new Weather(), new Prefix(), new Rip(),
-                new Environment(), new Echo(), new Test(), new Perms(), new Time());
+        System.out.println("Inside Static Block");
     }
+
+    private static final Logger LOG = LoggerFactory.getLogger(SovietBot.class);
+    public static volatile boolean loggedIn = false;
+    public static final ClassLoader resourceLoader = Instance.class.getClassLoader();
+    public static final Configuration defaultConfig = new Configuration("SovietBot", "person.jpeg", ">", "", "", 1000, new String[0], "");
     public static final String botName = "SovietBot";
     public static final String frameName = sx.blah.discord.Discord4J.NAME;
     public static final String frameVersion = sx.blah.discord.Discord4J.VERSION;
@@ -50,8 +42,14 @@ public class SovietBot {
     public static final String website = "https://robot-rover.github.io/SovietBot/";
 
     public static void main(String[] args) {
+        Rebound r = new Rebound("rr.industries.commands", false, true);
+        r.getSubClassesOf(Command.class).forEach(CommandList::addCommand);
         if (args.length >= 1 && args[0].equals("generate")) {
-            GenHelpDocs.generate(commands);
+            GenHelpDocs.generate(new CommandList().getCommandList());
+            return;
+        }
+        if (args.length >= 1 && args[0].equals("stop")) {
+            System.out.println("Default CommandList - Size: " + CommandList.defaultLength());
             return;
         }
         LOG.info("\n------------------------------------------------------------------------\n### {} ###\n------------------------------------------------------------------------", botName);

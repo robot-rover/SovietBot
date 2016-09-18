@@ -16,9 +16,19 @@
             <id>jitpack.io</id>
             <url>https://jitpack.io</url>
         </repository>
+        <repository>
+            <id>gigadot.net</id>
+            <url>http://maven2.gigadot.net/</url>
+        </repository>
     </repositories>
 
     <dependencies>
+        <!-- Find all Classes in Package -->
+        <dependency>
+            <groupId>gigadot.rebound</groupId>
+            <artifactId>rebound</artifactId>
+            <version>0.2</version>
+        </dependency>
         <!-- Weather API -->
         <dependency>
             <groupId>net.aksingh</groupId>

@@ -1,6 +1,5 @@
 package rr.industries.commands;
 
-import rr.industries.CommandList;
 import rr.industries.util.*;
 import rr.industries.util.sql.UserTable;
 import sx.blah.discord.util.MessageBuilder;
@@ -19,9 +18,6 @@ import java.util.TimeZone;
         helpText = "Used to see users local time"
 )
 public class Time implements Command {
-    static {
-        CommandList.defaultCommandList.add(Time.class);
-    }
     @SubCommand(name = "all", Syntax = {@Syntax(helpText = "Sends you all of the time information for the Guild", args = {})})
     public void all(CommContext cont) {
         MessageBuilder message = new MessageBuilder(cont.getClient()).withChannel(cont.getMessage().getMessage().getChannel()).withContent("Coming Soon");

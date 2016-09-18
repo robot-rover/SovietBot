@@ -1,6 +1,5 @@
 package rr.industries.commands;
 
-import rr.industries.CommandList;
 import rr.industries.util.*;
 
 import javax.sound.sampled.AudioInputStream;
@@ -16,9 +15,6 @@ import static sx.blah.discord.util.audio.AudioPlayer.getAudioPlayerForGuild;
         permLevel = Permissions.REGULAR
 )
 public class Rekt implements Command {
-    static {
-        CommandList.defaultCommandList.add(Rekt.class);
-    }
     private AudioInputStream[] sfx;
 
     /*this.sfxIndex = new String[6];

@@ -1,6 +1,7 @@
 package rr.industries.commands;
 
-import rr.industries.CommandList;
+import net.aksingh.owmjapis.CurrentWeather;
+import net.aksingh.owmjapis.OpenWeatherMap;
 import rr.industries.util.*;
 import sx.blah.discord.util.DiscordException;
 import sx.blah.discord.util.MissingPermissionsException;
@@ -12,9 +13,6 @@ import sx.blah.discord.util.RateLimitException;
         permLevel = Permissions.BOTOPERATOR
 )
 public class Test implements Command {
-    static {
-        CommandList.defaultCommandList.add(Test.class);
-    }
     @SubCommand(name = "tester", Syntax = {@Syntax(helpText = "Test the tester test", args = {})})
     public void testSub(CommContext cont) {
         try {
@@ -26,5 +24,12 @@ public class Test implements Command {
         } catch (DiscordException e) {
             e.printStackTrace();
         }
+    }
+
+    @SubCommand(name = "weather", Syntax = {})
+    public void testWeather(CommContext cont) {
+        OpenWeatherMap map = new OpenWeatherMap(cont.getActions().getConfig().owmKey);
+        CurrentWeather current = map.currentWeatherByCityCode(Long.parseLong(cont.getArgs().get(2)));
+        LOG.info("Weather:\nCity Name: {}\nBase Station: {}\nTemperature: {}{}", current.getCityName(), current.getBaseStation(), current.getMainInstance().getTemperature(), "\u00B0F");
     }
 }

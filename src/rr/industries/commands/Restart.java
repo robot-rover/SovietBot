@@ -1,6 +1,5 @@
 package rr.industries.commands;
 
-import rr.industries.CommandList;
 import rr.industries.util.*;
 import sx.blah.discord.util.DiscordException;
 import sx.blah.discord.util.MissingPermissionsException;
@@ -13,10 +12,6 @@ import sx.blah.discord.util.RateLimitException;
         deleteMessage = false
 )
 public class Restart implements Command {
-    static {
-        CommandList.defaultCommandList.add(Restart.class);
-    }
-
     @SubCommand(name = "", Syntax = {@Syntax(helpText = "The process running the bot stops and restarts", args = {})})
     public void execute(CommContext cont) {
         if (!cont.getMessage().getMessage().getChannel().isPrivate()) {

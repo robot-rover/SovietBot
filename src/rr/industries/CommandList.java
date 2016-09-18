@@ -15,7 +15,7 @@ import java.util.List;
  */
 public class CommandList {
     private static Logger LOG = LoggerFactory.getLogger(CommandList.class);
-    public static List<Class<? extends Command>> defaultCommandList = new ArrayList<>();
+    private static volatile List<Class<? extends Command>> defaultCommandList = new ArrayList<>();
     private final List<Command> commandList;
 
     public CommandList() {
@@ -27,6 +27,8 @@ public class CommandList {
                 LOG.error("Unable to Instantiate Command Class " + com.getCanonicalName(), ex);
             }
         }
+        LOG.info("Initialized CommandList - Size: {}", defaultLength());
+
     }
 
     public Command getCommand(String findCommand) {
@@ -34,7 +36,20 @@ public class CommandList {
                 .findAny().orElse(null);
     }
 
+    public static void addCommand(Class<? extends Command> comm) {
+        defaultCommandList.add(comm);
+    }
+
     public List<Command> getCommandList() {
         return commandList;
+    }
+
+    public static int defaultLength() {
+        return defaultCommandList.size();
+    }
+
+    @Override
+    public String toString() {
+        return commandList.size() + " commands registered";
     }
 }

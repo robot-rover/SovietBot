@@ -1,6 +1,5 @@
 package rr.industries.commands;
 
-import rr.industries.CommandList;
 import rr.industries.util.*;
 import sx.blah.discord.Discord4J;
 import sx.blah.discord.util.MessageBuilder;
@@ -13,9 +12,6 @@ import java.time.format.DateTimeFormatter;
         permLevel = Permissions.BOTOPERATOR
 )
 public class Environment implements Command {
-    static {
-        CommandList.defaultCommandList.add(Environment.class);
-    }
     private static final int byteToMegabyte = 1048576;
 
     @SubCommand(name = "", Syntax = {@Syntax(helpText = "Display's statistics about the bots operating environment", args = {})})

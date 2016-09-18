@@ -68,7 +68,6 @@ public class Table {
 
     public void setValue(String conditions, String... vals) {
         try {
-            LOG.info("REPLACE INTO " + tableName + " (" + getColumns() + ") VALUES(" + getValues(conditions, vals) + ")");
             executor.execute("REPLACE INTO " + tableName + " (" + getColumns() + ") VALUES(" + getValues(conditions, vals) + ")");
         } catch (SQLException ex) {
             LOG.warn("SQL Exception", ex);

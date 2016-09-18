@@ -1,6 +1,5 @@
 package rr.industries.commands;
 
-import rr.industries.CommandList;
 import rr.industries.SovietBot;
 import rr.industries.util.*;
 import rr.industries.util.sql.PermTable;
@@ -18,9 +17,6 @@ import java.util.List;
         helpText = "Displays this help message"
 )
 public class Help implements Command {
-    static {
-        CommandList.defaultCommandList.add(Help.class);
-    }
 
     @SubCommand(name = "", Syntax = {
             @Syntax(helpText = "Displays all possible commands", args = {}),

@@ -1,6 +1,5 @@
 package rr.industries.commands;
 
-import rr.industries.CommandList;
 import rr.industries.util.*;
 import rr.industries.util.sql.PermTable;
 import sx.blah.discord.handle.obj.IRole;
@@ -19,10 +18,6 @@ import java.util.List;
         commandName = "perms",
         helpText = "Gets and Sets permissions for users of a server")
 public class Perms implements Command {
-    static {
-        CommandList.defaultCommandList.add(Perms.class);
-    }
-
     @SubCommand(name = "", Syntax = {@Syntax(helpText = "View and Set permissions for SovietBot", args = {})})
     public void execute(CommContext cont) {
         cont.getActions().sendMessage(new MessageBuilder(cont.getClient()).withChannel(cont.getMessage().getMessage().getChannel())

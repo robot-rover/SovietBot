@@ -1,6 +1,5 @@
 package rr.industries.commands;
 
-import rr.industries.CommandList;
 import rr.industries.util.*;
 import sx.blah.discord.handle.obj.IUser;
 import sx.blah.discord.handle.obj.IVoiceChannel;
@@ -17,9 +16,6 @@ import sx.blah.discord.util.RateLimitException;
 )
 //todo: @mention to bring one user to your channel
 public class Bring implements Command {
-    static {
-        CommandList.defaultCommandList.add(Bring.class);
-    }
     @SubCommand(name = "", Syntax = {@Syntax(helpText = "Moves all users connected to a voice channel to your channel", args = {})})
     public void execute(CommContext cont) {
 

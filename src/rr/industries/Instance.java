@@ -59,10 +59,8 @@ import static rr.industries.SovietBot.defaultConfig;
  */
 
 public class Instance {
-    public static final Logger LOG = LoggerFactory.getLogger(Instance.class);
+    private static final Logger LOG = LoggerFactory.getLogger(Instance.class);
     private static final File configFile = new File("configuration.json");
-    private static final File opFile = new File("botOperators.json");
-    public static volatile boolean loggedIn = true;
     private final Configuration config;
     private final CommandList commandList;
     private volatile IDiscordClient client;
@@ -91,7 +89,6 @@ public class Instance {
             }
         }
         commandList = new CommandList();
-
         try {
             Connection connection = DriverManager.getConnection("jdbc:sqlite:sovietBot.db");
             statement = connection.createStatement();
@@ -124,6 +121,7 @@ public class Instance {
 
     @EventSubscriber
     public void onReady(ReadyEvent e) throws DiscordException, RateLimitException {
+        SovietBot.loggedIn = true;
         console = new Console(actions);
         console.enable();
         updateStatus = new UTCStatus(client);
@@ -199,12 +197,12 @@ public class Instance {
 
     @EventSubscriber
     public void onReconnect(DiscordReconnectedEvent e) {
-        loggedIn = true;
+        SovietBot.loggedIn = true;
     }
 
     @EventSubscriber
     public void onDisconnect(DiscordDisconnectedEvent e) {
-        loggedIn = false;
+        SovietBot.loggedIn = false;
         if (e.getReason().equals(DiscordDisconnectedEvent.Reason.LOGGED_OUT)) {
             LOG.info("Successfully Logged Out...");
         } else {

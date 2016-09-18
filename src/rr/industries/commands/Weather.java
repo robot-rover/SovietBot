@@ -1,6 +1,6 @@
 package rr.industries.commands;
 
-import rr.industries.CommandList;
+import net.aksingh.owmjapis.OpenWeatherMap;
 import rr.industries.util.*;
 import sx.blah.discord.util.MessageBuilder;
 
@@ -11,9 +11,6 @@ import sx.blah.discord.util.MessageBuilder;
         permLevel = Permissions.BOTOPERATOR
 )
 public class Weather implements Command {
-    static {
-        CommandList.defaultCommandList.add(Weather.class);
-    }
 
     @SubCommand(name = "", Syntax = {
             @Syntax(helpText = "Displays the current weather in your area", args = {})
@@ -24,6 +21,6 @@ public class Weather implements Command {
 
     @SubCommand(name = "set", Syntax = {@Syntax(helpText = "Sets your zip code", args = {Arguments.NUMBER})})
     public void set(CommContext cont) {
-        //OpenWeatherMap map = new OpenWeatherMap()
+        OpenWeatherMap map = new OpenWeatherMap(OpenWeatherMap.Units.IMPERIAL, cont.getActions().getConfig().owmKey);
     }
 }

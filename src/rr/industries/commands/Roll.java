@@ -1,6 +1,5 @@
 package rr.industries.commands;
 
-import rr.industries.CommandList;
 import rr.industries.util.*;
 import sx.blah.discord.util.MessageBuilder;
 
@@ -9,10 +8,6 @@ import sx.blah.discord.util.MessageBuilder;
         helpText = "Rolls a random number in a variety of ways"
 )
 public class Roll implements Command {
-    static {
-        CommandList.defaultCommandList.add(Roll.class);
-    }
-
     @SubCommand(name = "", Syntax = {
             @Syntax(helpText = "Rolls a number 1-100", args = {}),
             @Syntax(helpText = "Rolls a number 1-#", args = {Arguments.NUMBER}),

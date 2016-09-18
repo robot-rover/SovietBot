@@ -7,7 +7,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import rr.industries.CommandList;
 import rr.industries.Configuration;
-import rr.industries.Instance;
 import rr.industries.SovietBot;
 import rr.industries.util.sql.Table;
 import sx.blah.discord.api.IDiscordClient;
@@ -61,7 +60,7 @@ public final class BotActions {
     }
 
     @SuppressWarnings("unchecked")
-    public <T> T getTable(Class<T> tableType) {
+    public <T extends Table> T getTable(Class<T> tableType) {
         for (Table table : tables) {
             if (table.getClass().equals(tableType))
                 return (T) table;
@@ -159,15 +158,15 @@ public final class BotActions {
         try {
             Thread.sleep(delay);
         } catch (InterruptedException ex) {
-            threadInterrupted(ex, "onMessage", SovietBot.LOG);
+            threadInterrupted(ex, "onMessage", LOG);
         }
         try {
-            if (Instance.loggedIn) {
+            if (SovietBot.loggedIn) {
                 message.delete();
             }
         } catch (MissingPermissionsException ex) {
             //fail silently
-            SovietBot.LOG.debug("Did not delete message, missing permissions");
+            LOG.debug("Did not delete message, missing permissions");
         } catch (RateLimitException ex) {
             //todo: fix ratelimit
         } catch (DiscordException ex) {

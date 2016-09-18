@@ -7,7 +7,6 @@ package rr.industries.util;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import rr.industries.Configuration;
 import rr.industries.util.sql.PermTable;
 import sx.blah.discord.api.IDiscordClient;
 import sx.blah.discord.handle.impl.events.MessageReceivedEvent;
@@ -51,10 +50,6 @@ public class CommContext {
 
     public BotActions getActions() {
         return actions;
-    }
-
-    public Configuration getConfig() {
-        return actions.getConfig();
     }
 
     public Permissions getCallerPerms() {
