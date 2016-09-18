@@ -1,8 +1,10 @@
 package rr.industries.commands;
 
 import rr.industries.util.*;
+import sx.blah.discord.handle.obj.IUser;
 import sx.blah.discord.util.MessageBuilder;
 
+import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 @CommandInfo(
@@ -16,26 +18,22 @@ public class Rip implements Command {
     public void execute(CommContext cont) {
         String channelName;
         Pattern p = Pattern.compile("<@!?[0-9]{18}>");
-        Pattern start = Pattern.compile(".*<@!?");
-        Pattern end = Pattern.compile(">.*");
-        Pattern space = Pattern.compile(" ");
+        Pattern n = Pattern.compile("[0-9]{18}");
         MessageBuilder message = new MessageBuilder(cont.getClient()).withChannel(cont.getMessage().getMessage().getChannel()).withContent("http://www.ripme.xyz/");
-        if (cont.getArgs().size() >= 2) {
-            for (int i = 1; i < cont.getArgs().size(); i++) {
-                if (p.matcher(cont.getArgs().get(i)).find()) {
-                    String id = cont.getArgs().get(i);
-                    id = start.matcher(id).replaceFirst("");
-                    id = end.matcher(id).replaceFirst("");
-                    message.appendContent(cont.getClient().getUserByID(id).getDisplayName(cont.getMessage().getMessage().getGuild()));
-                    message.withContent(space.matcher(message.getContent()).replaceAll("%20"));
-                } else {
-                    message.appendContent(cont.getArgs().get(i));
-                }
-                if (i < cont.getArgs().size() - 1)
-                    message.appendContent("%20");
+        String rawSubject = cont.getConcatArgs(1);
+        Matcher matcher = p.matcher(rawSubject);
+        while (matcher.find()) {
+            Matcher num = n.matcher(matcher.group());
+            num.find();
+            String id = num.group();
+            IUser mention = cont.getClient().getUserByID(id);
+            if (mention != null) {
+                rawSubject = rawSubject.replace(matcher.group(), mention.getDisplayName(cont.getMessage().getMessage().getGuild()));
+            } else {
+                rawSubject = rawSubject.replace(matcher.group(), "");
             }
         }
-        message.withContent(message.getContent().replace(":", "&#58;"));
-        cont.getActions().sendMessage(message);
+        rawSubject = rawSubject.replace(" ", "%20");
+        cont.getActions().sendMessage(message.appendContent(rawSubject));
     }
 }

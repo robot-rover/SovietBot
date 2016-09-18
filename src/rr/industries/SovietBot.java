@@ -25,10 +25,6 @@ import rr.industries.util.GenHelpDocs;
 import sx.blah.discord.util.DiscordException;
 
 public class SovietBot {
-    static {
-        System.out.println("Inside Static Block");
-    }
-
     private static final Logger LOG = LoggerFactory.getLogger(SovietBot.class);
     public static volatile boolean loggedIn = false;
     public static final ClassLoader resourceLoader = Instance.class.getClassLoader();

@@ -109,7 +109,7 @@ public final class BotActions {
     }
 
     public void customException(String methodName, String message, @Nullable Exception ex, Logger log, boolean error) {
-        String fullMessage = methodName + message;
+        String fullMessage = methodName + ": " + message;
         if (error) {
             log.error(fullMessage);
             if (ex != null) {

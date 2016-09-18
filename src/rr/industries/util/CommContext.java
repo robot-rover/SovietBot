@@ -40,12 +40,14 @@ public class CommContext {
         }
     }
 
-    public String getConcatArgs() {
-        String concatArgs = "";
-        for (int i = 1; i < args.size(); i++) {
-            concatArgs = concatArgs.concat(args.get(i) + " ");
+    public String getConcatArgs(int first) {
+        StringBuilder concatArgs = new StringBuilder("");
+        for (int i = first; i < args.size(); i++) {
+            concatArgs.append(args.get(i));
+            if (i + 1 < args.size())
+                concatArgs.append(" ");
         }
-        return concatArgs.substring(0, concatArgs.length() > 0 ? concatArgs.length() - 1 : 0);
+        return concatArgs.toString();
     }
 
     public BotActions getActions() {

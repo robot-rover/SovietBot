@@ -11,7 +11,7 @@ public class Echo implements Command {
     @SubCommand(name = "", Syntax = {@Syntax(helpText = "Sends back the text that you specify", args = {Arguments.TEXT})})
     public void execute(CommContext cont) {
         MessageBuilder message = new MessageBuilder(cont.getClient()).withChannel(cont.getMessage().getMessage().getChannel())
-                .withContent(cont.getConcatArgs());
+                .withContent(cont.getConcatArgs(1));
         if (message.getContent().length() > 0) {
             cont.getActions().sendMessage(message);
         }
