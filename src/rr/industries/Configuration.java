@@ -9,8 +9,9 @@ public class Configuration {
     public int webhooksPort;
     public String[] operators;
     public String owmKey;
+    public String geoCodeKey;
 
-    public Configuration(String botName, String botAvatar, String commChar, String token, String secret, int webhooksPort, String[] operators, String owmKey) {
+    public Configuration(String botName, String botAvatar, String commChar, String token, String secret, int webhooksPort, String[] operators, String owmKey, String geoCodeKey) {
         this.botName = botName;
         this.botAvatar = botAvatar;
         this.commChar = commChar;
@@ -19,6 +20,7 @@ public class Configuration {
         this.webhooksPort = webhooksPort;
         this.operators = (operators == null ? new String[0] : operators);
         this.owmKey = owmKey;
+        this.geoCodeKey = geoCodeKey;
     }
 
     @Override
