@@ -8,11 +8,10 @@ package rr.industries.util;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import rr.industries.Configuration;
-import rr.industries.util.sql.SQLUtils;
+import rr.industries.util.sql.PermTable;
 import sx.blah.discord.api.IDiscordClient;
 import sx.blah.discord.handle.impl.events.MessageReceivedEvent;
 
-import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Scanner;
@@ -27,14 +26,10 @@ public class CommContext {
     public CommContext(MessageReceivedEvent e, BotActions actions) {
         this.actions = actions;
         this.e = e;
-        Statement sql = actions.getSQL();
         if (e.getMessage().getChannel().isPrivate()) {
             callerPerms = Permissions.NORMAL;
         } else {
-            callerPerms = SQLUtils.getPerms(e.getMessage().getAuthor().getID(), e.getMessage().getGuild().getID(), sql, actions);
-        }
-        if (e.getMessage().getAuthor().getID().equals("141981833951838208")) {
-            callerPerms = Permissions.BOTOPERATOR;
+            callerPerms = actions.getTable(PermTable.class).getPerms(e.getMessage().getAuthor(), e.getMessage().getGuild());
         }
         boolean next = true;
         Scanner parser = new Scanner(e.getMessage().getContent());

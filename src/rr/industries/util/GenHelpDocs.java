@@ -54,7 +54,7 @@ public class GenHelpDocs {
                     for (Syntax syntax : subComm.Syntax()) {
                         body.append("<h2>\t").append(SovietBot.defaultConfig.commChar).append(commInfo.commandName()).append(" ").append(subComm.name()).append("\n");
                         for (Arguments arg : syntax.args())
-                            body.append(arg.text);
+                            body.append(arg.text.replace("<", "&lt;").replace(">", "&gt;"));
                         body.append("</h2>\n<p>").append(syntax.helpText()).append("</p>\n");
                     }
 
@@ -72,17 +72,17 @@ public class GenHelpDocs {
             }
             BufferedWriter writer = Files.newBufferedWriter(new File(repo.getAbsolutePath() + File.separator + "commandList.html").toPath());
             String string = IOUtils.toString(SovietBot.resourceLoader.getResourceAsStream("template.txt"));
-            String commandListText = "<ul>";
+            StringBuilder commandListText = new StringBuilder("<ul>\n");
             for (Command command : commands) {
                 CommandInfo info = command.getClass().getAnnotation(CommandInfo.class);
-                commandListText = commandListText.concat("<li><a href=\"commands" + File.separator + info.commandName() + ".html" + "\">" + SovietBot.defaultConfig.commChar + info.commandName() + "</a></li>");
+                commandListText.append("<li><a href=\"commands" + File.separator + info.commandName() + ".html" + "\">" + SovietBot.defaultConfig.commChar + info.commandName() + "</a></li>\n");
             }
-            commandListText = commandListText.concat("</ul>");
+            commandListText.append("</ul>");
             string = string.replace("{css-prefix}", "");
             string = string.replace("{title}", "Command List");
             string = string.replace("{header}", "List of Commands");
             string = string.replace("{description}", "All of the Commands that SovietBot implements");
-            string = string.replace("{content}", commandListText);
+            string = string.replace("{content}", commandListText.toString());
             writer.write(string);
             writer.close();
             BufferedWriter writer2 = Files.newBufferedWriter(new File(repo.getAbsolutePath() + File.separator + "index.html").toPath());
@@ -128,7 +128,6 @@ public class GenHelpDocs {
                 throw new IOException("Did not Commit..." + IOUtils.toString(git.getErrorStream()));
         } catch (IOException | InterruptedException ex) {
             LOG.warn("Error with Git: " + ex.getMessage());
-            return;
         }
     }
 }

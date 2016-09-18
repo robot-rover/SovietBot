@@ -29,7 +29,6 @@ import java.util.List;
 public class SovietBot {
 
     public static final Logger LOG = LoggerFactory.getLogger(SovietBot.class);
-    private static Instance bot;
     public static final ClassLoader resourceLoader = Instance.class.getClassLoader();
     public static final List<Command> commands;
     public static final Configuration defaultConfig = new Configuration("SovietBot", "person.jpeg", ">", "", "", 1000, new String[0]);
@@ -57,7 +56,7 @@ public class SovietBot {
         }
         LOG.info("\n------------------------------------------------------------------------\n### {} ###\n------------------------------------------------------------------------", botName);
         try {
-            bot = new Instance();
+            new Instance();
         } catch (DiscordException e) {
             LOG.warn("Bot could not start", e);
         }

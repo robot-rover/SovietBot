@@ -10,8 +10,9 @@ import rr.industries.modules.Module;
 import rr.industries.modules.UTCStatus;
 import rr.industries.modules.githubwebhooks.GithubWebhooks;
 import rr.industries.util.*;
-import rr.industries.util.sql.Column;
-import rr.industries.util.sql.SQLUtils;
+import rr.industries.util.sql.PermTable;
+import rr.industries.util.sql.Table;
+import rr.industries.util.sql.UserTable;
 import sx.blah.discord.Discord4J;
 import sx.blah.discord.api.ClientBuilder;
 import sx.blah.discord.api.IDiscordClient;
@@ -31,8 +32,6 @@ import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
 import java.sql.Statement;
-import java.util.Arrays;
-import java.util.List;
 import java.util.Optional;
 
 import static rr.industries.SovietBot.botName;
@@ -67,6 +66,7 @@ public class Instance {
     private final Configuration config;
     private final CommandList commandList;
     private volatile IDiscordClient client;
+    private Table[] tables;
     private Module webHooks;
     private Statement statement;
     private BotActions actions;
@@ -91,24 +91,14 @@ public class Instance {
             }
         }
         commandList = new CommandList();
-        Connection connection;
-        List<Column> permsColumns = Arrays.asList(
-                new Column("guildid", "text", false),
-                new Column("userid", "text", false),
-                new Column("perm", "int", false)
-        );
-        List<Column> usersColumns = Arrays.asList(
-                new Column("userid", "text", false),
-                new Column("timezone", "text", true)
-        );
+
         try {
-            connection = DriverManager.getConnection("jdbc:sqlite:sovietBot.db");
+            Connection connection = DriverManager.getConnection("jdbc:sqlite:sovietBot.db");
             statement = connection.createStatement();
-            statement.setQueryTimeout(30);  // set timeout to 30 sec.
-            SQLUtils.initTable("perms", permsColumns, statement, null);
-            SQLUtils.createIndex("perms", "searchindex", "guildid, userid", true, statement, null);
-            SQLUtils.initTable("users", usersColumns, statement, null);
-            SQLUtils.createIndex("users", "searchindex", "userid", true, statement, null);
+            statement.setQueryTimeout(20);  // set timeout to 30 sec.
+            tables = new Table[2];
+            tables[0] = (new PermTable(statement));
+            tables[1] = (new UserTable(statement));
         } catch (SQLException ex) {
             LOG.error("Unable to Initialize Database", ex);
             System.exit(1);
@@ -121,14 +111,14 @@ public class Instance {
         client = new ClientBuilder().withToken(config.token).build();
         client.getDispatcher().registerListener(this);
         client.login();
-        actions = new BotActions(client, config, commandList, statement);
+        actions = new BotActions(client, config, commandList, statement, tables);
     }
 
     @EventSubscriber
     public void onGuildCreate(GuildCreateEvent e) {
-        SQLUtils.updatePerms(e.getGuild().getOwnerID(), e.getGuild().getID(), Permissions.ADMIN, statement, actions);
+        actions.getTable(PermTable.class).setPerms(e.getGuild().getOwner(), e.getGuild(), Permissions.ADMIN);
         for (String op : config.operators)
-            SQLUtils.updatePerms(op, e.getGuild().getID(), Permissions.BOTOPERATOR, statement, actions);
+            actions.getTable(PermTable.class).setPerms(client.getUserByID(op), e.getGuild(), Permissions.BOTOPERATOR);
         LOG.info("Connected to Guild: " + e.getGuild().getName() + " (" + e.getGuild().getID() + ")");
     }
 
@@ -196,7 +186,7 @@ public class Instance {
                             actions.customException("onMessage", "Could not access subcommand", ex, LOG, true);
                         } catch (InvocationTargetException ex) {
                             if (ex.getCause() instanceof Exception)
-                                actions.customException("onMessage", "Subcommand Invocation Failed", (Exception) ex.getCause(), LOG, true);
+                                actions.customException("onMessage", ex.getCause().getMessage(), (Exception) ex.getCause(), LOG, true);
                         }
                         if (info.deleteMessage() && !cont.getMessage().getMessage().getChannel().isPrivate()) {
                             actions.delayDelete(cont.getMessage().getMessage(), 2500);
@@ -205,7 +195,6 @@ public class Instance {
                 }
             }
         }
-        Thread.currentThread().interrupt();
     }
 
     @EventSubscriber

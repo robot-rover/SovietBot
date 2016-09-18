@@ -3,8 +3,10 @@ package rr.industries.commands;
 import rr.industries.CommandList;
 import rr.industries.SovietBot;
 import rr.industries.util.*;
-import rr.industries.util.sql.SQLUtils;
+import rr.industries.util.sql.PermTable;
+import sx.blah.discord.util.DiscordException;
 import sx.blah.discord.util.MessageBuilder;
+import sx.blah.discord.util.RateLimitException;
 
 import java.lang.reflect.Method;
 import java.util.ArrayList;
@@ -19,7 +21,11 @@ public class Help implements Command {
     static {
         CommandList.defaultCommandList.add(Help.class);
     }
-    @SubCommand(name = "", Syntax = {@Syntax(helpText = "Displays all possible commands", args = {}), @Syntax(helpText = "Displays the selected command in greater detail", args = {Arguments.COMMAND})})
+
+    @SubCommand(name = "", Syntax = {
+            @Syntax(helpText = "Displays all possible commands", args = {}),
+            @Syntax(helpText = "Displays the selected command in greater detail", args = {Arguments.COMMAND})
+    })
     public void execute(CommContext cont) {
         MessageBuilder message = new MessageBuilder(cont.getClient()).withChannel(cont.getMessage().getMessage().getChannel());
         if (cont.getArgs().size() >= 2) {
@@ -78,20 +84,28 @@ public class Help implements Command {
 
 
         } else {
-            message.appendContent("```markdown\n# " + SovietBot.botName + " - \"" + cont.getCommChar() + "\" #\n");
-            message.appendContent("For more help type >help <command>...\n");
-            message.appendContent("Or visit <" + SovietBot.website + ">\n");
-            for (Permissions perm : Permissions.values()) {
-                if (perm.equals(Permissions.BOTOPERATOR) && !SQLUtils.getPerms(cont.getMessage().getMessage().getAuthor().getID(), cont.getMessage().getMessage().getGuild().getID(), cont.getActions().getSQL(), cont.getActions()).equals(Permissions.BOTOPERATOR)) {
-                    continue;
+            try {
+                MessageBuilder message2 = new MessageBuilder(cont.getClient()).withChannel(cont.getClient().getOrCreatePMChannel(cont.getMessage().getMessage().getAuthor()));
+                message2.appendContent("```markdown\n# " + SovietBot.botName + " - \"" + cont.getCommChar() + "\" #\n");
+                message2.appendContent("For more help type >help <command>...\n");
+                message2.appendContent("Or visit <" + SovietBot.website + ">\n");
+                for (Permissions perm : Permissions.values()) {
+                    if (perm.equals(Permissions.BOTOPERATOR) && !cont.getActions().getTable(PermTable.class).getPerms(cont.getMessage().getMessage().getAuthor(), cont.getMessage().getMessage().getGuild()).equals(Permissions.BOTOPERATOR)) {
+                        continue;
+                    }
+                    message2.appendContent("[Permission]: " + perm.title + "\n");
+                    cont.getActions().getCommands().getCommandList().stream().filter(comm -> comm.getClass().getDeclaredAnnotation(CommandInfo.class).permLevel().equals(perm)).forEach(comm -> {
+                        CommandInfo info = comm.getClass().getDeclaredAnnotation(CommandInfo.class);
+                        message2.appendContent("\t" + cont.getCommChar() + info.commandName() + " - " + info.helpText() + "\n");
+                    });
                 }
-                message.appendContent("[Permission]: " + perm.title + "\n");
-                cont.getActions().getCommands().getCommandList().stream().filter(comm -> comm.getClass().getDeclaredAnnotation(CommandInfo.class).permLevel().equals(perm)).forEach(comm -> {
-                    CommandInfo info = comm.getClass().getDeclaredAnnotation(CommandInfo.class);
-                    message.appendContent("\t" + cont.getCommChar() + info.commandName() + " - " + info.helpText() + "\n");
-                });
+                cont.getActions().sendMessage(message2.appendContent("```"));
+                cont.getActions().sendMessage(message.withContent(cont.getMessage().getMessage().getAuthor().mention() + ", Check your PMs!"));
+            } catch (DiscordException ex) {
+                cont.getActions().customException("Help", ex.getErrorMessage(), ex, LOG, true);
+            } catch (RateLimitException e) {
+                //todo: implement ratelimit
             }
-            cont.getActions().sendMessage(message.appendContent("```"));
         }
     }
 }

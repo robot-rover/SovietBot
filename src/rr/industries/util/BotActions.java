@@ -9,6 +9,7 @@ import rr.industries.CommandList;
 import rr.industries.Configuration;
 import rr.industries.Instance;
 import rr.industries.SovietBot;
+import rr.industries.util.sql.Table;
 import sx.blah.discord.api.IDiscordClient;
 import sx.blah.discord.handle.impl.events.MessageReceivedEvent;
 import sx.blah.discord.handle.obj.IChannel;
@@ -29,6 +30,7 @@ import java.nio.file.StandardCopyOption;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.List;
+import java.util.NoSuchElementException;
 
 /**
  * @author Sam
@@ -41,9 +43,11 @@ public final class BotActions {
     private final Configuration config;
     private final CommandList commands;
     private final Statement sql;
+    private final Table[] tables;
 
-    public BotActions(IDiscordClient client, Configuration config, CommandList commands, Statement sql) {
+    public BotActions(IDiscordClient client, Configuration config, CommandList commands, Statement sql, Table[] tables) {
         this.client = client;
+        this.tables = tables;
         this.config = config;
         this.commands = commands;
         this.sql = sql;
@@ -56,10 +60,20 @@ public final class BotActions {
         }
     }
 
+    @SuppressWarnings("unchecked")
+    public <T> T getTable(Class<T> tableType) {
+        for (Table table : tables) {
+            if (table.getClass().equals(tableType))
+                return (T) table;
+        }
+        throw new NoSuchElementException("Table of type: " + tableType.getName() + " not found!");
+    }
+
     public IDiscordClient getClient() {
         return client;
     }
 
+    @Deprecated
     public Statement getSQL() {
         return sql;
     }
@@ -73,9 +87,8 @@ public final class BotActions {
     }
 
     public void sqlError(SQLException ex, String methodName, Logger log) {
-        String message = "SQL Error in " + methodName + ": " + ex.getMessage() + "\n" + ex.toString();
-        log.warn(message);
-        messageOwner(message, true);
+        log.warn("SQL Error in " + methodName, ex);
+        messageOwner("SQL Error in " + methodName + ": " + ex.getMessage(), true);
     }
 
     public void threadInterrupted(InterruptedException ex, String methodName, Logger log) {
@@ -117,7 +130,7 @@ public final class BotActions {
     }
 
     public void missingPermissions(IChannel channel, Permissions neededPerm) {
-        sendMessage(new MessageBuilder(client).withChannel(channel).withContent("You need to be a" + BotUtils.startsWithVowel(neededPerm.title, "n **", " **") + neededPerm.title + "** (" + neededPerm.level + ") to do that!"));
+        sendMessage(new MessageBuilder(client).withChannel(channel).withContent("You need to be a" + BotUtils.startsWithVowel(neededPerm.title, "n **", " **") + "** (" + neededPerm.level + ") to do that!"));
     }
 
     public void missingArgs(IChannel channel) {

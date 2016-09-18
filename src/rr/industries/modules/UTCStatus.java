@@ -19,7 +19,6 @@ public class UTCStatus implements Module {
     private static java.util.TimeZone tz = java.util.TimeZone.getTimeZone("GMT");
     private static java.util.Calendar c;
     private boolean isEnabled;
-    private IDiscordClient client;
     private int displayedTime;
     TimerTask updateStatus;
     Timer executor;
@@ -27,7 +26,6 @@ public class UTCStatus implements Module {
     public UTCStatus(IDiscordClient client) {
         isEnabled = false;
         this.executor = null;
-        this.client = client;
         displayedTime = 0;
         updateStatus = new TimerTask() {
             public void run() {

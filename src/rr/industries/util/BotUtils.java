@@ -32,9 +32,9 @@ public class BotUtils {
     public static String startsWithVowel(String input, String ifYes, String ifNo) {
         Pattern vowel = Pattern.compile("^[aAeEiIoOuU].*");
         if (vowel.matcher(input).find()) {
-            return ifYes;
+            return ifYes + input;
         } else {
-            return ifNo;
+            return ifNo + input;
         }
     }
 

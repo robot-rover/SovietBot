@@ -47,7 +47,7 @@
         <dependency>
             <groupId>net.dv8tion</groupId>
             <artifactId>d4j-player</artifactId>
-            <version>0.2.2_17</version>
+            <version>0.2.2_21</version>
             <exclusions>
                 <exclusion>
                     <artifactId>Discord4j</artifactId>

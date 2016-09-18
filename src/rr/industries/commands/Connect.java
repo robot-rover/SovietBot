@@ -22,7 +22,10 @@ public class Connect implements Command {
         BotActions.disconnectFromChannel(cont.getMessage().getMessage().getGuild(), cont.getClient().getConnectedVoiceChannels());
     }
 
-    @SubCommand(name = "", Syntax = {@Syntax(helpText = "Connects the bot to the Voice Channel provided", args = {Arguments.VOICECHANNEL})})
+    @SubCommand(name = "", Syntax = {
+            @Syntax(helpText = "Connects the bot to the Voice Channel provided", args = {Arguments.VOICECHANNEL}),
+            @Syntax(helpText = "Connects the bot to the voice channel you are connected too", args = {})
+    })
     public void execute(CommContext cont) {
 
         if (cont.getArgs().size() >= 2) {

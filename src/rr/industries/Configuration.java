@@ -8,6 +8,7 @@ public class Configuration {
     public String secret;
     public int webhooksPort;
     public String[] operators;
+    public String owmKey;
 
     public Configuration(String botName, String botAvatar, String commChar, String token, String secret, int webhooksPort, String[] operators) {
         this.botName = botName;
