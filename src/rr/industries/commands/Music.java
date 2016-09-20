@@ -24,7 +24,7 @@ import static sx.blah.discord.util.audio.AudioPlayer.getAudioPlayerForGuild;
 public class Music implements Command {
     @SubCommand(name = "list", Syntax = {@Syntax(helpText = "Shows you what tracks are queued up", args = {})})
     public void playlist(CommContext cont) {
-        AudioPlayer aPlayer = getAudioPlayerForGuild(cont.getMessage().getMessage().getGuild());
+        AudioPlayer aPlayer = getAudioPlayerForGuild(cont.getMessage().getGuild());
         List<AudioPlayer.Track> playlist = aPlayer.getPlaylist();
         ArrayList<String> messageLines = new ArrayList<>();
         int i = 1;
@@ -57,14 +57,14 @@ public class Music implements Command {
             message = "```Queue is Empty";
         }
         message = message + "```";
-        IMessage delete = cont.getActions().sendMessage(new MessageBuilder(cont.getClient()).withContent(message).withChannel(cont.getMessage().getMessage().getChannel()));
+        IMessage delete = cont.getActions().sendMessage(new MessageBuilder(cont.getClient()).withContent(message).withChannel(cont.getMessage().getChannel()));
         //cont.getActions().delayDelete(delete, 15000);
         //todo: uncomment
     }
 
     @SubCommand(name = "skip", Syntax = {@Syntax(helpText = "Skips the currently playing track", args = {})}, permLevel = Permissions.REGULAR)
     public void skip(CommContext cont) {
-        AudioPlayer aPlayer = getAudioPlayerForGuild(cont.getMessage().getMessage().getGuild());
+        AudioPlayer aPlayer = getAudioPlayerForGuild(cont.getMessage().getGuild());
         IAudioProvider provider = aPlayer.getCurrentTrack().getProvider();
         if (provider instanceof MusicPlayer) {
             LOG.info("Is isntance of, skipping only one track...");
@@ -75,12 +75,12 @@ public class Music implements Command {
         }
     }
 
-    @SubCommand(name = "", Syntax = {@Syntax(helpText = "Queues the video the link is for", args = {Arguments.LINK})})
+    @SubCommand(name = "", Syntax = {@Syntax(helpText = "Queues the video the link is for", args = {@ArgSet(arg = Arguments.LINK)})})
     public void execute(CommContext cont) {
         if (cont.getArgs().size() < 2) {
-            cont.getActions().missingArgs(cont.getMessage().getMessage().getChannel());
+            cont.getActions().missingArgs(cont.getMessage().getChannel());
         } else {
-            AudioPlayer aPlayer = getAudioPlayerForGuild(cont.getMessage().getMessage().getGuild());
+            AudioPlayer aPlayer = getAudioPlayerForGuild(cont.getMessage().getGuild());
             MusicPlayer player = new MusicPlayer();
             player.setVolume(1);
             aPlayer.queue(player);

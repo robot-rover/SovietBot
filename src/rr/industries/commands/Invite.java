@@ -16,6 +16,6 @@ public class Invite implements Command {
     @SubCommand(name = "", Syntax = {@Syntax(helpText = "Clicking the link will invite the bot to your server", args = {})})
     public void execute(CommContext cont) {
         String message = "Invite Me to Your Server:\n " + invite;
-        cont.getActions().sendMessage(new MessageBuilder(cont.getClient()).withContent(message).withChannel(cont.getMessage().getMessage().getChannel()));
+        cont.getActions().sendMessage(new MessageBuilder(cont.getClient()).withContent(message).withChannel(cont.getMessage().getChannel()));
     }
 }

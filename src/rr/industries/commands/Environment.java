@@ -16,7 +16,7 @@ public class Environment implements Command {
 
     @SubCommand(name = "", Syntax = {@Syntax(helpText = "Display's statistics about the bots operating environment", args = {})})
     public void execute(CommContext cont) {
-        MessageBuilder message = new MessageBuilder(cont.getClient()).withChannel(cont.getMessage().getMessage().getChannel()).withContent("```markdown\n");
+        MessageBuilder message = new MessageBuilder(cont.getClient()).withChannel(cont.getMessage().getChannel()).withContent("```markdown\n");
         Runtime runtime = Runtime.getRuntime();
         message.appendContent("# SovietBot System Environment #\n");
         message.appendContent("<API> Discord4J v" + Discord4J.VERSION + "\n");

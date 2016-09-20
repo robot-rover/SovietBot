@@ -33,9 +33,9 @@ public class Quote implements Command {
     @SubCommand(name = "", Syntax = {@Syntax(helpText = "Danger, this command is very dank", args = {})})
     public void execute(CommContext cont) {
         if (cont.getArgs().size() >= 2 && BotUtils.tryInt(cont.getArgs().get(1))) {
-            cont.getActions().sendMessage(new MessageBuilder(cont.getClient()).withContent(quotes[Integer.parseInt(cont.getArgs().get(1))]).withChannel(cont.getMessage().getMessage().getChannel()));
+            cont.getActions().sendMessage(new MessageBuilder(cont.getClient()).withContent(quotes[Integer.parseInt(cont.getArgs().get(1))]).withChannel(cont.getMessage().getChannel()));
         } else {
-            cont.getActions().sendMessage(new MessageBuilder(cont.getClient()).withContent(quotes[rn.nextInt(quotes.length)]).withChannel(cont.getMessage().getMessage().getChannel()));
+            cont.getActions().sendMessage(new MessageBuilder(cont.getClient()).withContent(quotes[rn.nextInt(quotes.length)]).withChannel(cont.getMessage().getChannel()));
         }
     }
 }

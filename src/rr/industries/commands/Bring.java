@@ -21,11 +21,11 @@ public class Bring implements Command {
 
         String message = "";
         boolean found = false;
-        IUser[] Users = cont.getMessage().getMessage().getGuild().getUsers().toArray(new IUser[0]);
+        IUser[] Users = cont.getMessage().getGuild().getUsers().toArray(new IUser[0]);
         IVoiceChannel back;
         IVoiceChannel current;
         try {
-            back = cont.getMessage().getMessage().getAuthor().getConnectedVoiceChannels().get(0);
+            back = cont.getMessage().getAuthor().getConnectedVoiceChannels().get(0);
         } catch (ArrayIndexOutOfBoundsException ex) {
             return;
         }
@@ -46,7 +46,7 @@ public class Bring implements Command {
                 } catch (DiscordException ex) {
                     cont.getActions().customException("Bring", ex.getErrorMessage(), ex, LOG, true);
                 } catch (MissingPermissionsException ex) {
-                    cont.getActions().missingPermissions(cont.getMessage().getMessage().getChannel(), ex);
+                    cont.getActions().missingPermissions(cont.getMessage().getChannel(), ex);
                     return;
                 } catch (RateLimitException ex) {
                     //todo: implement ratelimit
@@ -55,10 +55,10 @@ public class Bring implements Command {
         }
         if (!found) {
             cont.getActions().sendMessage(new MessageBuilder(cont.getClient()).withContent("No Users found in Outside of your Channel")
-                    .withChannel(cont.getMessage().getMessage().getChannel()));
+                    .withChannel(cont.getMessage().getChannel()));
         } else {
             cont.getActions().sendMessage(new MessageBuilder(cont.getClient()).withContent(message)
-                    .withChannel(cont.getMessage().getMessage().getChannel()));
+                    .withChannel(cont.getMessage().getChannel()));
         }
     }
 }

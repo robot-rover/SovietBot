@@ -53,7 +53,7 @@ public class Cat implements Command {
         }
         message = message.substring(9, message.length() - 2);
         message = message.replace("\\/", "/");
-        message = cont.getMessage().getMessage().getAuthor().mention() + " " + message;
-        cont.getActions().sendMessage(new MessageBuilder(cont.getClient()).withContent(message).withChannel(cont.getMessage().getMessage().getChannel()));
+        message = cont.getMessage().getAuthor().mention() + " " + message;
+        cont.getActions().sendMessage(new MessageBuilder(cont.getClient()).withContent(message).withChannel(cont.getMessage().getChannel()));
     }
 }

@@ -17,14 +17,6 @@ import static sx.blah.discord.util.audio.AudioPlayer.getAudioPlayerForGuild;
 public class Rekt implements Command {
     private AudioInputStream[] sfx;
 
-    /*this.sfxIndex = new String[6];
-    sfxIndex[0] = "wombo";
-    sfxIndex[1] = "wrong";
-    sfxIndex[2] = "airhorn";
-    sfxIndex[3] = "never";
-    sfxIndex[4] = "scope";
-    sfxIndex[5] = "nope";*/
-
     public Rekt() {
         try {
             sfx = new AudioInputStream[]{
@@ -42,7 +34,7 @@ public class Rekt implements Command {
 
     @SubCommand(name = "", Syntax = {
             @Syntax(helpText = "Plays a random rekt clip", args = {}),
-            @Syntax(helpText = "Plays the specified rekt clip", args = {Arguments.TEXT}, options = {"wombo", "wrong", "airhorn", "never", "scope", "nope"})
+            @Syntax(helpText = "Plays the specified rekt clip", args = {@ArgSet(arg = Arguments.TEXT)}, options = {"wombo", "wrong", "airhorn", "never", "scope", "nope"})
     })
     public void execute(CommContext cont) {
         int i = 0;
@@ -58,7 +50,7 @@ public class Rekt implements Command {
         }*/
 
         try {
-            getAudioPlayerForGuild(cont.getMessage().getMessage().getGuild()).queue(sources[rn.nextInt(sources.length)]);
+            getAudioPlayerForGuild(cont.getMessage().getGuild()).queue(sources[rn.nextInt(sources.length)]);
         } catch (IOException ex) {
             cont.getActions().customException("Rekt", ex.getMessage(), ex, LOG, true);
         }

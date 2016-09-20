@@ -51,6 +51,17 @@ public class BotUtils {
         return (time.get(Calendar.HOUR) == 0 ? "12" : time.get(Calendar.HOUR)) + ":" + String.format("%2s", time.get(Calendar.MINUTE)).replace(" ", "0") + " " + (time.get(Calendar.AM_PM) == 1 ? "PM" : "AM");
     }
 
-    public static void touch(Class... c) {
+    public static String formatArg(ArgSet set) {
+        String raw = set.arg().text;
+        if (set.num() == 0) {
+            return raw.replace("<", "[").replace(">", "]");
+        } else if (set.num() > 0) {
+            StringBuilder processed = new StringBuilder();
+            for (int i = 0; i < set.num(); i++) {
+                processed.append(raw);
+            }
+            return processed.toString();
+        }
+        throw new InternalError("ArgSet Annotation is Misconfigured!");
     }
 }

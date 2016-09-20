@@ -12,27 +12,28 @@ import sx.blah.discord.util.RateLimitException;
         helpText = "Disconnects a user from a voice channel",
         permLevel = Permissions.ADMIN
 )
+//todo: disconnect multiple users
 public class Disconnect implements Command {
-    @SubCommand(name = "", Syntax = {@Syntax(helpText = "Disconnects the mentioned user", args = {Arguments.MENTION})})
+    @SubCommand(name = "", Syntax = {@Syntax(helpText = "Disconnects the mentioned user", args = {@ArgSet(arg = Arguments.MENTION)})})
     public void execute(CommContext cont) {
 
         if (cont.getArgs().size() < 2) {
-            cont.getActions().missingArgs(cont.getMessage().getMessage().getChannel());
+            cont.getActions().missingArgs(cont.getMessage().getChannel());
             return;
         }
-        if (cont.getMessage().getMessage().getMentions().size() == 0) {
-            cont.getActions().wrongArgs(cont.getMessage().getMessage().getChannel());
+        if (cont.getMessage().getMentions().size() == 0) {
+            cont.getActions().wrongArgs(cont.getMessage().getChannel());
             return;
         }
-        IUser user = cont.getMessage().getMessage().getMentions().get(0);
+        IUser user = cont.getMessage().getMentions().get(0);
         IVoiceChannel remove = null;
         try {
-            remove = cont.getMessage().getMessage().getGuild().createVoiceChannel("Disconnect");
+            remove = cont.getMessage().getGuild().createVoiceChannel("Disconnect");
             user.moveToVoiceChannel(remove);
         } catch (DiscordException ex) {
             cont.getActions().customException("Disconnect", ex.getErrorMessage(), ex, LOG, true);
         } catch (MissingPermissionsException ex) {
-            cont.getActions().missingPermissions(cont.getMessage().getMessage().getChannel(), ex);
+            cont.getActions().missingPermissions(cont.getMessage().getChannel(), ex);
         } catch (RateLimitException ex) {
             //todo: implement ratelimit
         } finally {
@@ -43,7 +44,7 @@ public class Disconnect implements Command {
             } catch (DiscordException ex) {
                 cont.getActions().customException("Disconnect", ex.getErrorMessage(), ex, LOG, true);
             } catch (MissingPermissionsException ex) {
-                cont.getActions().missingPermissions(cont.getMessage().getMessage().getChannel(), ex);
+                cont.getActions().missingPermissions(cont.getMessage().getChannel(), ex);
             } catch (RateLimitException ex) {
                 //todo: implement ratelimit
             }

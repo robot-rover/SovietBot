@@ -10,7 +10,6 @@ import rr.industries.Configuration;
 import rr.industries.SovietBot;
 import rr.industries.util.sql.Table;
 import sx.blah.discord.api.IDiscordClient;
-import sx.blah.discord.handle.impl.events.MessageReceivedEvent;
 import sx.blah.discord.handle.obj.IChannel;
 import sx.blah.discord.handle.obj.IGuild;
 import sx.blah.discord.handle.obj.IMessage;
@@ -94,13 +93,13 @@ public final class BotActions {
         log.warn(methodName + " - Sleep was interrupted - ", ex);
     }
 
-    public void notFound(MessageReceivedEvent e, String methodName, String type, String name, Logger log) {
-        String message = methodName + " failed to find " + type + ": \"" + name + "\" in Server: \"" + e.getMessage().getGuild().getName() + "\"";
+    public void notFound(IMessage imessage, String methodName, String type, String name, Logger log) {
+        String message = methodName + " failed to find " + type + ": \"" + name + "\" in Server: \"" + imessage.getGuild().getName() + "\"";
         log.info(message);
         try {
-            e.getMessage().reply(message);
+            imessage.reply(message);
         } catch (MissingPermissionsException ex) {
-            missingPermissions(e.getMessage().getChannel(), ex);
+            missingPermissions(imessage.getChannel(), ex);
         } catch (RateLimitException ex) {
             //todo: implement ratelimit fix
         } catch (DiscordException ex) {

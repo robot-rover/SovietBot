@@ -31,6 +31,16 @@ public class CommandList {
 
     }
 
+    public static boolean isCommand(String commName) {
+        for (Class<? extends Command> comm : defaultCommandList) {
+            CommandInfo commandInfo = comm.getAnnotation(CommandInfo.class);
+            if (commandInfo != null && commandInfo.commandName().equals(commName)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
     public Command getCommand(String findCommand) {
         return commandList.stream().filter((Command v) -> v.getClass().isAnnotationPresent(CommandInfo.class) && v.getClass().getDeclaredAnnotation(CommandInfo.class).commandName().equals(findCommand))
                 .findAny().orElse(null);

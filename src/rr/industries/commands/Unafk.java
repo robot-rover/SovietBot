@@ -18,16 +18,16 @@ public class Unafk implements Command {
     public void execute(CommContext cont) {
         String message = "";
         boolean found = false;
-        IVoiceChannel afk = cont.getMessage().getMessage().getGuild().getAFKChannel();
+        IVoiceChannel afk = cont.getMessage().getGuild().getAFKChannel();
         if (afk == null) {
-            cont.getActions().sendMessage(new MessageBuilder(cont.getClient()).withContent("There is no AFK Channel.").withChannel(cont.getMessage().getMessage().getChannel()));
+            cont.getActions().sendMessage(new MessageBuilder(cont.getClient()).withContent("There is no AFK Channel.").withChannel(cont.getMessage().getChannel()));
             return;
         }
-        IUser[] Users = cont.getMessage().getMessage().getGuild().getUsers().toArray(new IUser[0]);
+        IUser[] Users = cont.getMessage().getGuild().getUsers().toArray(new IUser[0]);
         IVoiceChannel back;
         IVoiceChannel current;
         try {
-            back = cont.getMessage().getMessage().getAuthor().getConnectedVoiceChannels().get(0);
+            back = cont.getMessage().getAuthor().getConnectedVoiceChannels().get(0);
         } catch (ArrayIndexOutOfBoundsException ex) {
             return;
         }
@@ -48,7 +48,7 @@ public class Unafk implements Command {
                 } catch (DiscordException ex) {
                     cont.getActions().customException("Unafk", ex.getMessage(), ex, LOG, true);
                 } catch (MissingPermissionsException ex) {
-                    cont.getActions().missingPermissions(cont.getMessage().getMessage().getChannel(), ex);
+                    cont.getActions().missingPermissions(cont.getMessage().getChannel(), ex);
                     return;
                 } catch (RateLimitException ex) {
                     //todo: impl ratelimit
@@ -56,10 +56,10 @@ public class Unafk implements Command {
             }
         }
         if (!found) {
-            cont.getActions().sendMessage(new MessageBuilder(cont.getClient()).withContent("No Users found in AFK Channel").withChannel(cont.getMessage().getMessage().getChannel()));
+            cont.getActions().sendMessage(new MessageBuilder(cont.getClient()).withContent("No Users found in AFK Channel").withChannel(cont.getMessage().getChannel()));
 
         } else {
-            cont.getActions().sendMessage(new MessageBuilder(cont.getClient()).withContent(message).withChannel(cont.getMessage().getMessage().getChannel()));
+            cont.getActions().sendMessage(new MessageBuilder(cont.getClient()).withContent(message).withChannel(cont.getMessage().getChannel()));
         }
     }
 }

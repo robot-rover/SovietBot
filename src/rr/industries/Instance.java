@@ -158,7 +158,7 @@ public class Instance {
             if (command != null) {
                 CommandInfo info = command.getClass().getDeclaredAnnotation(CommandInfo.class);
                 if (cont.getCallerPerms().level < info.permLevel().level) {
-                    actions.missingPermissions(cont.getMessage().getMessage().getChannel(), info.permLevel());
+                    actions.missingPermissions(cont.getMessage().getChannel(), info.permLevel());
                 } else {
                     Method subCommand = null;
                     Method baseSubCommand = null;
@@ -177,18 +177,22 @@ public class Instance {
                     if (subCommand == null && baseSubCommand != null) {
                         subCommand = baseSubCommand;
                     }
-                    if (subCommand != null) {
-                        try {
-                            subCommand.invoke(command, cont);
-                        } catch (IllegalAccessException ex) {
-                            actions.customException("onMessage", "Could not access subcommand", ex, LOG, true);
-                        } catch (InvocationTargetException ex) {
-                            if (ex.getCause() instanceof Exception)
-                                actions.customException("onMessage", ex.getCause().getMessage(), (Exception) ex.getCause(), LOG, true);
+                    if (subCommand.getAnnotation(SubCommand.class).permLevel().level <= cont.getCallerPerms().level) {
+                        if (subCommand != null) {
+                            try {
+                                subCommand.invoke(command, cont);
+                            } catch (IllegalAccessException ex) {
+                                actions.customException("onMessage", "Could not access subcommand", ex, LOG, true);
+                            } catch (InvocationTargetException ex) {
+                                if (ex.getCause() instanceof Exception)
+                                    actions.customException("onMessage", ex.getCause().getMessage(), (Exception) ex.getCause(), LOG, true);
+                            }
+                            if (info.deleteMessage() && !cont.getMessage().getChannel().isPrivate()) {
+                                actions.delayDelete(cont.getMessage(), 2500);
+                            }
                         }
-                        if (info.deleteMessage() && !cont.getMessage().getMessage().getChannel().isPrivate()) {
-                            actions.delayDelete(cont.getMessage().getMessage(), 2500);
-                        }
+                    } else {
+                        actions.missingPermissions(cont.getMessage().getChannel(), subCommand.getAnnotation(SubCommand.class).permLevel());
                     }
                 }
             }

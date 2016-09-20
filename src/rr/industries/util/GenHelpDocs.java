@@ -53,8 +53,8 @@ public class GenHelpDocs {
                 for (SubCommand subComm : subCommands) {
                     for (Syntax syntax : subComm.Syntax()) {
                         body.append("<h2>\t").append(SovietBot.defaultConfig.commChar).append(commInfo.commandName()).append(" ").append(subComm.name()).append("\n");
-                        for (Arguments arg : syntax.args())
-                            body.append(arg.text.replace("<", "&lt;").replace(">", "&gt;"));
+                        for (ArgSet arg : syntax.args())
+                            body.append(arg.arg().text.replace("<", "&lt;").replace(">", "&gt;"));
                         body.append("</h2>\n<p>").append(syntax.helpText()).append("</p>\n");
                     }
 

@@ -14,9 +14,9 @@ import sx.blah.discord.util.RateLimitException;
 public class Restart implements Command {
     @SubCommand(name = "", Syntax = {@Syntax(helpText = "The process running the bot stops and restarts", args = {})})
     public void execute(CommContext cont) {
-        if (!cont.getMessage().getMessage().getChannel().isPrivate()) {
+        if (!cont.getMessage().getChannel().isPrivate()) {
             try {
-                cont.getMessage().getMessage().delete();
+                cont.getMessage().delete();
             } catch (RateLimitException | DiscordException ex) {
                 LOG.debug("Error while deleting restart command", ex);
             } catch (MissingPermissionsException ex) {

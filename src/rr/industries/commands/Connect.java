@@ -15,11 +15,11 @@ import java.util.regex.Pattern;
 public class Connect implements Command {
     @SubCommand(name = "/", Syntax = {@Syntax(helpText = "Disconnects the bot from all voice channels", args = {})})
     public void disconnect(CommContext cont) {
-        BotActions.disconnectFromChannel(cont.getMessage().getMessage().getGuild(), cont.getClient().getConnectedVoiceChannels());
+        BotActions.disconnectFromChannel(cont.getMessage().getGuild(), cont.getClient().getConnectedVoiceChannels());
     }
 
     @SubCommand(name = "", Syntax = {
-            @Syntax(helpText = "Connects the bot to the Voice Channel provided", args = {Arguments.VOICECHANNEL}),
+            @Syntax(helpText = "Connects the bot to the Voice Channel provided", args = {@ArgSet(arg = Arguments.VOICECHANNEL)}),
             @Syntax(helpText = "Connects the bot to the voice channel you are connected too", args = {})
     })
     public void execute(CommContext cont) {
@@ -28,13 +28,13 @@ public class Connect implements Command {
             try {
                 String channelName;
                 Pattern p = Pattern.compile("\".+\"");
-                Matcher m = p.matcher(cont.getMessage().getMessage().getContent());
+                Matcher m = p.matcher(cont.getMessage().getContent());
                 if (m.find()) {
-                    channelName = cont.getMessage().getMessage().getContent().split("\"")[1];
+                    channelName = cont.getMessage().getContent().split("\"")[1];
                 } else {
                     channelName = cont.getArgs().get(1);
                 }
-                List<IVoiceChannel> next = cont.getMessage().getMessage().getGuild().getVoiceChannelsByName(channelName);
+                List<IVoiceChannel> next = cont.getMessage().getGuild().getVoiceChannelsByName(channelName);
                 if (next.size() > 0) {
                     if (!next.get(0).isConnected())
                         next.get(0).join();
@@ -42,10 +42,10 @@ public class Connect implements Command {
                     cont.getActions().notFound(cont.getMessage(), "connect", "Voice Channel", channelName, LOG);
                 }
             } catch (MissingPermissionsException ex) {
-                cont.getActions().missingPermissions(cont.getMessage().getMessage().getChannel(), ex);
+                cont.getActions().missingPermissions(cont.getMessage().getChannel(), ex);
             }
         } else {
-            List<IVoiceChannel> next = cont.getMessage().getMessage().getAuthor().getConnectedVoiceChannels();
+            List<IVoiceChannel> next = cont.getMessage().getAuthor().getConnectedVoiceChannels();
             if (next.size() >= 1) {
                 cont.getActions().connectToChannel(next.get(0), cont.getClient().getConnectedVoiceChannels());
             }

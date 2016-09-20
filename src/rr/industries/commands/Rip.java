@@ -14,12 +14,12 @@ import java.util.regex.Pattern;
 )
 public class Rip implements Command {
 
-    @SubCommand(name = "", Syntax = {@Syntax(helpText = "Specify the thing(s) that are rip", args = {Arguments.TEXT})})
+    @SubCommand(name = "", Syntax = {@Syntax(helpText = "Specify the thing(s) that are rip (Works with @\u200Bmentions)", args = {@ArgSet(arg = Arguments.TEXT, num = -1)})})
     public void execute(CommContext cont) {
         String channelName;
         Pattern p = Pattern.compile("<@!?[0-9]{18}>");
         Pattern n = Pattern.compile("[0-9]{18}");
-        MessageBuilder message = new MessageBuilder(cont.getClient()).withChannel(cont.getMessage().getMessage().getChannel()).withContent("http://www.ripme.xyz/");
+        MessageBuilder message = new MessageBuilder(cont.getClient()).withChannel(cont.getMessage().getChannel()).withContent("http://www.ripme.xyz/");
         String rawSubject = cont.getConcatArgs(1);
         Matcher matcher = p.matcher(rawSubject);
         while (matcher.find()) {
@@ -28,7 +28,7 @@ public class Rip implements Command {
             String id = num.group();
             IUser mention = cont.getClient().getUserByID(id);
             if (mention != null) {
-                rawSubject = rawSubject.replace(matcher.group(), mention.getDisplayName(cont.getMessage().getMessage().getGuild()));
+                rawSubject = rawSubject.replace(matcher.group(), mention.getDisplayName(cont.getMessage().getGuild()));
             } else {
                 rawSubject = rawSubject.replace(matcher.group(), "");
             }

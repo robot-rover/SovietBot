@@ -19,6 +19,6 @@ public class Coin implements Command {
         } else {
             message = "Tails";
         }
-        cont.getActions().sendMessage(new MessageBuilder(cont.getClient()).withContent(message).withChannel(cont.getMessage().getMessage().getChannel()));
+        cont.getActions().sendMessage(new MessageBuilder(cont.getClient()).withContent(message).withChannel(cont.getMessage().getChannel()));
     }
 }

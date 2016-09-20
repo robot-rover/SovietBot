@@ -13,7 +13,7 @@ import java.lang.annotation.*;
 public @interface Syntax {
     String helpText();
 
-    Arguments[] args();
+    ArgSet[] args();
 
     String[] options() default {};
 }

@@ -13,17 +13,17 @@ import sx.blah.discord.util.RateLimitException;
         deleteMessage = false
 )
 public class Stop implements Command {
-    @SubCommand(name = "", Syntax = {@Syntax(helpText = "Stops the proccess running the bot", args = {})})
+    @SubCommand(name = "", Syntax = {@Syntax(helpText = "Stops the process running the bot", args = {})})
     public void execute(CommContext cont) {
         if (cont != null) {
-            if (!cont.getMessage().getMessage().getAuthor().getID().equals("141981833951838208")) {
-                cont.getActions().sendMessage(new MessageBuilder(cont.getClient()).withContent("Communism marches on!").withChannel(cont.getMessage().getMessage().getChannel()));
+            if (!cont.getMessage().getAuthor().getID().equals("141981833951838208")) {
+                cont.getActions().sendMessage(new MessageBuilder(cont.getClient()).withContent("Communism marches on!").withChannel(cont.getMessage().getChannel()));
                 return;
             }
-            if (!cont.getMessage().getMessage().getChannel().isPrivate()) {
+            if (!cont.getMessage().getChannel().isPrivate()) {
                 //todo: stop delete message testing
                 try {
-                    cont.getMessage().getMessage().delete();
+                    cont.getMessage().delete();
                 } catch (MissingPermissionsException ex) {
                     //fail silently
                 } catch (RateLimitException ex) {

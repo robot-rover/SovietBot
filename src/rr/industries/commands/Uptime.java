@@ -26,6 +26,6 @@ public class Uptime implements Command {
         launchTime = launchTime.plusMinutes(minutes);
         long seconds = launchTime.until(current, ChronoUnit.SECONDS);
         String message = "`SovietBot has been running for " + Long.toString(hours) + " hours, " + Long.toString(minutes) + " minutes, and " + Long.toString(seconds) + " seconds.`";
-        cont.getActions().sendMessage(new MessageBuilder(cont.getClient()).withContent(message).withChannel(cont.getMessage().getMessage().getChannel()));
+        cont.getActions().sendMessage(new MessageBuilder(cont.getClient()).withContent(message).withChannel(cont.getMessage().getChannel()));
     }
 }

@@ -23,6 +23,6 @@ public class Info implements Command {
                 "[Invite Link](" + SovietBot.invite + ")\n" +
                 "[Website](" + SovietBot.website + ")\n" +
                 "```";
-        cont.getActions().sendMessage(new MessageBuilder(cont.getClient()).withContent(message).withChannel(cont.getMessage().getMessage().getChannel()));
+        cont.getActions().sendMessage(new MessageBuilder(cont.getClient()).withContent(message).withChannel(cont.getMessage().getChannel()));
     }
 }

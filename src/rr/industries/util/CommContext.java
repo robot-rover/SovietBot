@@ -10,6 +10,7 @@ import org.slf4j.LoggerFactory;
 import rr.industries.util.sql.PermTable;
 import sx.blah.discord.api.IDiscordClient;
 import sx.blah.discord.handle.impl.events.MessageReceivedEvent;
+import sx.blah.discord.handle.obj.IMessage;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -18,13 +19,13 @@ import java.util.Scanner;
 public class CommContext {
     private static final Logger LOG = LoggerFactory.getLogger(CommContext.class);
     private final List<String> args = new ArrayList<>();
-    private final MessageReceivedEvent e;
-    private Permissions callerPerms;
+    private final Permissions callerPerms;
     private final BotActions actions;
+    private final IMessage message;
 
     public CommContext(MessageReceivedEvent e, BotActions actions) {
         this.actions = actions;
-        this.e = e;
+        this.message = e.getMessage();
         if (e.getMessage().getChannel().isPrivate()) {
             callerPerms = Permissions.NORMAL;
         } else {
@@ -62,8 +63,8 @@ public class CommContext {
         return args;
     }
 
-    public MessageReceivedEvent getMessage() {
-        return e;
+    public IMessage getMessage() {
+        return message;
     }
 
     public IDiscordClient getClient() {
