@@ -12,7 +12,7 @@ import java.util.function.Predicate;
  * @created 9/10/2016
  */
 public enum Arguments {
-    NUMBER("<#>", (v) -> v.matches("^[0-9]+$")), MENTION("@<\u200BUser>", (v) -> v.matches("^<@!?[0-9]{18}>$")),
+    NUMBER("<#>", (v) -> BotUtils.tryInt(v)), MENTION("@<\u200BUser>", (v) -> v.matches("^<@!?[0-9]{18}>$")),
     TIMEZONE("GMT<+or-><#>", (v) -> v.matches("^GMT(?:/+|-)[0-9]+$")),
     LINK("<http://www.xxx.xxx>", (v) -> {
         try {

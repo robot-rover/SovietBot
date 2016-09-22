@@ -47,7 +47,7 @@ public class PermTable extends Table {
     public List<Entry<String, Integer>> getAllPerms(IGuild guild) {
         try {
             List<Entry<String, Integer>> list = new ArrayList<>();
-            ResultSet rs = executor.executeQuery("SELECT userid, perm FROM" + getName() + " where guildid=" + guild.getID() + " ORDER BY perm DESC;");
+            ResultSet rs = executor.executeQuery("SELECT userid, perm FROM " + getName() + " where guildid=" + guild.getID() + " ORDER BY perm DESC;");
             while (rs.next()) {
                 list.add(new Entry<String, Integer>(rs.getString("userid"), rs.getInt("perm")));
             }

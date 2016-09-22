@@ -14,15 +14,11 @@ import sx.blah.discord.util.RateLimitException;
 )
 //todo: disconnect multiple users
 public class Disconnect implements Command {
-    @SubCommand(name = "", Syntax = {@Syntax(helpText = "Disconnects the mentioned user", args = {@ArgSet(arg = Arguments.MENTION)})})
+    @SubCommand(name = "", Syntax = {@Syntax(helpText = "Disconnects the mentioned user", args = {Arguments.MENTION})})
     public void execute(CommContext cont) {
 
-        if (cont.getArgs().size() < 2) {
-            cont.getActions().missingArgs(cont.getMessage().getChannel());
-            return;
-        }
         if (cont.getMessage().getMentions().size() == 0) {
-            cont.getActions().wrongArgs(cont.getMessage().getChannel());
+            cont.getActions().missingArgs(cont.getMessage().getChannel());
             return;
         }
         IUser user = cont.getMessage().getMentions().get(0);

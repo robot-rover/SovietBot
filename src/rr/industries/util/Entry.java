@@ -14,11 +14,11 @@ public class Entry<T, V> {
         object2 = v;
     }
 
-    public T getFirst() {
+    public T first() {
         return object1;
     }
 
-    public V getSecond() {
+    public V second() {
         return object2;
     }
 }

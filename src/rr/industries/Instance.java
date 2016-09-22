@@ -32,7 +32,10 @@ import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.util.Arrays;
+import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 import static rr.industries.SovietBot.botName;
 import static rr.industries.SovietBot.defaultConfig;
@@ -61,6 +64,7 @@ import static rr.industries.SovietBot.defaultConfig;
 public class Instance {
     private static final Logger LOG = LoggerFactory.getLogger(Instance.class);
     private static final File configFile = new File("configuration.json");
+    public static Gson gson = new GsonBuilder().setPrettyPrinting().serializeNulls().create();
     private final Configuration config;
     private final CommandList commandList;
     private volatile IDiscordClient client;
@@ -70,7 +74,6 @@ public class Instance {
     private BotActions actions;
     private Module updateStatus;
     private Module console;
-    public static Gson gson = new GsonBuilder().setPrettyPrinting().serializeNulls().create();
 
     Instance() throws DiscordException {
         Discord4J.disableChannelWarnings();
@@ -130,9 +133,10 @@ public class Instance {
         LOG.info("*** " + botName + " armed ***");
         webHooks = new GithubWebhooks(actions);
         webHooks.enable();
-        if (!client.getOurUser().getName().equals(config.botName)) {
+        //todo: uncomment
+        /*if (!client.getOurUser().getName().equals(config.botName)) {
             client.changeUsername(config.botName);
-        }
+        }*/
         String[] filename = config.botAvatar.split("[.]");
         client.changeAvatar(Image.forStream(filename[filename.length - 1], SovietBot.resourceLoader.getResourceAsStream(config.botAvatar)));
         LOG.info("\n------------------------------------------------------------------------\n"
@@ -147,53 +151,49 @@ public class Instance {
             return;
         }
         if (e.getMessage().getChannel().isPrivate()) {
-            actions.sendMessage(new MessageBuilder(client).withContent("Sorry, until PM channesl are thoroughly tested, the bot cannot reply to you in them. Its really buggy XP")
+            actions.sendMessage(new MessageBuilder(client).withContent("Sorry, until PM channels are thoroughly tested, the bot cannot reply to you in them. Its really buggy XP")
                     .withChannel(e.getMessage().getChannel()));
             return;
         }
         String message = e.getMessage().getContent();
         if (message.startsWith(config.commChar)) {
             CommContext cont = new CommContext(e, actions);
-            Command command = commandList.getCommand(cont.getArgs().get(0));
-            if (command != null) {
-                CommandInfo info = command.getClass().getDeclaredAnnotation(CommandInfo.class);
-                if (cont.getCallerPerms().level < info.permLevel().level) {
-                    actions.missingPermissions(cont.getMessage().getChannel(), info.permLevel());
+            Entry<Command, Method> commandSet = commandList.getSubCommand(cont.getArgs());
+            SubCommand subComm = commandSet.second().getAnnotation(SubCommand.class);
+            CommandInfo commandInfo = commandSet.first().getClass().getAnnotation(CommandInfo.class);
+            if (commandSet.second() != null) {
+                if (subComm.permLevel().level > cont.getCallerPerms().level || commandInfo.permLevel().level > cont.getCallerPerms().level) {
+                    actions.missingPermissions(cont.getMessage().getChannel(), (subComm.permLevel().level > commandInfo.permLevel().level ? subComm.permLevel() : commandInfo.permLevel()));
                 } else {
-                    Method subCommand = null;
-                    Method baseSubCommand = null;
-                    for (Method subComm : command.getClass().getDeclaredMethods()) {
-                        if (subComm.getAnnotation(SubCommand.class) == null) {
-                            continue;
+                    final int iteratorConstant = (subComm.name().equals("") ? 1 : 2);
+                    List<Syntax> syntax = Arrays.asList(subComm.Syntax()).stream().filter(v -> v.args().length + iteratorConstant == cont.getArgs().size()).collect(Collectors.toList());
+                    boolean argsValid = false;
+                    if (commandSet.first().getValiddityOverride() != null) {
+                        argsValid = commandSet.first().getValiddityOverride().test(cont.getArgs());
+                        if (!argsValid) {
+                            actions.wrongArgs(cont.getMessage().getChannel());
                         }
-                        if (cont.getArgs().size() >= 2 && subComm.getAnnotation(SubCommand.class).name().equals(cont.getArgs().get(1))) {
-                            subCommand = subComm;
-                        }
-                        if (subComm.getAnnotation(SubCommand.class).name().equals("")) {
-                            baseSubCommand = subComm;
-                        }
-
-                    }
-                    if (subCommand == null && baseSubCommand != null) {
-                        subCommand = baseSubCommand;
-                    }
-                    if (subCommand.getAnnotation(SubCommand.class).permLevel().level <= cont.getCallerPerms().level) {
-                        if (subCommand != null) {
-                            try {
-                                subCommand.invoke(command, cont);
-                            } catch (IllegalAccessException ex) {
-                                actions.customException("onMessage", "Could not access subcommand", ex, LOG, true);
-                            } catch (InvocationTargetException ex) {
-                                if (ex.getCause() instanceof Exception)
-                                    actions.customException("onMessage", ex.getCause().getMessage(), (Exception) ex.getCause(), LOG, true);
-                            }
-                            if (info.deleteMessage() && !cont.getMessage().getChannel().isPrivate()) {
-                                actions.delayDelete(cont.getMessage(), 2500);
-                            }
-                        }
+                    } else if (!syntax.isEmpty()) {
+                        argsValid = BotUtils.checkArgs(cont.getArgs(), syntax, iteratorConstant);
+                        if (argsValid == false)
+                            actions.wrongArgs(cont.getMessage().getChannel());
                     } else {
-                        actions.missingPermissions(cont.getMessage().getChannel(), subCommand.getAnnotation(SubCommand.class).permLevel());
+                        actions.missingArgs(cont.getMessage().getChannel());
                     }
+                    if (argsValid) {
+                        try {
+                            commandSet.second().invoke(commandSet.first(), cont);
+                        } catch (IllegalAccessException ex) {
+                            actions.customException("onMessage", "Could not access subcommand", ex, LOG, true);
+                        } catch (InvocationTargetException ex) {
+                            if (ex.getCause() instanceof Exception)
+                                actions.customException("onMessage", ex.getCause().getMessage(), (Exception) ex.getCause(), LOG, true);
+                        }
+                    }
+
+                }
+                if (commandInfo.deleteMessage() && !cont.getMessage().getChannel().isPrivate()) {
+                    actions.delayDelete(cont.getMessage(), 2500);
                 }
             }
         }

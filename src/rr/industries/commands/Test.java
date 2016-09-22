@@ -9,6 +9,8 @@ import sx.blah.discord.util.MissingPermissionsException;
 import sx.blah.discord.util.RateLimitException;
 
 import java.io.IOException;
+import java.util.List;
+import java.util.function.Predicate;
 
 @CommandInfo(
         commandName = "test",
@@ -40,5 +42,10 @@ public class Test implements Command {
     public void repeat(CommContext cont) {
         cont.getActions().sendMessage(new MessageBuilder(cont.getClient()).withChannel(cont.getMessage().getChannel())
                 .withContent("```" + cont.getMessage().getContent() + "```"));
+    }
+
+    @Override
+    public Predicate<List<String>> getValiddityOverride() {
+        return (v) -> true;
     }
 }

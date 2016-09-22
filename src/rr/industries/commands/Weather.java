@@ -23,14 +23,10 @@ public class Weather implements Command {
     private static String deg = "\u00B0F";
 
     @SubCommand(name = "", Syntax = {
-            @Syntax(helpText = "Displays the current weather in your area", args = {@ArgSet(arg = Arguments.CITY), @ArgSet(arg = Arguments.COUNTRY)}),
-            @Syntax(helpText = "Finds your area with just a city", args = {@ArgSet(arg = Arguments.CITY)})
+            @Syntax(helpText = "Displays the current weather in your area", args = {Arguments.CITY, Arguments.COUNTRY})/*,
+            @Syntax(helpText = "Finds your area with just a city", args = {Arguments.CITY})*/
     })
     public void execute(CommContext cont) {
-        if (cont.getArgs().size() < 3) {
-            cont.getActions().missingArgs(cont.getMessage().getChannel());
-            return;
-        }
         try {
             MessageBuilder message = new MessageBuilder(cont.getClient()).withChannel(cont.getMessage().getChannel());
             URL url = new URL("https://maps.googleapis.com/maps/api/geocode/json?address=" + cont.getArgs().get(1) + ",+" + cont.getArgs().get(2));
@@ -58,7 +54,7 @@ public class Weather implements Command {
         }
     }
 
-    /*@SubCommand(name = "set", Syntax = {@Syntax(helpText = "Sets your zip code", args = {@ArgSet(arg = Arguments.NUMBER)})})
+    /*@SubCommand(name = "set", Syntax = {@Syntax(helpText = "Sets your zip code", args = {Arguments.NUMBER})})
     public void set(CommContext cont) {
         OpenWeatherMap map = new OpenWeatherMap(OpenWeatherMap.Units.IMPERIAL, cont.getActions().getConfig().owmKey);
     }*/

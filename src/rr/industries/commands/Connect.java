@@ -5,8 +5,10 @@ import sx.blah.discord.handle.obj.IVoiceChannel;
 import sx.blah.discord.util.MissingPermissionsException;
 
 import java.util.List;
+import java.util.function.Predicate;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 @CommandInfo(
         commandName = "connect",
@@ -19,7 +21,7 @@ public class Connect implements Command {
     }
 
     @SubCommand(name = "", Syntax = {
-            @Syntax(helpText = "Connects the bot to the Voice Channel provided", args = {@ArgSet(arg = Arguments.VOICECHANNEL)}),
+            @Syntax(helpText = "Connects the bot to the Voice Channel provided", args = {Arguments.VOICECHANNEL}),
             @Syntax(helpText = "Connects the bot to the voice channel you are connected too", args = {})
     })
     public void execute(CommContext cont) {
@@ -27,10 +29,9 @@ public class Connect implements Command {
         if (cont.getArgs().size() >= 2) {
             try {
                 String channelName;
-                Pattern p = Pattern.compile("\".+\"");
-                Matcher m = p.matcher(cont.getMessage().getContent());
+                Matcher m = Pattern.compile("\"(.+)\"").matcher(cont.getMessage().getContent());
                 if (m.find()) {
-                    channelName = cont.getMessage().getContent().split("\"")[1];
+                    channelName = m.group();
                 } else {
                     channelName = cont.getArgs().get(1);
                 }
@@ -50,5 +51,10 @@ public class Connect implements Command {
                 cont.getActions().connectToChannel(next.get(0), cont.getClient().getConnectedVoiceChannels());
             }
         }
+    }
+
+    @Override
+    public Predicate<List<String>> getValiddityOverride() {
+        return (v) -> v.size() == 2 || v.stream().collect(Collectors.joining(" ")).matches("\".+\"");
     }
 }

@@ -15,6 +15,7 @@ import sx.blah.discord.handle.obj.IMessage;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Scanner;
+import java.util.stream.Collectors;
 
 public class CommContext {
     private static final Logger LOG = LoggerFactory.getLogger(CommContext.class);
@@ -42,13 +43,10 @@ public class CommContext {
     }
 
     public String getConcatArgs(int first) {
-        StringBuilder concatArgs = new StringBuilder("");
-        for (int i = first; i < args.size(); i++) {
-            concatArgs.append(args.get(i));
-            if (i + 1 < args.size())
-                concatArgs.append(" ");
-        }
-        return concatArgs.toString();
+        List<String> concat = args;
+        for (int i = 0; i < first; i++)
+            concat.remove(i);
+        return concat.stream().collect(Collectors.joining(" "));
     }
 
     public BotActions getActions() {

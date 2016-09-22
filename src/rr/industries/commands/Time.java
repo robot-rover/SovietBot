@@ -24,22 +24,17 @@ public class Time implements Command {
         cont.getActions().sendMessage(message);
     }
 
-    @SubCommand(name = "set", Syntax = {@Syntax(helpText = "Set your own timezone", args = {@ArgSet(arg = Arguments.TIMEZONE)})})
+    @SubCommand(name = "set", Syntax = {@Syntax(helpText = "Set your own timezone", args = {Arguments.TIMEZONE})})
     public void set(CommContext cont) {
-        if (cont.getArgs().size() >= 3) {
             MessageBuilder message = new MessageBuilder(cont.getClient()).withChannel(cont.getMessage().getChannel());
             cont.getActions().getTable(UserTable.class).setTimeZone(cont.getMessage().getAuthor(), cont.getArgs().get(2));
             message.withContent("Setting your timezone to " + TimeZone.getTimeZone(cont.getArgs().get(2)).getDisplayName());
             cont.getActions().sendMessage(message);
-
-        } else {
-            cont.getActions().missingArgs(cont.getMessage().getChannel());
-        }
     }
 
     @SubCommand(name = "", Syntax = {
             @Syntax(helpText = "Show your own time and timezone", args = {}),
-            @Syntax(helpText = "Show the mentioned person's current time and timezone", args = {@ArgSet(arg = Arguments.MENTION)})
+            @Syntax(helpText = "Show the mentioned person's current time and timezone", args = {Arguments.MENTION})
     })
     public void execute(CommContext cont) {
         MessageBuilder message = new MessageBuilder(cont.getClient()).withChannel(cont.getMessage().getChannel());

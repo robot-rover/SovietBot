@@ -65,47 +65,47 @@ public class Music implements Command {
     @SubCommand(name = "skip", Syntax = {@Syntax(helpText = "Skips the currently playing track", args = {})}, permLevel = Permissions.REGULAR)
     public void skip(CommContext cont) {
         AudioPlayer aPlayer = getAudioPlayerForGuild(cont.getMessage().getGuild());
-        IAudioProvider provider = aPlayer.getCurrentTrack().getProvider();
-        if (provider instanceof MusicPlayer) {
-            LOG.info("Is isntance of, skipping only one track...");
-            ((MusicPlayer) provider).skipToNext();
-        } else {
-            LOG.info("Skipping Provider");
-            aPlayer.skip();
+        if (aPlayer.getCurrentTrack() != null) {
+            IAudioProvider provider = aPlayer.getCurrentTrack().getProvider();
+            if (provider instanceof MusicPlayer) {
+                LOG.info("Is isntance of, skipping only one track...");
+                ((MusicPlayer) provider).skipToNext();
+            } else {
+                LOG.info("Skipping Provider");
+                aPlayer.skip();
+            }
         }
     }
 
-    @SubCommand(name = "", Syntax = {@Syntax(helpText = "Queues the video the link is for", args = {@ArgSet(arg = Arguments.LINK)})})
+    @SubCommand(name = "", Syntax = {@Syntax(helpText = "Queues the video the link is for", args = {Arguments.LINK})})
     public void execute(CommContext cont) {
-        if (cont.getArgs().size() < 2) {
-            cont.getActions().missingArgs(cont.getMessage().getChannel());
-        } else {
-            AudioPlayer aPlayer = getAudioPlayerForGuild(cont.getMessage().getGuild());
-            MusicPlayer player = new MusicPlayer();
-            player.setVolume(1);
-            aPlayer.queue(player);
-            String url = cont.getArgs().get(1);
-            Playlist playlist;
-            try {
-                playlist = Playlist.getPlaylist(url);
-            } catch (NullPointerException ex) {
-                LOG.warn("The YT-DL playlist process resulted in a null or zero-length INFO!");
-                aPlayer.skip();
-                return;
-            }
-            ConcurrentLinkedQueue<AudioSource> sources = new ConcurrentLinkedQueue<>(playlist.getSources());
-            for (AudioSource source : sources) {
-                AudioInfo info = source.getInfo();
-                List<AudioSource> queue = player.getAudioQueue();
-                if (info.getError() == null) {
-                    queue.add(source);
-                    if (player.isStopped()) {
-                        player.play();
-                    }
-                } else {
-                    sources.remove(source);
+
+        AudioPlayer aPlayer = getAudioPlayerForGuild(cont.getMessage().getGuild());
+        MusicPlayer player = new MusicPlayer();
+        player.setVolume(1);
+        aPlayer.queue(player);
+        String url = cont.getArgs().get(1);
+        Playlist playlist;
+        try {
+            playlist = Playlist.getPlaylist(url);
+        } catch (NullPointerException ex) {
+            LOG.warn("The YT-DL playlist process resulted in a null or zero-length INFO!");
+            aPlayer.skip();
+            return;
+        }
+        ConcurrentLinkedQueue<AudioSource> sources = new ConcurrentLinkedQueue<>(playlist.getSources());
+        for (AudioSource source : sources) {
+            AudioInfo info = source.getInfo();
+            List<AudioSource> queue = player.getAudioQueue();
+            if (info.getError() == null) {
+                queue.add(source);
+                if (player.isStopped()) {
+                    player.play();
                 }
+            } else {
+                sources.remove(source);
             }
         }
+
     }
 }

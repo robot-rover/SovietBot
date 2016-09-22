@@ -20,7 +20,7 @@ public class Help implements Command {
 
     @SubCommand(name = "", Syntax = {
             @Syntax(helpText = "Displays all possible commands", args = {}),
-            @Syntax(helpText = "Displays the selected command in greater detail", args = {@ArgSet(arg = Arguments.COMMAND)})
+            @Syntax(helpText = "Displays the selected command in greater detail", args = {Arguments.COMMAND})
     })
     public void execute(CommContext cont) {
         MessageBuilder message = new MessageBuilder(cont.getClient()).withChannel(cont.getMessage().getChannel());
@@ -53,8 +53,8 @@ public class Help implements Command {
                 if (mainSubCommand != null) {
                     for (Syntax syntax : mainSubCommand.Syntax()) {
                         String args = "";
-                        for (ArgSet arg : syntax.args())
-                            args = args.concat(BotUtils.formatArg(arg));
+                        for (Arguments arg : syntax.args())
+                            args = args.concat(arg.text);
                         message.appendContent("`[" + cont.getActions().getConfig().commChar + commandInfo.commandName() + args + "]:` ");
                         message.appendContent(syntax.helpText() + "\n");
                     }
@@ -62,8 +62,8 @@ public class Help implements Command {
                 for (SubCommand subCom : subCommands) {
                     for (Syntax syntax : subCom.Syntax()) {
                         String args = "";
-                        for (ArgSet arg : syntax.args())
-                            args = args.concat(BotUtils.formatArg(arg));
+                        for (Arguments arg : syntax.args())
+                            args = args.concat(arg.text);
                         message.appendContent("`[" + cont.getActions().getConfig().commChar + commandInfo.commandName() + " " + subCom.name() + args + "]:` ");
                         if (subCom.permLevel().level > commandInfo.permLevel().level) {
                             message.appendContent("<*" + subCom.permLevel().title + "*> ");

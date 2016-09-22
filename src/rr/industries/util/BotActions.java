@@ -132,7 +132,7 @@ public final class BotActions {
     }
 
     public void missingArgs(IChannel channel) {
-        sendMessage(new MessageBuilder(client).withChannel(channel).withContent("You are missing some arguments"));
+        sendMessage(new MessageBuilder(client).withChannel(channel).withContent("You have the wrong number of arguments"));
     }
 
     public void wrongArgs(IChannel channel) {
