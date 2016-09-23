@@ -42,6 +42,8 @@ public class GenHelpDocs {
             LOG.info(docsFolder.getCanonicalPath());
             for (Command command : commands) {
                 CommandInfo commInfo = command.getClass().getAnnotation(CommandInfo.class);
+                if (commInfo.permLevel() == Permissions.BOTOPERATOR)
+                    continue;
                 File htmlFile = new File(docsFolder.getAbsolutePath() + File.separator + commInfo.commandName() + ".html");
                 StringBuilder body = new StringBuilder();
                 List<SubCommand> subCommands = new ArrayList<>();

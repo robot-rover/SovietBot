@@ -58,8 +58,7 @@ public class Music implements Command {
         }
         message = message + "```";
         IMessage delete = cont.getActions().sendMessage(new MessageBuilder(cont.getClient()).withContent(message).withChannel(cont.getMessage().getChannel()));
-        //cont.getActions().delayDelete(delete, 15000);
-        //todo: uncomment
+        cont.getActions().delayDelete(delete, 15000);
     }
 
     @SubCommand(name = "skip", Syntax = {@Syntax(helpText = "Skips the currently playing track", args = {})}, permLevel = Permissions.REGULAR)

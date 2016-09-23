@@ -22,7 +22,6 @@ public class UTCStatus implements Module {
     private int displayedTime;
     TimerTask updateStatus;
     Timer executor;
-
     public UTCStatus(IDiscordClient client) {
         isEnabled = false;
         this.executor = null;

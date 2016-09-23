@@ -1,14 +1,11 @@
 package rr.industries.commands;
 
-import net.aksingh.owmjapis.CurrentWeather;
-import net.aksingh.owmjapis.OpenWeatherMap;
 import rr.industries.util.*;
 import sx.blah.discord.util.DiscordException;
 import sx.blah.discord.util.MessageBuilder;
 import sx.blah.discord.util.MissingPermissionsException;
 import sx.blah.discord.util.RateLimitException;
 
-import java.io.IOException;
 import java.util.List;
 import java.util.function.Predicate;
 
@@ -29,13 +26,6 @@ public class Test implements Command {
         } catch (DiscordException e) {
             e.printStackTrace();
         }
-    }
-
-    @SubCommand(name = "weather", Syntax = {})
-    public void testWeather(CommContext cont) throws IOException {
-        OpenWeatherMap map = new OpenWeatherMap(cont.getActions().getConfig().owmKey);
-        CurrentWeather current = map.currentWeatherByCityName(cont.getArgs().get(2), cont.getArgs().get(3));
-        LOG.info("Weather:\nCity Name: {}\nBase Station: {}\nTemperature: {}{}", current.getCityName(), current.getBaseStation(), (current.hasMainInstance() ? current.getMainInstance().getTemperature() : ""), "\u00B0F");
     }
 
     @SubCommand(name = "repeat", Syntax = {})

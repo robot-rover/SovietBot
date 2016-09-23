@@ -21,7 +21,6 @@ public class Stop implements Command {
                 return;
             }
             if (!cont.getMessage().getChannel().isPrivate()) {
-                //todo: stop delete message testing
                 try {
                     cont.getMessage().delete();
                 } catch (MissingPermissionsException ex) {

@@ -45,20 +45,18 @@ import static rr.industries.SovietBot.defaultConfig;
  * todo: XP and Levels
  * todo: RSS feeds module
  * todo: reintegrate as modules
- * todo: add better structure for subcommands
- * todo: make sql commands more generic
+ * todo: make Travis CI work
  * Commands -
  * Command: Add Strawpole Command
- * Command: Add Weather Command: https://bitbucket.org/akapribot/owm-japis
  * Command: Tag Command
  * Command: Whois Command
  * Command: Dictionary Command
  * Command: Triggered Text Command: http://eeemo.net/
- * Command: environment command
  * Command: URL Shortener
  * Command: Reminder
  * Command: voting
  * Command: search stuff
+ * Command: Find in message history
  */
 
 public class Instance {
@@ -134,9 +132,9 @@ public class Instance {
         webHooks = new GithubWebhooks(actions);
         webHooks.enable();
         //todo: uncomment
-        /*if (!client.getOurUser().getName().equals(config.botName)) {
+        if (!client.getOurUser().getName().equals(config.botName)) {
             client.changeUsername(config.botName);
-        }*/
+        }
         String[] filename = config.botAvatar.split("[.]");
         client.changeAvatar(Image.forStream(filename[filename.length - 1], SovietBot.resourceLoader.getResourceAsStream(config.botAvatar)));
         LOG.info("\n------------------------------------------------------------------------\n"
@@ -174,9 +172,23 @@ public class Instance {
                             actions.wrongArgs(cont.getMessage().getChannel());
                         }
                     } else if (!syntax.isEmpty()) {
-                        argsValid = BotUtils.checkArgs(cont.getArgs(), syntax, iteratorConstant);
+                        argsValid = true;
+                        int wrongArgsNumber = 0;
+                        for (Syntax syntax1 : syntax) {
+                            argsValid = true;
+                            for (int i = 0; i < syntax1.args().length; i++) {
+                                if (!syntax1.args()[i].isValid.test(cont.getArgs().get(i + iteratorConstant))) {
+                                    argsValid = false;
+                                    break;
+                                }
+                            }
+                            if (argsValid == true) {
+                                break;
+                            }
+                        }
                         if (argsValid == false)
                             actions.wrongArgs(cont.getMessage().getChannel());
+
                     } else {
                         actions.missingArgs(cont.getMessage().getChannel());
                     }
@@ -211,6 +223,9 @@ public class Instance {
             LOG.info("Successfully Logged Out...");
         } else {
             LOG.warn("Disconnected Unexpectedly: " + e.getReason().name(), e);
+            if (e.getReason().equals(DiscordDisconnectedEvent.Reason.RECONNECTION_FAILED)) {
+                actions.terminate(true);
+            }
         }
     }
 
