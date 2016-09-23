@@ -225,11 +225,11 @@ public class Instance {
             LOG.info("Successfully Logged Out...");
         } else {
             LOG.warn("Disconnected Unexpectedly: " + e.getReason().name(), e);
-            if (e.getReason().equals(DiscordDisconnectedEvent.Reason.RECONNECTION_ABORTED)) {
+            /*if (e.getReason().equals(DiscordDisconnectedEvent.Reason.RECONNECTION_ABORTED)) {
                 LOG.info("All Reconnections Failed... Restarting");
                 actions.saveLog();
                 actions.terminate(true);
-            }
+            }*/
         }
     }
 
