@@ -46,6 +46,7 @@ import static rr.industries.SovietBot.defaultConfig;
  * todo: RSS feeds module
  * todo: reintegrate as modules
  * todo: make Travis CI work
+ * todo: refractor to modules to allow hotswap
  * Commands -
  * Command: Add Strawpole Command
  * Command: Tag Command
@@ -108,7 +109,7 @@ public class Instance {
         }
         client = new ClientBuilder().withToken(config.token).build();
         client.getDispatcher().registerListener(this);
-        client.login();
+        client.login(true);
         actions = new BotActions(client, config, commandList, statement, tables);
     }
 
@@ -223,7 +224,9 @@ public class Instance {
             LOG.info("Successfully Logged Out...");
         } else {
             LOG.warn("Disconnected Unexpectedly: " + e.getReason().name(), e);
-            if (e.getReason().equals(DiscordDisconnectedEvent.Reason.RECONNECTION_FAILED)) {
+            if (e.getReason().equals(DiscordDisconnectedEvent.Reason.RECONNECTION_ABORTED)) {
+                LOG.info("All Reconnections Failed... Restarting");
+                actions.saveLog();
                 actions.terminate(true);
             }
         }

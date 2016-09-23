@@ -88,11 +88,11 @@
             <version>4.5.2</version>
         </dependency>
         <!--Discord4J: Base API for discord -->
-        <dependency>
+        <!--<dependency>
             <groupId>com.github.austinv11</groupId>
             <artifactId>Discord4J</artifactId>
             <version>dev-SNAPSHOT</version>
-        </dependency>
+        </dependency>-->
         <!-- Apache Commons-io: Used for file download -->
         <dependency>
             <groupId>commons-io</groupId>
@@ -119,11 +119,11 @@
             <version>15.0</version>
         </dependency>
         <!-- Discord4J local testing branch -->
-        <!--<dependency>
+        <dependency>
             <groupId>sx.blah</groupId>
             <artifactId>Discord4J</artifactId>
             <version>2.6.1-SNAPSHOT</version>
-        </dependency>-->
+        </dependency>
     </dependencies>
 
     <build>
