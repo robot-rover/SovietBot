@@ -6,6 +6,6 @@ package rr.industries.modules.githubwebhooks;
  * @created 9/1/2016
  */
 public class Restart {
-    String command;
-    String secret;
+    public String command;
+    public String secret;
 }

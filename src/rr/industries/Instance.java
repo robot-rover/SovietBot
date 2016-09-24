@@ -8,7 +8,7 @@ import rr.industries.commands.Command;
 import rr.industries.modules.Console;
 import rr.industries.modules.Module;
 import rr.industries.modules.UTCStatus;
-import rr.industries.modules.githubwebhooks.GithubWebhooks;
+import rr.industries.modules.Webhooks;
 import rr.industries.util.*;
 import rr.industries.util.sql.PermTable;
 import rr.industries.util.sql.Table;
@@ -131,7 +131,7 @@ public class Instance {
         updateStatus.enable();
         Discord4J.disableChannelWarnings();
         LOG.info("*** " + botName + " armed ***");
-        webHooks = new GithubWebhooks(actions);
+        webHooks = new Webhooks(actions);
         webHooks.enable();
         //todo: uncomment
         if (!client.getOurUser().getName().equals(config.botName)) {
@@ -225,11 +225,11 @@ public class Instance {
             LOG.info("Successfully Logged Out...");
         } else {
             LOG.warn("Disconnected Unexpectedly: " + e.getReason().name(), e);
-            /*if (e.getReason().equals(DiscordDisconnectedEvent.Reason.RECONNECTION_ABORTED)) {
+            if (e.getReason().equals(DiscordDisconnectedEvent.Reason.RECONNECTION_FAILED)) {
                 LOG.info("All Reconnections Failed... Restarting");
                 actions.saveLog();
                 actions.terminate(true);
-            }*/
+            }
         }
     }
 

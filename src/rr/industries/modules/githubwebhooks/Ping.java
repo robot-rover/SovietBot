@@ -1,7 +1,7 @@
 package rr.industries.modules.githubwebhooks;
 
-class Ping {
+public class Ping {
 
-    String zen;
-    String hook_id;
+    public String zen;
+    public String hook_id;
 }

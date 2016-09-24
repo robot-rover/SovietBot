@@ -1,9 +1,19 @@
-package rr.industries.modules.githubwebhooks;
+package rr.industries.modules;
 
 import com.google.gson.Gson;
+import org.apache.commons.io.IOUtils;
+import org.apache.http.HttpResponse;
+import org.apache.http.client.HttpClient;
+import org.apache.http.client.methods.HttpPost;
+import org.apache.http.conn.HttpHostConnectException;
+import org.apache.http.entity.BasicHttpEntity;
+import org.apache.http.impl.client.HttpClients;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import rr.industries.modules.Module;
+import rr.industries.Instance;
+import rr.industries.modules.githubwebhooks.Ping;
+import rr.industries.modules.githubwebhooks.Restart;
+import rr.industries.modules.travisciwebhooks.TravisRequest;
 import rr.industries.util.BotActions;
 import spark.Request;
 import spark.Response;
@@ -21,25 +31,28 @@ import java.net.URLConnection;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
+import java.util.Base64;
 import java.util.List;
 import java.util.Locale;
 
 /**
  * Credit to Chrislo for the basis and the POJOs
  */
-public class GithubWebhooks implements Module {
+public class Webhooks implements Module {
+
+    private static final HttpClient httpclient = HttpClients.createDefault();
 
     private final List<ChannelSettings> channels = new ArrayList<>();
     private final Gson gson = new Gson();
     private final Mac mac;
-    private boolean isEnabled;
     private final BotActions actions;
-    private final Logger LOG = LoggerFactory.getLogger(GithubWebhooks.class);
+    private final Logger LOG = LoggerFactory.getLogger(Webhooks.class);
+    private boolean isEnabled;
 
     /**
      * Should be initalized in ReadyEvent
      */
-    public GithubWebhooks(BotActions actions) {
+    public Webhooks(BotActions actions) {
         isEnabled = false;
         this.actions = actions;
 
@@ -99,7 +112,11 @@ public class GithubWebhooks implements Module {
         Spark.post("/command", (Request request, Response response) -> {
             Restart restart = gson.fromJson(request.body(), Restart.class);
             LOG.info("Command POST received - " + restart.command);
-            if (restart.command.equals("restart") && restart.secret.equals(actions.getConfig().secret)) {
+            if (!restart.secret.equals(actions.getConfig().secret)) {
+                response.status(418);
+                return "I'm a teapot";
+            }
+            if (restart.command.equals("restart")) {
                 LOG.info("Everything Looks good, Restarting...");
                 Thread thread = new Thread() {
                     @Override
@@ -108,11 +125,45 @@ public class GithubWebhooks implements Module {
                     }
                 };
                 thread.start();
-                response.status(200);
-                return "\uD83D\uDC4C OK";
             }
-            response.status(418);
-            return "I'm a teapot";
+            response.status(200);
+            return "\uD83D\uDC4C OK";
+        });
+        Spark.post("/travis", (Request request, Response response) -> {
+            Base64.Decoder decoder = Base64.getDecoder();
+            byte[] digest = decoder.decode(request.headers("Signature"));
+            StringBuilder signature = new StringBuilder();
+            for (byte b : digest) {
+                signature.append(String.format("%02x", b));
+            }
+
+            HttpPost httppost = new HttpPost("https://api.travis-ci.org/config");
+            httppost.setEntity(new BasicHttpEntity());
+            HttpResponse httpresponse;
+            try {
+                httpresponse = httpclient.execute(httppost);
+            } catch (HttpHostConnectException ex) {
+                LOG.warn("Didn't Recieve Response from Travis-Ci Config Endpoint");
+                response.status(504);
+                return "Didn't Recieve Response from Travis-Ci Config Endpoint";
+            }
+            TravisRequest travisRequest = Instance.gson.fromJson(IOUtils.toString(httpresponse.getEntity().getContent()), TravisRequest.class);
+            Mac travisMac;
+
+            try {
+                travisMac = Mac.getInstance("HmacSHA1");
+                travisMac.init(new SecretKeySpec(travisRequest.config.notifications.webhook.publicKey.getBytes(), "HmacSHA1"));
+            } catch (NoSuchAlgorithmException | InvalidKeyException ex) {
+                LOG.error("Could Not Decrypt Payload", ex);
+                response.status(500);
+                return "Could Not Decrypt Payload";
+            }
+            StringBuilder webhookDecrypt = new StringBuilder();
+            for (byte b : travisMac.doFinal(request.bodyAsBytes()))
+                webhookDecrypt.append(b);
+            actions.messageOwner(webhookDecrypt.toString(), true);
+            response.status(200);
+            return "\uD83D\uDC4C OK";
         });
 
         LOG.info("Initialized webhooks on port " + actions.getConfig().webhooksPort);
@@ -130,7 +181,7 @@ public class GithubWebhooks implements Module {
         return isEnabled;
     }
 
-    public GithubWebhooks addChannel(ChannelSettings cs) {
+    public Webhooks addChannel(ChannelSettings cs) {
         channels.add(cs);
 
         return this;
