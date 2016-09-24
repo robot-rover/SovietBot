@@ -22,6 +22,7 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.URL;
 import java.net.URLConnection;
+import java.net.URLDecoder;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
@@ -123,11 +124,26 @@ public class Webhooks implements Module {
             return "\uD83D\uDC4C OK";
         });
         Spark.post("/travis", (Request request, Response response) -> {
-            TravisWebhook payload = gson.fromJson(request.body(), TravisWebhook.class);
-            StringBuilder message = new StringBuilder("Travis-Ci build at ").append(payload.startedAt).append(" **")
-                    .append(payload.statusMessage).append("**\n").append(payload.branch).append(" [*").append(payload.authorName)
-                    .append("*]");
-            sendMessageToChannels("Travis Build", message.toString());
+            try {
+                LOG.info("Received Travis Post");
+                actions.messageOwner("Recieved Travis Post", true);
+                TravisWebhook payload = gson.fromJson(URLDecoder.decode(request.body(), "UTF-8").replace("payload=", ""), TravisWebhook.class);
+                StringBuilder message = new StringBuilder("Travis-Ci Build");
+                if (payload.repository != null)
+                    if (payload.repository.name != null)
+                        message.append(": ").append(payload.repository.name);
+                if (payload.statusMessage != null)
+                    message.append(" **").append(payload.statusMessage);
+                if (payload.authorName != null)
+                    message.append("**\n").append("[*").append(payload.authorName).append("*]");
+                if (payload.startedAt != null)
+                    message.append("\n").append("Started ").append(payload.startedAt);
+                sendMessageToChannels("Travis Build", message.toString());
+            } catch (Exception e) {
+                LOG.error("Error Responding to Travis Webhook", e);
+                response.status(500);
+                return e.getMessage();
+            }
             response.status(200);
             return "\uD83D\uDC4C OK";
         });
@@ -155,7 +171,7 @@ public class Webhooks implements Module {
 
     private void sendMessageToChannels(String event, String content) {
         LOG.info("Sent a webhook message to channels for event " + event);
-        actions.sendMessage(new MessageBuilder(actions.getClient()).withContent(content).withChannel(actions.getClient().getChannelByID("161155978199302144")));
+        actions.sendMessage(new MessageBuilder(actions.getClient()).withContent(content).withChannel(actions.getClient().getChannelByID("170685308273164288")));
     }
 
     public String getJsonFromUrl(String address) throws IOException {
