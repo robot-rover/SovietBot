@@ -127,6 +127,7 @@ public class Webhooks implements Module {
             StringBuilder message = new StringBuilder("Travis-Ci build at ").append(payload.startedAt).append(" **")
                     .append(payload.statusMessage).append("**\n").append(payload.branch).append(" [*").append(payload.authorName)
                     .append("*]");
+            sendMessageToChannels("Travis Build", message.toString());
             response.status(200);
             return "\uD83D\uDC4C OK";
         });
