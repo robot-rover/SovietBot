@@ -1,6 +1,7 @@
 package rr.industries.modules;
 
 import com.google.gson.Gson;
+import com.google.gson.internal.bind.util.ISO8601Utils;
 import org.apache.http.client.HttpClient;
 import org.apache.http.impl.client.HttpClients;
 import org.slf4j.Logger;
@@ -9,6 +10,7 @@ import rr.industries.modules.githubwebhooks.Ping;
 import rr.industries.modules.githubwebhooks.Restart;
 import rr.industries.modules.travisciwebhooks.TravisWebhook;
 import rr.industries.util.BotActions;
+import rr.industries.util.BotUtils;
 import spark.Request;
 import spark.Response;
 import spark.Spark;
@@ -25,6 +27,7 @@ import java.net.URLConnection;
 import java.net.URLDecoder;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
+import java.text.ParsePosition;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
@@ -126,7 +129,6 @@ public class Webhooks implements Module {
         Spark.post("/travis", (Request request, Response response) -> {
             try {
                 LOG.info("Received Travis Post");
-                actions.messageOwner("Recieved Travis Post", true);
                 TravisWebhook payload = gson.fromJson(URLDecoder.decode(request.body(), "UTF-8").replace("payload=", ""), TravisWebhook.class);
                 StringBuilder message = new StringBuilder("Travis-Ci Build");
                 if (payload.repository != null)
@@ -136,8 +138,9 @@ public class Webhooks implements Module {
                     message.append(" **").append(payload.statusMessage);
                 if (payload.authorName != null)
                     message.append("**\n").append("[*").append(payload.authorName).append("*]");
-                if (payload.startedAt != null)
-                    message.append("\n").append("Started ").append(payload.startedAt);
+                if (payload.startedAt != null) {
+                    message.append("\n").append("Started ").append(BotUtils.getPrettyTime(ISO8601Utils.parse(payload.startedAt, new ParsePosition(0))));
+                }
                 sendMessageToChannels("Travis Build", message.toString());
             } catch (Exception e) {
                 LOG.error("Error Responding to Travis Webhook", e);
