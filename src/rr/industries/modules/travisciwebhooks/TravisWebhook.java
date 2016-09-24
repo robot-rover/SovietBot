@@ -19,13 +19,13 @@ public class TravisWebhook {
     public String number;
     @SerializedName("status")
     @Expose
-    public Object status;
+    public Integer status;
     @SerializedName("started_at")
     @Expose
-    public Object startedAt;
+    public String startedAt;
     @SerializedName("finished_at")
     @Expose
-    public Object finishedAt;
+    public String finishedAt;
     @SerializedName("status_message")
     @Expose
     public String statusMessage;

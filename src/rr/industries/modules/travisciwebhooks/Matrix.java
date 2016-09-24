@@ -23,22 +23,22 @@ public class Matrix {
     public String state;
     @SerializedName("started_at")
     @Expose
-    public Object startedAt;
+    public String startedAt;
     @SerializedName("finished_at")
     @Expose
-    public Object finishedAt;
+    public String finishedAt;
     @SerializedName("config")
     @Expose
-    public Config_ config;
+    public Config config;
     @SerializedName("status")
     @Expose
-    public Object status;
+    public Integer status;
     @SerializedName("log")
     @Expose
     public String log;
     @SerializedName("result")
     @Expose
-    public Object result;
+    public Integer result;
     @SerializedName("parent_id")
     @Expose
     public Integer parentId;

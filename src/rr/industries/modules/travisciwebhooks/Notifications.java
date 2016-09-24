@@ -11,11 +11,6 @@ import java.util.List;
 @Generated("org.jsonschema2pojo")
 public class Notifications {
 
-    @SerializedName("webhook")
-    @Expose
-    public Webhook webhook;
-
-
     @SerializedName("webhooks")
     @Expose
     public List<String> webhooks = new ArrayList<String>();
