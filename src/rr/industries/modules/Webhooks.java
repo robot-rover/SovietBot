@@ -7,6 +7,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import rr.industries.modules.githubwebhooks.Ping;
 import rr.industries.modules.githubwebhooks.Restart;
+import rr.industries.modules.travisciwebhooks.TravisWebhook;
 import rr.industries.util.BotActions;
 import spark.Request;
 import spark.Response;
@@ -94,7 +95,7 @@ public class Webhooks implements Module {
                 Ping ping = gson.fromJson(request.body(), Ping.class);
                 String pingMessage = "Ping from webhook " + ping.hook_id + " with zen " + ping.zen;
                 LOG.info(pingMessage);
-                actions.sendMessage(new MessageBuilder(actions.getClient()).withContent(pingMessage).withChannel(actions.getClient().getOrCreatePMChannel(actions.getClient().getUserByID("141981833951838208"))));
+                sendMessageToChannels("Ping", pingMessage);
             }
             // 👌 OK
             response.status(200);
@@ -121,6 +122,14 @@ public class Webhooks implements Module {
             response.status(200);
             return "\uD83D\uDC4C OK";
         });
+        Spark.post("/travis", (Request request, Response response) -> {
+            TravisWebhook payload = gson.fromJson(request.body(), TravisWebhook.class);
+            StringBuilder message = new StringBuilder("Travis-Ci build at ").append(payload.startedAt).append(" **")
+                    .append(payload.statusMessage).append("**\n").append(payload.branch).append(" [*").append(payload.authorName)
+                    .append("*]");
+            response.status(200);
+            return "\uD83D\uDC4C OK";
+        });
 
         LOG.info("Initialized webhooks on port " + actions.getConfig().webhooksPort);
         isEnabled = true;
@@ -143,7 +152,7 @@ public class Webhooks implements Module {
         return this;
     }
 
-    private void sendMessageToChannels(String repo, String event, String content) {
+    private void sendMessageToChannels(String event, String content) {
         LOG.info("Sent a webhook message to channels for event " + event);
         actions.sendMessage(new MessageBuilder(actions.getClient()).withContent(content).withChannel(actions.getClient().getChannelByID("161155978199302144")));
     }
