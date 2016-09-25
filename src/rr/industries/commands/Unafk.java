@@ -6,7 +6,7 @@ import sx.blah.discord.handle.obj.IVoiceChannel;
 import sx.blah.discord.util.DiscordException;
 import sx.blah.discord.util.MessageBuilder;
 import sx.blah.discord.util.MissingPermissionsException;
-import sx.blah.discord.util.RateLimitException;
+import sx.blah.discord.util.RequestBuffer;
 
 @CommandInfo(
         commandName = "unafk",
@@ -43,16 +43,15 @@ public class Unafk implements Command {
                     message = message + "\n";
                 }
                 message = message + "User Found in AFK: " + user.getName() + " - Moving to " + back.toString();
-                try {
-                    user.moveToVoiceChannel(back);
-                } catch (DiscordException ex) {
-                    cont.getActions().customException("Unafk", ex.getMessage(), ex, LOG, true);
-                } catch (MissingPermissionsException ex) {
-                    cont.getActions().missingPermissions(cont.getMessage().getChannel(), ex);
-                    return;
-                } catch (RateLimitException ex) {
-                    //todo: impl ratelimit
-                }
+                RequestBuffer.request(() -> {
+                    try {
+                        user.moveToVoiceChannel(back);
+                    } catch (DiscordException ex) {
+                        cont.getActions().customException("Unafk", ex.getMessage(), ex, LOG, true);
+                    } catch (MissingPermissionsException ex) {
+                        cont.getActions().missingPermissions(cont.getMessage().getChannel(), ex);
+                    }
+                });
             }
         }
         if (!found) {

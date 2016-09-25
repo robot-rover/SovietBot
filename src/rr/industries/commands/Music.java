@@ -8,10 +8,15 @@ import rr.industries.util.*;
 import sx.blah.discord.handle.audio.IAudioProvider;
 import sx.blah.discord.handle.obj.IMessage;
 import sx.blah.discord.util.MessageBuilder;
+import sx.blah.discord.util.MessageOutputStream;
 import sx.blah.discord.util.audio.AudioPlayer;
 
+import java.io.BufferedWriter;
+import java.io.IOException;
+import java.io.OutputStreamWriter;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
 import static sx.blah.discord.util.audio.AudioPlayer.getAudioPlayerForGuild;
@@ -57,8 +62,8 @@ public class Music implements Command {
             message = "```Queue is Empty";
         }
         message = message + "```";
-        IMessage delete = cont.getActions().sendMessage(new MessageBuilder(cont.getClient()).withContent(message).withChannel(cont.getMessage().getChannel()));
-        cont.getActions().delayDelete(delete, 15000);
+        Optional<IMessage> delete = cont.getActions().sendMessage(new MessageBuilder(cont.getClient()).withContent(message).withChannel(cont.getMessage().getChannel()));
+        delete.ifPresent((v) -> cont.getActions().delayDelete(v, 15000));
     }
 
     @SubCommand(name = "skip", Syntax = {@Syntax(helpText = "Skips the currently playing track", args = {})}, permLevel = Permissions.REGULAR)
@@ -78,7 +83,13 @@ public class Music implements Command {
 
     @SubCommand(name = "", Syntax = {@Syntax(helpText = "Queues the video the link is for", args = {Arguments.LINK})})
     public void execute(CommContext cont) {
-
+        BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(new MessageOutputStream(cont.getMessage().getChannel())));
+        try {
+            writer.write("Processing Queue ");
+            writer.flush();
+        } catch (IOException ex) {
+            LOG.warn("Error with Message Output Stream", ex);
+        }
         AudioPlayer aPlayer = getAudioPlayerForGuild(cont.getMessage().getGuild());
         MusicPlayer player = new MusicPlayer();
         player.setVolume(1);
@@ -89,14 +100,28 @@ public class Music implements Command {
             playlist = Playlist.getPlaylist(url);
         } catch (NullPointerException ex) {
             LOG.warn("The YT-DL playlist process resulted in a null or zero-length INFO!");
+            try {
+                writer.write("The YT-DL playlist process resulted in a null or zero-length INFO!");
+                writer.flush();
+            } catch (IOException ex2) {
+                LOG.warn("Error with Message Output Stream", ex2);
+            }
+
             aPlayer.skip();
             return;
         }
         ConcurrentLinkedQueue<AudioSource> sources = new ConcurrentLinkedQueue<>(playlist.getSources());
+        int i = 0;
         for (AudioSource source : sources) {
             AudioInfo info = source.getInfo();
             List<AudioSource> queue = player.getAudioQueue();
             if (info.getError() == null) {
+                try {
+                    writer.write("=");
+                    writer.flush();
+                } catch (IOException ex2) {
+                    LOG.warn("Error with Message Output Stream", ex2);
+                }
                 queue.add(source);
                 if (player.isStopped()) {
                     player.play();
@@ -105,6 +130,11 @@ public class Music implements Command {
                 sources.remove(source);
             }
         }
-
+        try {
+            writer.write("> Done!");
+            writer.close();
+        } catch (IOException ex2) {
+            LOG.warn("Error with Message Output Stream", ex2);
+        }
     }
 }

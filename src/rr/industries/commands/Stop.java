@@ -1,10 +1,7 @@
 package rr.industries.commands;
 
 import rr.industries.util.*;
-import sx.blah.discord.util.DiscordException;
 import sx.blah.discord.util.MessageBuilder;
-import sx.blah.discord.util.MissingPermissionsException;
-import sx.blah.discord.util.RateLimitException;
 
 @CommandInfo(
         commandName = "stop",
@@ -21,15 +18,7 @@ public class Stop implements Command {
                 return;
             }
             if (!cont.getMessage().getChannel().isPrivate()) {
-                try {
-                    cont.getMessage().delete();
-                } catch (MissingPermissionsException ex) {
-                    //fail silently
-                } catch (RateLimitException ex) {
-                    //todo: implement ratelimit
-                } catch (DiscordException ex) {
-                    cont.getActions().customException("Stop", ex.getErrorMessage(), ex, LOG, true);
-                }
+                cont.getActions().delayDelete(cont.getMessage(), 0);
             }
         }
         cont.getActions().terminate(false);

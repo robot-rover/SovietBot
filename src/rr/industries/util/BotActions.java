@@ -14,10 +14,7 @@ import sx.blah.discord.handle.obj.IChannel;
 import sx.blah.discord.handle.obj.IGuild;
 import sx.blah.discord.handle.obj.IMessage;
 import sx.blah.discord.handle.obj.IVoiceChannel;
-import sx.blah.discord.util.DiscordException;
-import sx.blah.discord.util.MessageBuilder;
-import sx.blah.discord.util.MissingPermissionsException;
-import sx.blah.discord.util.RateLimitException;
+import sx.blah.discord.util.*;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -29,6 +26,7 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.List;
 import java.util.NoSuchElementException;
+import java.util.Optional;
 
 /**
  * @author Sam
@@ -96,15 +94,7 @@ public final class BotActions {
     public void notFound(IMessage imessage, String methodName, String type, String name, Logger log) {
         String message = methodName + " failed to find " + type + ": \"" + name + "\" in Server: \"" + imessage.getGuild().getName() + "\"";
         log.info(message);
-        try {
-            imessage.reply(message);
-        } catch (MissingPermissionsException ex) {
-            missingPermissions(imessage.getChannel(), ex);
-        } catch (RateLimitException ex) {
-            //todo: implement ratelimit fix
-        } catch (DiscordException ex) {
-            customException("notFound", ex.getMessage(), ex, log, true);
-        }
+        sendMessage(new MessageBuilder(imessage.getClient()).withContent(message).withChannel(imessage.getChannel()));
     }
 
     public void customException(String methodName, String message, @Nullable Exception ex, Logger log, boolean error) {
@@ -159,54 +149,54 @@ public final class BotActions {
         } catch (InterruptedException ex) {
             threadInterrupted(ex, "onMessage", LOG);
         }
-        try {
-            if (SovietBot.loggedIn) {
-                message.delete();
+        RequestBuffer.request(() -> {
+            try {
+                if (SovietBot.loggedIn && !message.getChannel().isPrivate()) {
+                    message.delete();
+                }
+            } catch (MissingPermissionsException ex) {
+                //fail silently
+                LOG.debug("Did not delete message, missing permissions");
+            } catch (DiscordException ex) {
+                customException("delayDelete", ex.getErrorMessage(), ex, LOG, true);
             }
-        } catch (MissingPermissionsException ex) {
-            //fail silently
-            LOG.debug("Did not delete message, missing permissions");
-        } catch (RateLimitException ex) {
-            //todo: fix ratelimit
-        } catch (DiscordException ex) {
-            customException("delayDelete", ex.getErrorMessage(), ex, LOG, true);
-        }
+        });
     }
 
     public void messageOwner(String message, boolean notify) {
         MessageBuilder messageBuilder = new MessageBuilder(client).withContent(message);
-        try {
-            if (!notify) {
-                for (IGuild guild : client.getGuilds()) {
-                    if (guild.getID().equals("161155978199302144"))
-                        messageBuilder.withChannel("161155978199302144");
-                    if (guild.getID().equals("141313424880566272"))
-                        messageBuilder.withChannel("170685308273164288");
-                }
+        if (!notify) {
+            for (IGuild guild : client.getGuilds()) {
+                if (guild.getID().equals("161155978199302144"))
+                    messageBuilder.withChannel("161155978199302144");
+                if (guild.getID().equals("141313424880566272"))
+                    messageBuilder.withChannel("170685308273164288");
             }
-            if (messageBuilder.getChannel() == null) {
-                messageBuilder.withChannel(client.getOrCreatePMChannel(client.getUserByID("141981833951838208")));
-            }
-            sendMessage(messageBuilder);
-        } catch (DiscordException ex) {
-            LOG.error("Error messaging bot owner", ex);
-        } catch (RateLimitException ex) {
-            //todo: implement ratelimit
         }
+        if (messageBuilder.getChannel() == null) {
+            RequestBuffer.request(() -> {
+                try {
+                    messageBuilder.withChannel(client.getOrCreatePMChannel(client.getUserByID("141981833951838208")));
+                } catch (DiscordException ex) {
+                    LOG.error("Error messaging bot owner", ex);
+                }
+            });
+        }
+        sendMessage(messageBuilder);
     }
 
-    public IMessage sendMessage(MessageBuilder builder) {
-        IMessage messageObject = null;
-        try {
-            messageObject = builder.send();
-        } catch (DiscordException ex) {
-            customException("sendMessage", ex.getErrorMessage(), ex, LOG, true);
-        } catch (RateLimitException ex) {
-            //todo: fix ratelimit
-        } catch (MissingPermissionsException ex) {
-            missingPermissions(builder.getChannel(), ex);
-        }
-        return messageObject;
+    public Optional<IMessage> sendMessage(MessageBuilder builder) {
+        RequestBuffer.RequestFuture message = RequestBuffer.request(() -> {
+            try {
+                return Optional.of(builder.send());
+            } catch (DiscordException ex) {
+                customException("sendMessage", ex.getErrorMessage(), ex, LOG, true);
+            } catch (MissingPermissionsException ex) {
+                missingPermissions(builder.getChannel(), ex);
+            }
+            return Optional.empty();
+        });
+        return (Optional<IMessage>) message.get();
     }
 
     public void terminate(Boolean restart) {
@@ -264,43 +254,4 @@ public final class BotActions {
         }
         return successful;
     }
-
-    /*public void downloadUpdate(String url) {
-        LOG.info("Downloading new .jar");
-        File jarFile = new File("sovietBot-master.jar");
-        File backupFile = new File("sovietBot-backup.jar");
-        try {
-            Files.copy(jarFile.toPath(), backupFile.toPath(), StandardCopyOption.REPLACE_EXISTING);
-        } catch (IOException ex) {
-            LOG.error("Error Copying jar to backup file", ex);
-            return;
-        }
-        try {
-            Files.delete(jarFile.toPath());
-            FileUtils.copyURLToFile(new URL(url), jarFile, 10000, 10000);
-        } catch (IOException ex) {
-            LOG.error("Error Downloading Jar", ex);
-            try {
-                LOG.warn("Restoring from Backup");
-                Files.copy(backupFile.toPath(), jarFile.toPath(), StandardCopyOption.REPLACE_EXISTING);
-            } catch (IOException ex2) {
-                LOG.error("Error Restoring Backup", ex2);
-                return;
-                //todo: add send to owner message
-            }
-        }
-        try {
-            Files.delete(backupFile.toPath());
-        } catch (IOException ex) {
-            LOG.warn("Unable to delete backup after successful extraction", ex);
-        }
-        saveLog();
-        try {
-            sendMessage(new MessageBuilder(client).withContent("Updated successfully.").withChannel(client.getOrCreatePMChannel(client.getUserByID("141981833951838208"))));
-        } catch (DiscordException ex) {
-            LOG.error("Error Sending Successful Update Message", ex);
-        } catch (RateLimitException ex) {
-            //todo: Fix ratelimits
-        }
-    }*/
 }

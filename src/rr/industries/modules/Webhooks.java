@@ -135,9 +135,13 @@ public class Webhooks implements Module {
                     if (payload.repository.name != null)
                         message.append(": ").append(payload.repository.name);
                 if (payload.statusMessage != null)
-                    message.append(" **").append(payload.statusMessage);
+                    message.append(" **").append(payload.statusMessage).append("**\n");
                 if (payload.authorName != null)
-                    message.append("**\n").append("[*").append(payload.authorName).append("*]");
+                    message.append("[*").append(payload.authorName).append("*]");
+                if (payload.repository != null)
+                    if (payload.repository.name != null)
+                        message.append(" - ").append(payload.repository.name);
+                message.append("\n");
                 if (payload.startedAt != null) {
                     message.append("\n").append("Started ").append(BotUtils.getPrettyTime(ISO8601Utils.parse(payload.startedAt, new ParsePosition(0))));
                 }

@@ -1,9 +1,6 @@
 package rr.industries.commands;
 
 import rr.industries.util.*;
-import sx.blah.discord.util.DiscordException;
-import sx.blah.discord.util.MissingPermissionsException;
-import sx.blah.discord.util.RateLimitException;
 
 @CommandInfo(
         commandName = "restart",
@@ -14,15 +11,7 @@ import sx.blah.discord.util.RateLimitException;
 public class Restart implements Command {
     @SubCommand(name = "", Syntax = {@Syntax(helpText = "The process running the bot stops and restarts", args = {})})
     public void execute(CommContext cont) {
-        if (!cont.getMessage().getChannel().isPrivate()) {
-            try {
-                cont.getMessage().delete();
-            } catch (RateLimitException | DiscordException ex) {
-                LOG.debug("Error while deleting restart command", ex);
-            } catch (MissingPermissionsException ex) {
-                //fail Silently
-            }
-        }
+        cont.getActions().delayDelete(cont.getMessage(), 0);
         cont.getActions().terminate(true);
     }
 }

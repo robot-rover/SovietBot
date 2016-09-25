@@ -55,6 +55,6 @@ public class Connect implements Command {
 
     @Override
     public Predicate<List<String>> getValiddityOverride() {
-        return (v) -> v.size() == 2 || v.stream().collect(Collectors.joining(" ")).matches("\".+\"");
+        return (v) -> v.size() == 2 || v.size() == 1 || v.stream().collect(Collectors.joining(" ")).matches("\".+\"");
     }
 }

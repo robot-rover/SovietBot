@@ -6,7 +6,7 @@ import sx.blah.discord.handle.obj.IVoiceChannel;
 import sx.blah.discord.util.DiscordException;
 import sx.blah.discord.util.MessageBuilder;
 import sx.blah.discord.util.MissingPermissionsException;
-import sx.blah.discord.util.RateLimitException;
+import sx.blah.discord.util.RequestBuffer;
 
 
 @CommandInfo(
@@ -18,12 +18,11 @@ import sx.blah.discord.util.RateLimitException;
 public class Bring implements Command {
     @SubCommand(name = "", Syntax = {@Syntax(helpText = "Moves all users connected to a voice channel to your channel", args = {})})
     public void execute(CommContext cont) {
-
-        String message = "";
         boolean found = false;
         IUser[] Users = cont.getMessage().getGuild().getUsers().toArray(new IUser[0]);
         IVoiceChannel back;
         IVoiceChannel current;
+        MessageBuilder message = new MessageBuilder(cont.getClient()).withChannel(cont.getMessage().getChannel());
         try {
             back = cont.getMessage().getAuthor().getConnectedVoiceChannels().get(0);
         } catch (ArrayIndexOutOfBoundsException ex) {
@@ -37,28 +36,26 @@ public class Bring implements Command {
             }
             if (current != back) {
                 found = true;
-                if (!message.equals("")) {
-                    message = message + "\n";
+                if (!message.getContent().equals("")) {
+                    message.appendContent("\n");
                 }
-                message = message + "Moving " + user.getName() + " to " + back.toString();
-                try {
-                    user.moveToVoiceChannel(back);
-                } catch (DiscordException ex) {
-                    cont.getActions().customException("Bring", ex.getErrorMessage(), ex, LOG, true);
-                } catch (MissingPermissionsException ex) {
-                    cont.getActions().missingPermissions(cont.getMessage().getChannel(), ex);
-                    return;
-                } catch (RateLimitException ex) {
-                    //todo: implement ratelimit
-                }
+                message.appendContent("Moving " + user.getName() + " to " + back.toString());
+                RequestBuffer.request(() -> {
+                    try {
+                        user.moveToVoiceChannel(back);
+                    } catch (DiscordException ex) {
+                        cont.getActions().customException("Bring", ex.getErrorMessage(), ex, LOG, true);
+                    } catch (MissingPermissionsException ex) {
+                        message.appendContent("Unable to move ").appendContent(user.getDisplayName(cont.getMessage().getGuild()))
+                                .appendContent(". ").appendContent(ex.getErrorMessage()).appendContent("\n");
+                    }
+                });
             }
         }
         if (!found) {
-            cont.getActions().sendMessage(new MessageBuilder(cont.getClient()).withContent("No Users found in Outside of your Channel")
-                    .withChannel(cont.getMessage().getChannel()));
+            cont.getActions().sendMessage(message.withContent("No Users found in Outside of your Channel"));
         } else {
-            cont.getActions().sendMessage(new MessageBuilder(cont.getClient()).withContent(message)
-                    .withChannel(cont.getMessage().getChannel()));
+            cont.getActions().sendMessage(message);
         }
     }
 }

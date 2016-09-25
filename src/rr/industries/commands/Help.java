@@ -5,7 +5,7 @@ import rr.industries.util.*;
 import rr.industries.util.sql.PermTable;
 import sx.blah.discord.util.DiscordException;
 import sx.blah.discord.util.MessageBuilder;
-import sx.blah.discord.util.RateLimitException;
+import sx.blah.discord.util.RequestBuffer;
 
 import java.lang.reflect.Method;
 import java.util.ArrayList;
@@ -79,28 +79,28 @@ public class Help implements Command {
 
 
         } else {
-            try {
-                MessageBuilder message2 = new MessageBuilder(cont.getClient()).withChannel(cont.getClient().getOrCreatePMChannel(cont.getMessage().getAuthor()));
-                message2.appendContent("```markdown\n# " + SovietBot.botName + " - \"" + cont.getCommChar() + "\" #\n");
-                message2.appendContent("For more help type >help <command>...\n");
-                message2.appendContent("Or visit <" + SovietBot.website + ">\n");
-                for (Permissions perm : Permissions.values()) {
-                    if (perm.equals(Permissions.BOTOPERATOR) && !cont.getActions().getTable(PermTable.class).getPerms(cont.getMessage().getAuthor(), cont.getMessage().getGuild()).equals(Permissions.BOTOPERATOR)) {
-                        continue;
+            RequestBuffer.request(() -> {
+                try {
+                    MessageBuilder message2 = new MessageBuilder(cont.getClient()).withChannel(cont.getClient().getOrCreatePMChannel(cont.getMessage().getAuthor()));
+                    message2.appendContent("```markdown\n# " + SovietBot.botName + " - \"" + cont.getCommChar() + "\" #\n");
+                    message2.appendContent("For more help type >help <command>...\n");
+                    message2.appendContent("Or visit <" + SovietBot.website + ">\n");
+                    for (Permissions perm : Permissions.values()) {
+                        if (perm.equals(Permissions.BOTOPERATOR) && !cont.getActions().getTable(PermTable.class).getPerms(cont.getMessage().getAuthor(), cont.getMessage().getGuild()).equals(Permissions.BOTOPERATOR)) {
+                            continue;
+                        }
+                        message2.appendContent("[Permission]: " + perm.title + "\n");
+                        cont.getActions().getCommands().getCommandList().stream().filter(comm -> comm.getClass().getDeclaredAnnotation(CommandInfo.class).permLevel().equals(perm)).forEach(comm -> {
+                            CommandInfo info = comm.getClass().getDeclaredAnnotation(CommandInfo.class);
+                            message2.appendContent("\t" + cont.getCommChar() + info.commandName() + " - " + info.helpText() + "\n");
+                        });
                     }
-                    message2.appendContent("[Permission]: " + perm.title + "\n");
-                    cont.getActions().getCommands().getCommandList().stream().filter(comm -> comm.getClass().getDeclaredAnnotation(CommandInfo.class).permLevel().equals(perm)).forEach(comm -> {
-                        CommandInfo info = comm.getClass().getDeclaredAnnotation(CommandInfo.class);
-                        message2.appendContent("\t" + cont.getCommChar() + info.commandName() + " - " + info.helpText() + "\n");
-                    });
+                    cont.getActions().sendMessage(message2.appendContent("```"));
+                    cont.getActions().sendMessage(message.withContent(cont.getMessage().getAuthor().mention() + ", Check your PMs!"));
+                } catch (DiscordException ex) {
+                    cont.getActions().customException("Help", ex.getErrorMessage(), ex, LOG, true);
                 }
-                cont.getActions().sendMessage(message2.appendContent("```"));
-                cont.getActions().sendMessage(message.withContent(cont.getMessage().getAuthor().mention() + ", Check your PMs!"));
-            } catch (DiscordException ex) {
-                cont.getActions().customException("Help", ex.getErrorMessage(), ex, LOG, true);
-            } catch (RateLimitException e) {
-                //todo: implement ratelimit
-            }
+            });
         }
     }
 }

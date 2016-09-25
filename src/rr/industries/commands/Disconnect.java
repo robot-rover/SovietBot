@@ -5,7 +5,9 @@ import sx.blah.discord.handle.obj.IUser;
 import sx.blah.discord.handle.obj.IVoiceChannel;
 import sx.blah.discord.util.DiscordException;
 import sx.blah.discord.util.MissingPermissionsException;
-import sx.blah.discord.util.RateLimitException;
+import sx.blah.discord.util.RequestBuffer;
+
+import java.util.concurrent.atomic.AtomicReference;
 
 @CommandInfo(
         commandName = "disconnect",
@@ -22,28 +24,28 @@ public class Disconnect implements Command {
             return;
         }
         IUser user = cont.getMessage().getMentions().get(0);
-        IVoiceChannel remove = null;
-        try {
-            remove = cont.getMessage().getGuild().createVoiceChannel("Disconnect");
-            user.moveToVoiceChannel(remove);
-        } catch (DiscordException ex) {
-            cont.getActions().customException("Disconnect", ex.getErrorMessage(), ex, LOG, true);
-        } catch (MissingPermissionsException ex) {
-            cont.getActions().missingPermissions(cont.getMessage().getChannel(), ex);
-        } catch (RateLimitException ex) {
-            //todo: implement ratelimit
-        } finally {
+        AtomicReference<IVoiceChannel> remove = new AtomicReference<>(null);
+        RequestBuffer.request(() -> {
             try {
-                if (remove != null) {
-                    remove.delete();
-                }
+                remove.set(cont.getMessage().getGuild().createVoiceChannel("Disconnect"));
+                user.moveToVoiceChannel(remove.get());
             } catch (DiscordException ex) {
                 cont.getActions().customException("Disconnect", ex.getErrorMessage(), ex, LOG, true);
             } catch (MissingPermissionsException ex) {
                 cont.getActions().missingPermissions(cont.getMessage().getChannel(), ex);
-            } catch (RateLimitException ex) {
-                //todo: implement ratelimit
+            } finally {
+                RequestBuffer.request(() -> {
+                    try {
+                        if (remove.get() != null) {
+                            remove.get().delete();
+                        }
+                    } catch (DiscordException ex) {
+                        cont.getActions().customException("Disconnect", ex.getErrorMessage(), ex, LOG, true);
+                    } catch (MissingPermissionsException ex) {
+                        cont.getActions().missingPermissions(cont.getMessage().getChannel(), ex);
+                    }
+                });
             }
-        }
+        });
     }
 }

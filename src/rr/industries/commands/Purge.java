@@ -21,14 +21,14 @@ public class Purge implements Command {
             return;
         }
         clear = new MessageList(cont.getClient(), cont.getMessage().getChannel(), number);
-        try {
-            clear.bulkDelete(clear);
-        } catch (DiscordException ex) {
-            cont.getActions().customException("Purge", ex.getErrorMessage(), ex, LOG, true);
-        } catch (MissingPermissionsException ex) {
-            cont.getActions().missingPermissions(cont.getMessage().getChannel(), ex);
-        } catch (RateLimitException ex) {
-            //todo: implement ratelimit
-        }
+        RequestBuffer.request(() -> {
+            try {
+                clear.bulkDelete(clear);
+            } catch (DiscordException ex) {
+                cont.getActions().customException("Purge", ex.getErrorMessage(), ex, LOG, true);
+            } catch (MissingPermissionsException ex) {
+                cont.getActions().missingPermissions(cont.getMessage().getChannel(), ex);
+            }
+        });
     }
 }

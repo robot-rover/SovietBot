@@ -1,11 +1,17 @@
 package rr.industries.commands;
 
+import org.apache.commons.io.IOUtils;
+import org.apache.http.HttpResponse;
+import org.apache.http.client.HttpClient;
+import org.apache.http.client.methods.HttpPost;
+import org.apache.http.impl.client.HttpClients;
 import rr.industries.util.*;
 import sx.blah.discord.util.DiscordException;
 import sx.blah.discord.util.MessageBuilder;
 import sx.blah.discord.util.MissingPermissionsException;
 import sx.blah.discord.util.RateLimitException;
 
+import java.io.IOException;
 import java.util.List;
 import java.util.function.Predicate;
 
@@ -32,6 +38,30 @@ public class Test implements Command {
     public void repeat(CommContext cont) {
         cont.getActions().sendMessage(new MessageBuilder(cont.getClient()).withChannel(cont.getMessage().getChannel())
                 .withContent("```" + cont.getMessage().getContent() + "```"));
+    }
+
+    @SubCommand(name = "ping", Syntax = {})
+    public void ping(CommContext cont) {
+        MessageBuilder message = new MessageBuilder(cont.getClient()).withChannel(cont.getMessage().getChannel()).withContent("**Pinged Webhook**\n");
+        HttpClient client = HttpClients.createDefault();
+        HttpPost post = new HttpPost("https://api.github.com/repos/robot-rover/SovietBot/hooks/1/pings");
+        HttpResponse response = null;
+        try {
+            response = client.execute(post);
+        } catch (IOException e) {
+            message.appendContent("IOException: " + e.getMessage());
+            LOG.error(IOException.class.getName(), e);
+        }
+        if (response != null) {
+            message.appendContent("Response Code " + response.getStatusLine().getStatusCode() + ": " + response.getStatusLine().getReasonPhrase() + "\n");
+            try {
+                message.appendContent("Body: " + IOUtils.toString(response.getEntity().getContent()));
+            } catch (IOException e) {
+                LOG.error(IOException.class.getName(), e);
+            }
+            cont.getActions().sendMessage(message);
+        }
+
     }
 
     @Override

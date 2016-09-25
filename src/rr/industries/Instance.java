@@ -45,10 +45,10 @@ import static rr.industries.SovietBot.defaultConfig;
  * todo: XP and Levels
  * todo: RSS feeds module
  * todo: reintegrate as modules
- * todo: make Travis CI work
  * todo: refractor to modules to allow hotswap
  * todo: [Long Term] Write unit tests
  * Commands -
+ * Command: GitHub command
  * Command: Add Strawpole Command
  * Command: Tag Command
  * Command: Whois Command
@@ -59,6 +59,7 @@ import static rr.industries.SovietBot.defaultConfig;
  * Command: voting
  * Command: search stuff
  * Command: Find in message history
+ * Command: Repl
  */
 
 public class Instance {
@@ -133,7 +134,6 @@ public class Instance {
         LOG.info("*** " + botName + " armed ***");
         webHooks = new Webhooks(actions);
         webHooks.enable();
-        //todo: uncomment
         if (!client.getOurUser().getName().equals(config.botName)) {
             client.changeUsername(config.botName);
         }
