@@ -41,8 +41,6 @@ import static rr.industries.SovietBot.botName;
 import static rr.industries.SovietBot.defaultConfig;
 
 /**
- * fixme: add spark shutdown to terminate
- *
  * todo: Add Permissions
  * todo: XP and Levels
  * todo: RSS feeds module

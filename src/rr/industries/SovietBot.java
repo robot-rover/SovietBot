@@ -56,10 +56,4 @@ public class SovietBot {
             LOG.warn("Bot could not start", e);
         }
     }
-
-    //todo: delete
-    public static Instance getBot() {
-        return bot;
-    }
-
 }
