@@ -9,8 +9,8 @@ import org.slf4j.LoggerFactory;
 import rr.industries.modules.githubwebhooks.Ping;
 import rr.industries.modules.githubwebhooks.Restart;
 import rr.industries.modules.travisciwebhooks.TravisWebhook;
-import rr.industries.util.BotActions;
 import rr.industries.util.BotUtils;
+import rr.industries.util.ChannelActions;
 import spark.Request;
 import spark.Response;
 import spark.Spark;
@@ -42,14 +42,14 @@ public class Webhooks implements Module {
     private final List<ChannelSettings> channels = new ArrayList<>();
     private final Gson gson = new Gson();
     private final Mac mac;
-    private final BotActions actions;
+    private final ChannelActions actions;
     private final Logger LOG = LoggerFactory.getLogger(Webhooks.class);
     private boolean isEnabled;
 
     /**
      * Should be initalized in ReadyEvent
      */
-    public Webhooks(BotActions actions) {
+    public Webhooks(ChannelActions actions) {
         isEnabled = false;
         this.actions = actions;
 
@@ -67,7 +67,7 @@ public class Webhooks implements Module {
     }
 
     @Override
-    public void enable() {
+    public Module enable() {
         Spark.port(actions.getConfig().webhooksPort);
         Spark.post("/github", (Request request, Response response) -> {
             if (!"application/json".equals(request.headers("Content-Type"))) {
@@ -157,12 +157,14 @@ public class Webhooks implements Module {
 
         LOG.info("Initialized webhooks on port " + actions.getConfig().webhooksPort);
         isEnabled = true;
+        return this;
     }
 
     @Override
-    public void disable() {
+    public Module disable() {
         Spark.stop();
         isEnabled = false;
+        return this;
     }
 
     @Override

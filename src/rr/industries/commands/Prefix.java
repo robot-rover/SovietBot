@@ -13,7 +13,7 @@ public class Prefix implements Command {
     @SubCommand(name = "", Syntax = {@Syntax(helpText = "The command character is changed to the value you specify", args = {Arguments.TEXT})})
     public void execute(CommContext cont) {
         cont.getActions().getConfig().commChar = cont.getArgs().get(1);
-        cont.getActions().sendMessage(new MessageBuilder(cont.getClient()).withChannel(cont.getMessage().getChannel())
+        cont.getActions().channels().sendMessage(new MessageBuilder(cont.getClient()).withChannel(cont.getMessage().getChannel())
                 .withContent("Command Prefix changed to `" + cont.getArgs().get(1) + "`"));
     }
 }

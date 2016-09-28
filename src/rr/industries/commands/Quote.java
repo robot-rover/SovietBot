@@ -37,7 +37,7 @@ public class Quote implements Command {
     @SubCommand(name = "", Syntax = {@Syntax(helpText = "Danger, this command is very dank", args = {})})
     public void execute(CommContext cont) {
 
-        cont.getActions().sendMessage(new MessageBuilder(cont.getClient()).withContent(quotes[rn.nextInt(quotes.length)]).withChannel(cont.getMessage().getChannel()));
+        cont.getActions().channels().sendMessage(new MessageBuilder(cont.getClient()).withContent(quotes[rn.nextInt(quotes.length)]).withChannel(cont.getMessage().getChannel()));
 
     }
 }

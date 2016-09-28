@@ -21,7 +21,7 @@ import java.util.function.Predicate;
 public class Perms implements Command {
     @SubCommand(name = "", Syntax = {@Syntax(helpText = "View and Set permissions for SovietBot", args = {})})
     public void execute(CommContext cont) {
-        cont.getActions().sendMessage(new MessageBuilder(cont.getClient()).withChannel(cont.getMessage().getChannel())
+        cont.getActions().channels().sendMessage(new MessageBuilder(cont.getClient()).withChannel(cont.getMessage().getChannel())
                 .withContent(cont.getMessage().getAuthor().mention() + " is a" + BotUtils.startsWithVowel(cont.getCallerPerms().title, "n **", " **") + "** (Level " + cont.getCallerPerms().level + ")"));
     }
 
@@ -33,7 +33,7 @@ public class Perms implements Command {
             for (Entry<String, Integer> entry : list) {
                 message.appendContent(String.format("%-15s", "<" + BotUtils.toPerms(entry.second()).title + ">") + cont.getClient().getUserByID(entry.first()).getDisplayName(cont.getMessage().getGuild()) + "\n");
             }
-            cont.getActions().sendMessage(message.appendContent("```"));
+        cont.getActions().channels().sendMessage(message.appendContent("```"));
     }
 
     @SubCommand(name = "set", Syntax = {
@@ -49,11 +49,11 @@ public class Perms implements Command {
 
         //check if the perm to change too is within the boundries of perm levels
         if (setPerm.level < 0 || setPerm.level > Permissions.values().length - 1) {
-            cont.getActions().missingPermissions(cont.getMessage().getChannel(), setPerm);
+            cont.getActions().channels().missingPermissions(cont.getMessage().getChannel(), setPerm);
 
             //check if the caller is at least as high as the perm he is setting
         } else if (cont.getCallerPerms().level < setPerm.level) {
-            cont.getActions().missingPermissions(cont.getMessage().getChannel(), setPerm);
+            cont.getActions().channels().missingPermissions(cont.getMessage().getChannel(), setPerm);
 
             //check if there are @mentions to set perms of
         } else if (cont.getMessage().getMentions().size() > 0) {
@@ -70,7 +70,7 @@ public class Perms implements Command {
                     message.appendContent("Changing " + user.mention() + " to a" + BotUtils.startsWithVowel(setPerm.title, "n **", " **") + "**\n");
                 }
             }
-            cont.getActions().sendMessage(message);
+            cont.getActions().channels().sendMessage(message);
         } else if (cont.getMessage().getRoleMentions().size() > 0) {
             MessageBuilder message = new MessageBuilder(cont.getClient()).withChannel(cont.getMessage().getChannel());
             for (IRole role : cont.getMessage().getRoleMentions()) {
@@ -85,9 +85,9 @@ public class Perms implements Command {
                     }
                 }
             }
-            cont.getActions().sendMessage(message);
+            cont.getActions().channels().sendMessage(message);
         } else {
-            cont.getActions().missingArgs(cont.getMessage().getChannel());
+            cont.getActions().channels().missingArgs(cont.getMessage().getChannel());
         }
 
     }

@@ -16,7 +16,7 @@ public class Purge implements Command {
         MessageList clear;
         int number = Integer.parseInt(cont.getArgs().get(1)) + 1;
         if (number > 100) {
-            cont.getActions().sendMessage(new MessageBuilder(cont.getClient()).withContent("Cannot delete more than 99 messages at a time (" + number + ")")
+            cont.getActions().channels().sendMessage(new MessageBuilder(cont.getClient()).withContent("Cannot delete more than 99 messages at a time (" + number + ")")
                     .withChannel(cont.getMessage().getChannel()));
             return;
         }
@@ -25,9 +25,9 @@ public class Purge implements Command {
             try {
                 clear.bulkDelete(clear);
             } catch (DiscordException ex) {
-                cont.getActions().customException("Purge", ex.getErrorMessage(), ex, LOG, true);
+                cont.getActions().channels().customException("Purge", ex.getErrorMessage(), ex, LOG, true);
             } catch (MissingPermissionsException ex) {
-                cont.getActions().missingPermissions(cont.getMessage().getChannel(), ex);
+                cont.getActions().channels().missingPermissions(cont.getMessage().getChannel(), ex);
             }
         });
     }

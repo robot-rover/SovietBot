@@ -17,7 +17,7 @@ import java.util.stream.Collectors;
 public class Connect implements Command {
     @SubCommand(name = "/", Syntax = {@Syntax(helpText = "Disconnects the bot from all voice channels", args = {})})
     public void disconnect(CommContext cont) {
-        BotActions.disconnectFromChannel(cont.getMessage().getGuild(), cont.getClient().getConnectedVoiceChannels());
+        cont.getActions().channels().disconnectFromChannel(cont.getMessage().getGuild(), cont.getClient().getConnectedVoiceChannels());
     }
 
     @SubCommand(name = "", Syntax = {
@@ -40,15 +40,15 @@ public class Connect implements Command {
                     if (!next.get(0).isConnected())
                         next.get(0).join();
                 } else {
-                    cont.getActions().notFound(cont.getMessage(), "connect", "Voice Channel", channelName, LOG);
+                    cont.getActions().channels().notFound(cont.getMessage(), "connect", "Voice Channel", channelName, LOG);
                 }
             } catch (MissingPermissionsException ex) {
-                cont.getActions().missingPermissions(cont.getMessage().getChannel(), ex);
+                cont.getActions().channels().missingPermissions(cont.getMessage().getChannel(), ex);
             }
         } else {
             List<IVoiceChannel> next = cont.getMessage().getAuthor().getConnectedVoiceChannels();
             if (next.size() >= 1) {
-                cont.getActions().connectToChannel(next.get(0), cont.getClient().getConnectedVoiceChannels());
+                cont.getActions().channels().connectToChannel(next.get(0), cont.getClient().getConnectedVoiceChannels());
             }
         }
     }

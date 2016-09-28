@@ -44,12 +44,13 @@ public class Log implements Command {
             HttpResponse response = client.execute(post);
             result = EntityUtils.toString(response.getEntity());
             String message = "**Log** -  http://hastebin.com/" + gson.fromJson(result, Hastebin.class).getKey();
-            cont.getActions().sendMessage(new MessageBuilder(cont.getClient()).withChannel(cont.getMessage().getChannel()).withContent(message));
+            cont.getActions().channels().sendMessage(new MessageBuilder(cont.getClient())
+                    .withChannel(cont.getMessage().getChannel()).withContent(message));
         } catch (IOException ex) {
             LOG.warn("Exception Sending Log", ex);
         } catch (JsonSyntaxException ex) {
             LOG.warn("Hastebin is Down!");
-            cont.getActions().sendMessage(new MessageBuilder(cont.getClient()).withChannel(cont.getMessage().getChannel())
+            cont.getActions().channels().sendMessage(new MessageBuilder(cont.getClient()).withChannel(cont.getMessage().getChannel())
                     .withContent("Hastebin appears to be down..."));
         }
     }

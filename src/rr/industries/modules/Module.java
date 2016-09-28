@@ -3,7 +3,7 @@ package rr.industries.modules;
 public interface Module {
     boolean isEnabled();
 
-    void enable();
+    Module enable();
 
-    void disable();
+    Module disable();
 }

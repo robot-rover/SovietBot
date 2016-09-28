@@ -75,7 +75,7 @@ public class Help implements Command {
             } else {
                 message.withContent("Command " + cont.getArgs().get(1) + " not found...");
             }
-            cont.getActions().sendMessage(message);
+            cont.getActions().channels().sendMessage(message);
 
 
         } else {
@@ -95,10 +95,10 @@ public class Help implements Command {
                             message2.appendContent("\t" + cont.getCommChar() + info.commandName() + " - " + info.helpText() + "\n");
                         });
                     }
-                    cont.getActions().sendMessage(message2.appendContent("```"));
-                    cont.getActions().sendMessage(message.withContent(cont.getMessage().getAuthor().mention() + ", Check your PMs!"));
+                    cont.getActions().channels().sendMessage(message2.appendContent("```"));
+                    cont.getActions().channels().sendMessage(message.withContent(cont.getMessage().getAuthor().mention() + ", Check your PMs!"));
                 } catch (DiscordException ex) {
-                    cont.getActions().customException("Help", ex.getErrorMessage(), ex, LOG, true);
+                    cont.getActions().channels().customException("Help", ex.getErrorMessage(), ex, LOG, true);
                 }
             });
         }

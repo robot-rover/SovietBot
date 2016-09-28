@@ -36,7 +36,7 @@ public class Test implements Command {
 
     @SubCommand(name = "repeat", Syntax = {})
     public void repeat(CommContext cont) {
-        cont.getActions().sendMessage(new MessageBuilder(cont.getClient()).withChannel(cont.getMessage().getChannel())
+        cont.getActions().channels().sendMessage(new MessageBuilder(cont.getClient()).withChannel(cont.getMessage().getChannel())
                 .withContent("```" + cont.getMessage().getContent() + "```"));
     }
 
@@ -59,7 +59,7 @@ public class Test implements Command {
             } catch (IOException e) {
                 LOG.error(IOException.class.getName(), e);
             }
-            cont.getActions().sendMessage(message);
+            cont.getActions().channels().sendMessage(message);
         }
 
     }

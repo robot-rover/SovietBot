@@ -62,8 +62,8 @@ public class Music implements Command {
             message = "```Queue is Empty";
         }
         message = message + "```";
-        Optional<IMessage> delete = cont.getActions().sendMessage(new MessageBuilder(cont.getClient()).withContent(message).withChannel(cont.getMessage().getChannel()));
-        delete.ifPresent((v) -> cont.getActions().delayDelete(v, 15000));
+        Optional<IMessage> delete = cont.getActions().channels().sendMessage(new MessageBuilder(cont.getClient()).withContent(message).withChannel(cont.getMessage().getChannel()));
+        delete.ifPresent((v) -> cont.getActions().channels().delayDelete(v, 15000));
     }
 
     @SubCommand(name = "skip", Syntax = {@Syntax(helpText = "Skips the currently playing track", args = {})}, permLevel = Permissions.REGULAR)

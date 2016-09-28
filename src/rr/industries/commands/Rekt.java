@@ -52,7 +52,7 @@ public class Rekt implements Command {
         try {
             getAudioPlayerForGuild(cont.getMessage().getGuild()).queue(sources[rn.nextInt(sources.length)]);
         } catch (IOException ex) {
-            cont.getActions().customException("Rekt", ex.getMessage(), ex, LOG, true);
+            cont.getActions().channels().customException("Rekt", ex.getMessage(), ex, LOG, true);
         }
     }
 }

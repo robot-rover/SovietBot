@@ -43,20 +43,22 @@ public class UTCStatus implements Module {
     }
 
     @Override
-    public void enable() {
+    public Module enable() {
         if (!isEnabled) {
             executor = new Timer(false);
             executor.scheduleAtFixedRate(updateStatus, 0, 20000);
             isEnabled = true;
         }
+        return this;
     }
 
     @Override
-    public void disable() {
+    public Module disable() {
         if (isEnabled) {
             if (executor != null)
                 executor.cancel();
             isEnabled = false;
         }
+        return this;
     }
 }

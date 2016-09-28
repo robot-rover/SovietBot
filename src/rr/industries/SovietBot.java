@@ -36,6 +36,7 @@ public class SovietBot {
     public static final String author = "robot_rover";
     public static final String invite = "https://discordapp.com/oauth2/authorize?&client_id=184445488093724672&scope=bot&permissions=87354385";
     public static final String website = "https://robot-rover.github.io/SovietBot/";
+    public static Instance bot;
 
     public static void main(String[] args) {
         Rebound r = new Rebound("rr.industries.commands", false, true);
@@ -50,10 +51,15 @@ public class SovietBot {
         }
         LOG.info("\n------------------------------------------------------------------------\n### {} ###\n------------------------------------------------------------------------", botName);
         try {
-            new Instance();
+            bot = new Instance();
         } catch (DiscordException e) {
             LOG.warn("Bot could not start", e);
         }
+    }
+
+    //todo: delete
+    public static Instance getBot() {
+        return bot;
     }
 
 }

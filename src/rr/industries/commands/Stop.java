@@ -14,13 +14,13 @@ public class Stop implements Command {
     public void execute(CommContext cont) {
         if (cont != null) {
             if (!cont.getMessage().getAuthor().getID().equals("141981833951838208")) {
-                cont.getActions().sendMessage(new MessageBuilder(cont.getClient()).withContent("Communism marches on!").withChannel(cont.getMessage().getChannel()));
+                cont.getActions().channels().sendMessage(new MessageBuilder(cont.getClient()).withContent("Communism marches on!").withChannel(cont.getMessage().getChannel()));
                 return;
             }
             if (!cont.getMessage().getChannel().isPrivate()) {
-                cont.getActions().delayDelete(cont.getMessage(), 0);
+                cont.getActions().channels().delayDelete(cont.getMessage(), 0);
             }
         }
-        cont.getActions().terminate(false);
+        cont.getActions().channels().terminate(false);
     }
 }

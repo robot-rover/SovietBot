@@ -39,7 +39,7 @@ public class Rip implements Command {
             }
         }
         rawSubject = rawSubject.replace(" ", "%20");
-        cont.getActions().sendMessage(message.appendContent(rawSubject));
+        cont.getActions().channels().sendMessage(message.appendContent(rawSubject));
     }
 
     @Override

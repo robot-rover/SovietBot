@@ -41,6 +41,8 @@ import static rr.industries.SovietBot.botName;
 import static rr.industries.SovietBot.defaultConfig;
 
 /**
+ * fixme: add spark shutdown to terminate
+ *
  * todo: Add Permissions
  * todo: XP and Levels
  * todo: RSS feeds module
@@ -70,11 +72,8 @@ public class Instance {
     private final CommandList commandList;
     private volatile IDiscordClient client;
     private Table[] tables;
-    private Module webHooks;
     private Statement statement;
     private BotActions actions;
-    private Module updateStatus;
-    private Module console;
 
     Instance() throws DiscordException {
         Discord4J.disableChannelWarnings();
@@ -112,7 +111,8 @@ public class Instance {
         client = new ClientBuilder().withToken(config.token).build();
         client.getDispatcher().registerListener(this);
         client.login(true);
-        actions = new BotActions(client, config, commandList, statement, tables);
+        ChannelActions ca = new ChannelActions(client, config);
+        actions = new BotActions(client, commandList, statement, tables, new Module[]{new Console(ca), new UTCStatus(client), new Webhooks(ca)}, ca);
     }
 
     @EventSubscriber
@@ -126,14 +126,9 @@ public class Instance {
     @EventSubscriber
     public void onReady(ReadyEvent e) throws DiscordException, RateLimitException {
         SovietBot.loggedIn = true;
-        console = new Console(actions);
-        console.enable();
-        updateStatus = new UTCStatus(client);
-        updateStatus.enable();
+        actions.enableModules();
         Discord4J.disableChannelWarnings();
         LOG.info("*** " + botName + " armed ***");
-        webHooks = new Webhooks(actions);
-        webHooks.enable();
         if (!client.getOurUser().getName().equals(config.botName)) {
             client.changeUsername(config.botName);
         }
@@ -142,7 +137,7 @@ public class Instance {
         LOG.info("\n------------------------------------------------------------------------\n"
                 + "*** " + botName + " Ready ***\n"
                 + "------------------------------------------------------------------------");
-        actions.messageOwner("Startup Successful", false);
+        actions.channels().messageOwner("Startup Successful", false);
     }
 
     @EventSubscriber
@@ -151,7 +146,7 @@ public class Instance {
             return;
         }
         if (e.getMessage().getChannel().isPrivate()) {
-            actions.sendMessage(new MessageBuilder(client).withContent("Sorry, until PM channels are thoroughly tested, the bot cannot reply to you in them. Its really buggy XP")
+            actions.channels().sendMessage(new MessageBuilder(client).withContent("Sorry, until PM channels are thoroughly tested, the bot cannot reply to you in them. Its really buggy XP")
                     .withChannel(e.getMessage().getChannel()));
             return;
         }
@@ -163,7 +158,7 @@ public class Instance {
             CommandInfo commandInfo = commandSet.first().getClass().getAnnotation(CommandInfo.class);
             if (commandSet.second() != null) {
                 if (subComm.permLevel().level > cont.getCallerPerms().level || commandInfo.permLevel().level > cont.getCallerPerms().level) {
-                    actions.missingPermissions(cont.getMessage().getChannel(), (subComm.permLevel().level > commandInfo.permLevel().level ? subComm.permLevel() : commandInfo.permLevel()));
+                    actions.channels().missingPermissions(cont.getMessage().getChannel(), (subComm.permLevel().level > commandInfo.permLevel().level ? subComm.permLevel() : commandInfo.permLevel()));
                 } else {
                     final int iteratorConstant = (subComm.name().equals("") ? 1 : 2);
                     List<Syntax> syntax = Arrays.asList(subComm.Syntax()).stream().filter(v -> v.args().length + iteratorConstant == cont.getArgs().size()).collect(Collectors.toList());
@@ -171,7 +166,7 @@ public class Instance {
                     if (commandSet.first().getValiddityOverride() != null) {
                         argsValid = commandSet.first().getValiddityOverride().test(cont.getArgs());
                         if (!argsValid) {
-                            actions.wrongArgs(cont.getMessage().getChannel());
+                            actions.channels().wrongArgs(cont.getMessage().getChannel());
                         }
                     } else if (!syntax.isEmpty()) {
                         argsValid = true;
@@ -189,26 +184,28 @@ public class Instance {
                             }
                         }
                         if (argsValid == false)
-                            actions.wrongArgs(cont.getMessage().getChannel());
+                            actions.channels().wrongArgs(cont.getMessage().getChannel());
 
                     } else {
-                        actions.missingArgs(cont.getMessage().getChannel());
+                        actions.channels().missingArgs(cont.getMessage().getChannel());
                     }
                     if (argsValid) {
                         try {
                             commandSet.second().invoke(commandSet.first(), cont);
                         } catch (IllegalAccessException ex) {
-                            actions.customException("onMessage", "Could not access subcommand", ex, LOG, true);
+                            actions.channels().customException("onMessage", "Could not access subcommand", ex, LOG, true);
                         } catch (InvocationTargetException ex) {
                             if (ex.getCause() instanceof Exception)
-                                actions.customException("onMessage", ex.getCause().getMessage(), (Exception) ex.getCause(), LOG, true);
+                                actions.channels().customException("onMessage", ex.getCause().getMessage(), (Exception) ex.getCause(), LOG, true);
                         }
                     }
 
                 }
                 if (commandInfo.deleteMessage() && !cont.getMessage().getChannel().isPrivate()) {
-                    actions.delayDelete(cont.getMessage(), 2500);
+                    actions.channels().delayDelete(cont.getMessage(), 2500);
                 }
+            } else {
+
             }
         }
     }
@@ -221,16 +218,6 @@ public class Instance {
     @EventSubscriber
     public void onDisconnect(DiscordDisconnectedEvent e) {
         SovietBot.loggedIn = false;
-        if (e.getReason().equals(DiscordDisconnectedEvent.Reason.LOGGED_OUT)) {
-            LOG.info("Successfully Logged Out...");
-        } else {
-            LOG.warn("Disconnected Unexpectedly: " + e.getReason().name(), e);
-            if (e.getReason().equals(DiscordDisconnectedEvent.Reason.RECONNECTION_FAILED)) {
-                LOG.info("All Reconnections Failed... Restarting");
-                actions.saveLog();
-                actions.terminate(true);
-            }
-        }
     }
 
     private <T> Optional<T> loadConfig(File file, String defaultValue, Class<T> t) {

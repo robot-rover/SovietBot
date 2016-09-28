@@ -26,7 +26,7 @@ public class Cat implements Command {
         try {
             url = new URL("http://random.cat/meow");
         } catch (MalformedURLException ex) {
-            cont.getActions().customException("Cat", ex.getMessage(), ex, LOG, true);
+            cont.getActions().channels().customException("Cat", ex.getMessage(), ex, LOG, true);
             return;
         }
         InputStream is;
@@ -34,7 +34,7 @@ public class Cat implements Command {
             URLConnection con = url.openConnection();
             is = con.getInputStream();
         } catch (IOException ex) {
-            cont.getActions().customException("Cat", ex.getMessage(), ex, LOG, true);
+            cont.getActions().channels().customException("Cat", ex.getMessage(), ex, LOG, true);
             return;
         }
         BufferedReader br = new BufferedReader(new InputStreamReader(is));
@@ -42,7 +42,7 @@ public class Cat implements Command {
         try {
             message = br.readLine();
         } catch (IOException ex) {
-            cont.getActions().customException("Cat", ex.getMessage(), ex, LOG, true);
+            cont.getActions().channels().customException("Cat", ex.getMessage(), ex, LOG, true);
             return;
         } finally {
             try {
@@ -54,6 +54,6 @@ public class Cat implements Command {
         message = message.substring(9, message.length() - 2);
         message = message.replace("\\/", "/");
         message = cont.getMessage().getAuthor().mention() + " " + message;
-        cont.getActions().sendMessage(new MessageBuilder(cont.getClient()).withContent(message).withChannel(cont.getMessage().getChannel()));
+        cont.getActions().channels().sendMessage(new MessageBuilder(cont.getClient()).withContent(message).withChannel(cont.getMessage().getChannel()));
     }
 }

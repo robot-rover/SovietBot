@@ -21,7 +21,7 @@ public class Time implements Command {
     @SubCommand(name = "all", Syntax = {@Syntax(helpText = "Sends you all of the time information for the Guild", args = {})})
     public void all(CommContext cont) {
         MessageBuilder message = new MessageBuilder(cont.getClient()).withChannel(cont.getMessage().getChannel()).withContent("Coming Soon");
-        cont.getActions().sendMessage(message);
+        cont.getActions().channels().sendMessage(message);
     }
 
     @SubCommand(name = "set", Syntax = {@Syntax(helpText = "Set your own timezone", args = {Arguments.TIMEZONE})})
@@ -29,7 +29,7 @@ public class Time implements Command {
             MessageBuilder message = new MessageBuilder(cont.getClient()).withChannel(cont.getMessage().getChannel());
             cont.getActions().getTable(UserTable.class).setTimeZone(cont.getMessage().getAuthor(), cont.getArgs().get(2));
             message.withContent("Setting your timezone to " + TimeZone.getTimeZone(cont.getArgs().get(2)).getDisplayName());
-            cont.getActions().sendMessage(message);
+        cont.getActions().channels().sendMessage(message);
     }
 
     @SubCommand(name = "", Syntax = {
@@ -55,6 +55,6 @@ public class Time implements Command {
                 message.withContent("You have not set your timezone yet. Use " + cont.getActions().getConfig().commChar + "time set GMT+(Your Timezone)");
             }
         }
-        cont.getActions().sendMessage(message);
+        cont.getActions().channels().sendMessage(message);
     }
 }

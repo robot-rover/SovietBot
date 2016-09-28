@@ -44,7 +44,7 @@ public class Bring implements Command {
                     try {
                         user.moveToVoiceChannel(back);
                     } catch (DiscordException ex) {
-                        cont.getActions().customException("Bring", ex.getErrorMessage(), ex, LOG, true);
+                        cont.getActions().channels().customException("Bring", ex.getErrorMessage(), ex, LOG, true);
                     } catch (MissingPermissionsException ex) {
                         message.appendContent("Unable to move ").appendContent(user.getDisplayName(cont.getMessage().getGuild()))
                                 .appendContent(". ").appendContent(ex.getErrorMessage()).appendContent("\n");
@@ -53,9 +53,9 @@ public class Bring implements Command {
             }
         }
         if (!found) {
-            cont.getActions().sendMessage(message.withContent("No Users found in Outside of your Channel"));
+            cont.getActions().channels().sendMessage(message.withContent("No Users found in Outside of your Channel"));
         } else {
-            cont.getActions().sendMessage(message);
+            cont.getActions().channels().sendMessage(message);
         }
     }
 }

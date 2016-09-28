@@ -11,7 +11,7 @@ import rr.industries.util.*;
 public class Restart implements Command {
     @SubCommand(name = "", Syntax = {@Syntax(helpText = "The process running the bot stops and restarts", args = {})})
     public void execute(CommContext cont) {
-        cont.getActions().delayDelete(cont.getMessage(), 0);
-        cont.getActions().terminate(true);
+        cont.getActions().channels().delayDelete(cont.getMessage(), 0);
+        cont.getActions().channels().terminate(true);
     }
 }

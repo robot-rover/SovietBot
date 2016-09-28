@@ -1,6 +1,8 @@
 package rr.industries.modules;
 
-import rr.industries.util.BotActions;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import rr.industries.util.ChannelActions;
 import sx.blah.discord.api.events.EventSubscriber;
 import sx.blah.discord.handle.impl.events.DiscordDisconnectedEvent;
 
@@ -10,10 +12,11 @@ import sx.blah.discord.handle.impl.events.DiscordDisconnectedEvent;
  * @created 9/9/2016
  */
 public class Reboot implements Module {
+    private static final Logger LOG = LoggerFactory.getLogger(Reboot.class);
     private boolean isEnabled;
-    BotActions actions;
+    ChannelActions actions;
 
-    public Reboot(BotActions actions) {
+    public Reboot(ChannelActions actions) {
         this.actions = actions;
         actions.getClient().getDispatcher().registerListener(this);
     }
@@ -24,20 +27,28 @@ public class Reboot implements Module {
     }
 
     @Override
-    public void enable() {
+    public Module enable() {
         isEnabled = true;
+        return this;
     }
 
     @Override
-    public void disable() {
+    public Module disable() {
         isEnabled = false;
+        return this;
     }
 
     @EventSubscriber
     public void onDisconnect(DiscordDisconnectedEvent e) {
-        if (e.getReason() == DiscordDisconnectedEvent.Reason.RECONNECTION_FAILED) {
-            boolean restart = actions.saveLog();
-            actions.terminate(restart);
+        if (e.getReason().equals(DiscordDisconnectedEvent.Reason.LOGGED_OUT)) {
+            LOG.info("Successfully Logged Out...");
+        } else {
+            LOG.warn("Disconnected Unexpectedly: " + e.getReason().name(), e);
+            if (e.getReason().equals(DiscordDisconnectedEvent.Reason.RECONNECTION_FAILED)) {
+                LOG.info("All Reconnections Failed... Restarting");
+                actions.saveLog();
+                actions.terminate(true);
+            }
         }
     }
 }

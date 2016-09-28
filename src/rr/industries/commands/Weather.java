@@ -50,7 +50,7 @@ public class Weather implements Command {
         } finally {
             cont.getActions().sendMessage(message);
         }*/
-        cont.getActions().sendMessage(message.withContent("Coming Soon"));
+        cont.getActions().channels().sendMessage(message.withContent("Coming Soon"));
     }
 
     @SubCommand(name = "", Syntax = {
@@ -83,14 +83,14 @@ public class Weather implements Command {
                 message.appendContent("No weather data available for this location...");
             }
         } catch (IOException ex) {
-            cont.getActions().customException("Weather", ex.getMessage(), ex, LOG, true);
+            cont.getActions().channels().customException("Weather", ex.getMessage(), ex, LOG, true);
         } catch (NoSuchElementException ex) {
             message.appendContent("No weather data available for this location...");
         } catch (JSONException ex) {
             message.appendContent("There was an error getting weather data...");
-            cont.getActions().customException("Weather", "Error retrieving weather data", ex, LOG, true);
+            cont.getActions().channels().customException("Weather", "Error retrieving weather data", ex, LOG, true);
         } finally {
-            cont.getActions().sendMessage(message);
+            cont.getActions().channels().sendMessage(message);
         }
     }
 

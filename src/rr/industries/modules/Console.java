@@ -1,6 +1,6 @@
 package rr.industries.modules;
 
-import rr.industries.util.BotActions;
+import rr.industries.util.ChannelActions;
 
 import java.util.Scanner;
 
@@ -12,9 +12,9 @@ import java.util.Scanner;
 public class Console implements Module {
     boolean isEnabled;
     Thread listner;
-    BotActions actions;
+    ChannelActions actions;
 
-    public Console(BotActions actions) {
+    public Console(ChannelActions actions) {
         this.actions = actions;
         isEnabled = false;
         listner = new Thread() {
@@ -42,13 +42,15 @@ public class Console implements Module {
     }
 
     @Override
-    public void enable() {
+    public Module enable() {
         isEnabled = true;
         listner.start();
+        return this;
     }
 
     @Override
-    public void disable() {
+    public Module disable() {
         isEnabled = false;
+        return this;
     }
 }

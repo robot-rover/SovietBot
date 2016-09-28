@@ -20,7 +20,7 @@ public class Disconnect implements Command {
     public void execute(CommContext cont) {
 
         if (cont.getMessage().getMentions().size() == 0) {
-            cont.getActions().missingArgs(cont.getMessage().getChannel());
+            cont.getActions().channels().missingArgs(cont.getMessage().getChannel());
             return;
         }
         IUser user = cont.getMessage().getMentions().get(0);
@@ -30,9 +30,9 @@ public class Disconnect implements Command {
                 remove.set(cont.getMessage().getGuild().createVoiceChannel("Disconnect"));
                 user.moveToVoiceChannel(remove.get());
             } catch (DiscordException ex) {
-                cont.getActions().customException("Disconnect", ex.getErrorMessage(), ex, LOG, true);
+                cont.getActions().channels().customException("Disconnect", ex.getErrorMessage(), ex, LOG, true);
             } catch (MissingPermissionsException ex) {
-                cont.getActions().missingPermissions(cont.getMessage().getChannel(), ex);
+                cont.getActions().channels().missingPermissions(cont.getMessage().getChannel(), ex);
             } finally {
                 RequestBuffer.request(() -> {
                     try {
@@ -40,9 +40,9 @@ public class Disconnect implements Command {
                             remove.get().delete();
                         }
                     } catch (DiscordException ex) {
-                        cont.getActions().customException("Disconnect", ex.getErrorMessage(), ex, LOG, true);
+                        cont.getActions().channels().customException("Disconnect", ex.getErrorMessage(), ex, LOG, true);
                     } catch (MissingPermissionsException ex) {
-                        cont.getActions().missingPermissions(cont.getMessage().getChannel(), ex);
+                        cont.getActions().channels().missingPermissions(cont.getMessage().getChannel(), ex);
                     }
                 });
             }

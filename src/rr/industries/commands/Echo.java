@@ -16,7 +16,7 @@ public class Echo implements Command {
         MessageBuilder message = new MessageBuilder(cont.getClient()).withChannel(cont.getMessage().getChannel())
                 .withContent(cont.getConcatArgs(1));
         if (message.getContent().length() > 0) {
-            cont.getActions().sendMessage(message);
+            cont.getActions().channels().sendMessage(message);
         }
     }
 

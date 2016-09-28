@@ -20,7 +20,7 @@ public class Unafk implements Command {
         boolean found = false;
         IVoiceChannel afk = cont.getMessage().getGuild().getAFKChannel();
         if (afk == null) {
-            cont.getActions().sendMessage(new MessageBuilder(cont.getClient()).withContent("There is no AFK Channel.").withChannel(cont.getMessage().getChannel()));
+            cont.getActions().channels().sendMessage(new MessageBuilder(cont.getClient()).withContent("There is no AFK Channel.").withChannel(cont.getMessage().getChannel()));
             return;
         }
         IUser[] Users = cont.getMessage().getGuild().getUsers().toArray(new IUser[0]);
@@ -47,18 +47,18 @@ public class Unafk implements Command {
                     try {
                         user.moveToVoiceChannel(back);
                     } catch (DiscordException ex) {
-                        cont.getActions().customException("Unafk", ex.getMessage(), ex, LOG, true);
+                        cont.getActions().channels().customException("Unafk", ex.getMessage(), ex, LOG, true);
                     } catch (MissingPermissionsException ex) {
-                        cont.getActions().missingPermissions(cont.getMessage().getChannel(), ex);
+                        cont.getActions().channels().missingPermissions(cont.getMessage().getChannel(), ex);
                     }
                 });
             }
         }
         if (!found) {
-            cont.getActions().sendMessage(new MessageBuilder(cont.getClient()).withContent("No Users found in AFK Channel").withChannel(cont.getMessage().getChannel()));
+            cont.getActions().channels().sendMessage(new MessageBuilder(cont.getClient()).withContent("No Users found in AFK Channel").withChannel(cont.getMessage().getChannel()));
 
         } else {
-            cont.getActions().sendMessage(new MessageBuilder(cont.getClient()).withContent(message).withChannel(cont.getMessage().getChannel()));
+            cont.getActions().channels().sendMessage(new MessageBuilder(cont.getClient()).withContent(message).withChannel(cont.getMessage().getChannel()));
         }
     }
 }
