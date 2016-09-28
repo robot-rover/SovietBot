@@ -143,7 +143,7 @@ public class Webhooks implements Module {
                         message.append(" - ").append(payload.repository.name);
                 message.append("\n");
                 if (payload.startedAt != null) {
-                    message.append("\n").append("Started ").append(BotUtils.getPrettyTime(ISO8601Utils.parse(payload.startedAt, new ParsePosition(0))));
+                    message.append("Started ").append(BotUtils.getPrettyTime(ISO8601Utils.parse(payload.startedAt, new ParsePosition(0))));
                 }
                 sendMessageToChannels("Travis Build", message.toString());
             } catch (Exception e) {
