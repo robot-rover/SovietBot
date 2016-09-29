@@ -4,4 +4,4 @@ jdk:
 notifications:
   webhooks:
    - http://sovietbot.ddns.net:1000/travis
-   - http://requestb.in/1mhlrbx1
+   - http://requestb.in/r3y4wur3
