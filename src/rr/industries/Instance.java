@@ -107,7 +107,7 @@ public class Instance {
         }
         client = new ClientBuilder().withToken(config.token).build();
         client.getDispatcher().registerListener(this);
-        client.login(true);
+        client.login(false);
         ChannelActions ca = new ChannelActions(client, config);
         actions = new BotActions(client, commandList, statement, tables, new Module[]{new Console(ca), new UTCStatus(client), new Webhooks(ca)}, ca);
     }
