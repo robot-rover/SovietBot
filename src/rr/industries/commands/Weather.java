@@ -24,8 +24,7 @@ import java.util.stream.Collectors;
 
 @CommandInfo(
         commandName = "weather",
-        helpText = "[Coming Soon] Interface for getting the weather in your area.",
-        permLevel = Permissions.BOTOPERATOR
+        helpText = "Interface for getting the weather in your area."
 )
 public class Weather implements Command {
     private static String deg = "\u00B0F";

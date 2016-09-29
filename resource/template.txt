@@ -19,38 +19,40 @@
   <body>
     <header>
       <div class="inner">
-        <h1>{header}</h1>
-        <h2>{description}</h2>
-        <a href="https://github.com/robot-rover/SovietBot" class="button"><small>View project on</small> GitHub</a>
+      <img class="avatar" src="{css-prefix}images/person.jpeg">
+        <div class="header-content">
+            <h1>{header}</h1>
+            <h2>{description}</h2>
+            <a href="https://github.com/robot-rover/SovietBot" class="button"><small>View project on</small> GitHub</a>
+        </div>
       </div>
     </header>
 
     <div id="content-wrapper">
       <div class="inner clearfix">
+      <aside id="sidebar">
+                <a href="{css-prefix}index.html" class="button home">
+                  <small>SovietBot</small>
+                  Home
+                </a>
+                <a href="{css-prefix}commandList.html" class="button help">
+                  <small>Command List</small>
+                  Help
+                </a>
+                <a href="https://github.com/robot-rover/SovietBot/archive/master.zip" class="button download">
+                  <small>.zip file</small>
+                  Download
+                </a>
+                <a href="https://discordapp.com/oauth2/authorize?&client_id=184445488093724672&scope=bot&permissions=87354385" class="button discord">
+                  <small>Discord OAuth</small>
+                  Invite
+                </a>
+
+                <p class="repo-owner"><a href="https://github.com/robot-rover/SovietBot"></a> is maintained by <a href="https://github.com/robot-rover">robot-rover</a>.</p>
+              </aside>
         <section id="main-content">
           {content}
         </section>
-
-        <aside id="sidebar">
-          <a href="{css-prefix}index.html" class="button home">
-            <small>SovietBot</small>
-            Home
-          </a>
-          <a href="{css-prefix}commandList.html" class="button help">
-            <small>Command List</small>
-            Help
-          </a>
-          <a href="https://github.com/robot-rover/SovietBot/archive/master.zip" class="button download">
-            <small>Download Source</small>
-            .zip file
-          </a>
-          <a href="https://discordapp.com/oauth2/authorize?&client_id=184445488093724672&scope=bot&permissions=87354385" class="button discord">
-            <small>Discord OAuth</small>
-            Bot Invite
-          </a>
-
-          <p class="repo-owner"><a href="https://github.com/robot-rover/SovietBot"></a> is maintained by <a href="https://github.com/robot-rover">robot-rover</a>.</p>
-        </aside>
       </div>
     </div>
 

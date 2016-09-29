@@ -5,6 +5,10 @@
  */
 package rr.industries.util;
 
+import java.time.LocalDate;
+import java.time.ZoneId;
+import java.time.format.DateTimeFormatter;
+import java.time.format.FormatStyle;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.regex.Pattern;
@@ -48,13 +52,17 @@ public class BotUtils {
         throw new IndexOutOfBoundsException("The level " + level + "is out of the range of Permissions");
     }
 
+    @Deprecated
     public static String getPrettyTime(Calendar time) {
         return (time.get(Calendar.HOUR) == 0 ? "12" : time.get(Calendar.HOUR)) + ":" + String.format("%2s", time.get(Calendar.MINUTE)).replace(" ", "0") + " " + (time.get(Calendar.AM_PM) == 1 ? "PM" : "AM");
     }
 
+    public static String getPrettyTime(LocalDate date) {
+        return date.format(DateTimeFormatter.ofLocalizedTime(FormatStyle.SHORT));
+    }
+
     public static String getPrettyTime(Date date) {
-        Calendar calendar = Calendar.getInstance();
-        calendar.setTime(date);
-        return getPrettyTime(calendar);
+        LocalDate localDate = date.toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
+        return getPrettyTime(localDate);
     }
 }

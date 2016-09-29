@@ -15,6 +15,8 @@ import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.List;
 
+import static java.util.Comparator.comparing;
+
 /**
  * @author Sam
  * @project sovietBot
@@ -22,6 +24,7 @@ import java.util.List;
  */
 public class GenHelpDocs {
     private static Logger LOG = LoggerFactory.getLogger(GenHelpDocs.class);
+    static final boolean gitPush = true;
 
     public static void generate(List<Command> commands) {
         File repo = new File("SovietBot");
@@ -74,15 +77,22 @@ public class GenHelpDocs {
             }
             BufferedWriter writer = Files.newBufferedWriter(new File(repo.getAbsolutePath() + File.separator + "commandList.html").toPath());
             String string = IOUtils.toString(SovietBot.resourceLoader.getResourceAsStream("template.txt"));
-            StringBuilder commandListText = new StringBuilder("<ul>\n");
+            StringBuilder commandListText = new StringBuilder("<ul class=\"container\">\n");
+            List<CommandInfo> commInfo = new ArrayList<>();
             for (Command command : commands) {
                 CommandInfo info = command.getClass().getAnnotation(CommandInfo.class);
-                commandListText.append("<li><a href=\"commands" + File.separator + info.commandName() + ".html" + "\">" + SovietBot.defaultConfig.commChar + info.commandName() + "</a></li>\n");
+                if (info.permLevel() == Permissions.BOTOPERATOR)
+                    continue;
+                commInfo.add(info);
             }
-            commandListText.append("</ul>");
+            commInfo.sort(comparing(CommandInfo::commandName));
+            for (CommandInfo info : commInfo) {
+                commandListText.append("<a href=\"commands" + File.separator + info.commandName() + ".html" + "\"><li>" + SovietBot.defaultConfig.commChar + info.commandName() + "</li></a>\n");
+            }
+            commandListText.append("<div style=\"clear:both\"></ul>");
             string = string.replace("{css-prefix}", "");
             string = string.replace("{title}", "Command List");
-            string = string.replace("{header}", "List of Commands");
+            string = string.replace("{header}", "Commands");
             string = string.replace("{description}", "All of the Commands that SovietBot implements");
             string = string.replace("{content}", commandListText.toString());
             writer.write(string);
@@ -115,21 +125,23 @@ public class GenHelpDocs {
     }
 
     private static void git(String... args) {
-        List<String> modArgs = new ArrayList<>();
-        String log = "git";
-        modArgs.add("git");
-        for (String s : args) {
-            modArgs.add(s);
-            log = log.concat(" " + s);
-        }
-        try {
-            String output;
-            Process git = new ProcessBuilder(modArgs).directory(new File("SovietBot")).start();
-            LOG.info(log + "\nGit: " + IOUtils.toString(git.getInputStream()));
-            if (git.waitFor() != 0)
-                throw new IOException("Did not Commit..." + IOUtils.toString(git.getErrorStream()));
-        } catch (IOException | InterruptedException ex) {
-            LOG.warn("Error with Git: " + ex.getMessage());
+        if (gitPush) {
+            List<String> modArgs = new ArrayList<>();
+            String log = "git";
+            modArgs.add("git");
+            for (String s : args) {
+                modArgs.add(s);
+                log = log.concat(" " + s);
+            }
+            try {
+                String output;
+                Process git = new ProcessBuilder(modArgs).directory(new File("SovietBot")).start();
+                LOG.info(log + "\nGit: " + IOUtils.toString(git.getInputStream()));
+                if (git.waitFor() != 0)
+                    throw new IOException("Did not Commit..." + IOUtils.toString(git.getErrorStream()));
+            } catch (IOException | InterruptedException ex) {
+                LOG.warn("Error with Git: " + ex.getMessage());
+            }
         }
     }
 }

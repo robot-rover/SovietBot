@@ -1,6 +1,4 @@
-<h1>SovietBot</h1>
-
-<h2>Welcome to SovietBot's Website</h2>
+<h1>Welcome to SovietBot's Website</h1>
 
 <p>
     Is a <a href="https://discordapp.com/">Discord</a> Bot written in Java. It uses the API <a href="https://github.com/austinv11/Discord4J">Discord4J</a> for interfacing with Discord and <a href="https://github.com/DV8FromTheWorld/JDA-Player">JDA Player</a>.

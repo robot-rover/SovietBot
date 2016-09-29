@@ -41,7 +41,6 @@ import static rr.industries.SovietBot.botName;
 import static rr.industries.SovietBot.defaultConfig;
 
 /**
- * todo: Add Permissions
  * todo: XP and Levels
  * todo: RSS feeds module
  * todo: reintegrate as modules
