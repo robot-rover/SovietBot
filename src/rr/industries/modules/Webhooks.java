@@ -1,6 +1,7 @@
 package rr.industries.modules;
 
 import com.google.gson.Gson;
+import com.google.gson.internal.bind.util.ISO8601Utils;
 import org.apache.http.client.HttpClient;
 import org.apache.http.impl.client.HttpClients;
 import org.slf4j.Logger;
@@ -26,8 +27,7 @@ import java.net.URLConnection;
 import java.net.URLDecoder;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
-import java.time.Instant;
-import java.time.ZoneId;
+import java.text.ParsePosition;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
@@ -143,7 +143,7 @@ public class Webhooks implements Module {
                         message.append(" - ").append(payload.repository.name);
                 message.append("\n");
                 if (payload.startedAt != null) {
-                    message.append("Started ").append(BotUtils.getPrettyTime(Instant.parse(payload.startedAt).atZone(ZoneId.systemDefault()).toLocalDate()));
+                    message.append("Started ").append(BotUtils.getPrettyTime(ISO8601Utils.parse(payload.startedAt, new ParsePosition(0))));
                 }
                 sendMessageToChannels("Travis Build", message.toString());
             } catch (Exception e) {
