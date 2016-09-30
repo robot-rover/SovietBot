@@ -26,6 +26,9 @@ public class TravisWebhook {
     @SerializedName("finished_at")
     @Expose
     public String finishedAt;
+    @SerializedName("duration")
+    @Expose
+    public Integer duration;
     @SerializedName("status_message")
     @Expose
     public String statusMessage;

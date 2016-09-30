@@ -139,12 +139,14 @@ public class Webhooks implements Module {
                 if (payload.authorName != null)
                     message.append("[*").append(payload.authorName).append("*]");
                 if (payload.repository != null)
-                    if (payload.repository.name != null)
-                        message.append(" - ").append(payload.repository.name);
+                    if (payload.branch != null)
+                        message.append(" - ").append(payload.branch);
                 message.append("\n");
                 if (payload.startedAt != null) {
                     message.append("Started ").append(BotUtils.getPrettyTime(ISO8601Utils.parse(payload.startedAt, new ParsePosition(0))));
                 }
+                if (payload.duration != null)
+                    message.append(" -> ").append(payload.duration).append("s");
                 sendMessageToChannels("Travis Build", message.toString());
             } catch (Exception e) {
                 LOG.error("Error Responding to Travis Webhook", e);
