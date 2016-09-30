@@ -46,7 +46,6 @@ public class SovietBot {
             return;
         }
         if (args.length >= 1 && args[0].equals("stop")) {
-            System.out.println("Default CommandList - Size: " + CommandList.defaultLength());
             return;
         }
         LOG.info("\n------------------------------------------------------------------------\n### {} ###\n------------------------------------------------------------------------", botName);

@@ -105,7 +105,7 @@ public class Instance {
             LOG.error("you must set a token in the config!");
             System.exit(1);
         }
-        client = new ClientBuilder().withToken(config.token).build();
+        client = new ClientBuilder().withToken(config.token).setMaxReconnectAttempts(6).build();
         client.getDispatcher().registerListener(this);
         client.login(false);
         ChannelActions ca = new ChannelActions(client, config);

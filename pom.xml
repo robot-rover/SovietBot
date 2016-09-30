@@ -27,6 +27,12 @@
     </repositories>
 
     <dependencies>
+        <!-- Case Formatter -->
+        <dependency>
+            <groupId>org.apache.commons</groupId>
+            <artifactId>commons-lang3</artifactId>
+            <version>3.4</version>
+        </dependency>
         <!-- Find all Classes in Package -->
         <!--<dependency>
             <groupId>gigadot.rebound</groupId>
