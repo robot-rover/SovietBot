@@ -4,6 +4,8 @@ import rr.industries.CommandList;
 
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.time.DateTimeException;
+import java.time.ZoneId;
 import java.util.function.Predicate;
 
 /**
@@ -13,7 +15,14 @@ import java.util.function.Predicate;
  */
 public enum Arguments {
     NUMBER("<#>", (v) -> BotUtils.tryInt(v)), MENTION("@<\u200BUser>", (v) -> v.matches("^<@!?[0-9]{18}>$")),
-    TIMEZONE("GMT<+or-><#>", (v) -> v.matches("^GMT(?:/+|-)[0-9]+$")),
+    TIMEZONE("<Timezone>", (v) -> {
+        try {
+            ZoneId.of(v);
+        } catch (DateTimeException ex) {
+            return false;
+        }
+        return true;
+    }),
     LINK("<http://www.xxx.xxx>", (v) -> {
         try {
             new URL(v);
