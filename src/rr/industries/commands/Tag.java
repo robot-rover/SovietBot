@@ -12,7 +12,7 @@ import java.util.stream.Collectors;
 /**
  * @author Sam
  */
-@CommandInfo(commandName = "tag", helpText = "Makes custom commands")
+@CommandInfo(commandName = "tag", helpText = "Makes custom commands", permLevel = Permissions.REGULAR)
 public class Tag implements Command {
     @SubCommand(name = "add", Syntax = {@Syntax(helpText = "Adds the Tag <Text> with the Content <Lots_of_Text>", args = {Arguments.TEXT, Arguments.LONGTEXT})})
     public void add(CommContext cont) {

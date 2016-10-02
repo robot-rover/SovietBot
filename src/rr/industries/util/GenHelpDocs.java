@@ -16,6 +16,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import static java.util.Comparator.comparing;
+import static org.apache.commons.lang3.StringEscapeUtils.escapeHtml4;
 
 /**
  * @author Sam
@@ -57,19 +58,19 @@ public class GenHelpDocs {
                 }
                 for (SubCommand subComm : subCommands) {
                     for (Syntax syntax : subComm.Syntax()) {
-                        body.append("<h2>\t").append(SovietBot.defaultConfig.commChar).append(commInfo.commandName()).append(" ").append(subComm.name()).append("\n");
+                        body.append("<h2>").append(escapeHtml4("\t" + SovietBot.defaultConfig.commChar + commInfo.commandName() + " " + subComm.name() + "\n"));
                         for (Arguments arg : syntax.args())
-                            body.append(arg.text.replace("<", "&lt;").replace(">", "&gt;"));
-                        body.append("</h2>\n<p>").append(syntax.helpText()).append("</p>\n");
+                            body.append(escapeHtml4(arg.text));
+                        body.append("</h2>\n<p>").append(escapeHtml4(syntax.helpText())).append("</p>\n");
                     }
 
                 }
                 String string = IOUtils.toString(SovietBot.resourceLoader.getResourceAsStream("template.txt"));
                 String htmlBody = "<h1>Syntax</h1>\n" + "<p>Possible Syntaxes for this command. Type what you see exactly, but replace what is between <strong>&lt;&gt;</strong> with your own values.\n" + body.toString();
                 string = string.replace("{css-prefix}", "../");
-                string = string.replace("{title}", SovietBot.defaultConfig.commChar + commInfo.commandName());
-                string = string.replace("{header}", SovietBot.defaultConfig.commChar + commInfo.commandName());
-                string = string.replace("{description}", commInfo.helpText());
+                string = string.replace("{title}", escapeHtml4(SovietBot.defaultConfig.commChar + commInfo.commandName()));
+                string = string.replace("{header}", escapeHtml4(SovietBot.defaultConfig.commChar + commInfo.commandName()));
+                string = string.replace("{description}", escapeHtml4(commInfo.helpText()));
                 string = string.replace("{content}", htmlBody);
                 BufferedWriter writer = Files.newBufferedWriter(htmlFile.toPath());
                 writer.write(string);
@@ -87,13 +88,13 @@ public class GenHelpDocs {
             }
             commInfo.sort(comparing(CommandInfo::commandName));
             for (CommandInfo info : commInfo) {
-                commandListText.append("<a href=\"commands" + File.separator + info.commandName() + ".html" + "\"><li>" + SovietBot.defaultConfig.commChar + info.commandName() + "</li></a>\n");
+                commandListText.append("<a href=\"commands" + File.separator + info.commandName() + ".html" + "\"><li>" + escapeHtml4(SovietBot.defaultConfig.commChar + info.commandName()) + "</li></a>\n");
             }
             commandListText.append("<div style=\"clear:both\"></ul>");
             string = string.replace("{css-prefix}", "");
             string = string.replace("{title}", "Command List");
             string = string.replace("{header}", "Commands");
-            string = string.replace("{description}", "All of the Commands that SovietBot implements");
+            string = string.replace("{description}", escapeHtml4("All of the Commands that SovietBot implements"));
             string = string.replace("{content}", commandListText.toString());
             writer.write(string);
             writer.close();
@@ -101,9 +102,9 @@ public class GenHelpDocs {
             String string2 = IOUtils.toString(SovietBot.resourceLoader.getResourceAsStream("template.txt"));
             String body2 = IOUtils.toString(SovietBot.resourceLoader.getResourceAsStream("index.txt"));
             string2 = string2.replace("{css-prefix}", "");
-            string2 = string2.replace("{title}", "Sovietbot by robot-rover");
-            string2 = string2.replace("{header}", "Sovietbot");
-            string2 = string2.replace("{description}", "Fun and Simple discord bot with support for youtube music streaming.");
+            string2 = string2.replace("{title}", escapeHtml4("SovietBot by robot-rover"));
+            string2 = string2.replace("{header}", "SovietBot");
+            string2 = string2.replace("{description}", escapeHtml4("Fun and Simple discord bot with support for youtube music streaming."));
             string2 = string2.replace("{content}", body2);
             writer2.write(string2);
             writer2.close();
