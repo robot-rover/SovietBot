@@ -1,7 +1,7 @@
 package rr.industries.commands;
 
 import rr.industries.util.*;
-import rr.industries.util.sql.UserTable;
+import rr.industries.util.sql.TimeTable;
 import sx.blah.discord.util.MessageBuilder;
 
 import java.util.Calendar;
@@ -27,7 +27,7 @@ public class Time implements Command {
     @SubCommand(name = "set", Syntax = {@Syntax(helpText = "Set your own timezone", args = {Arguments.TIMEZONE})})
     public void set(CommContext cont) {
             MessageBuilder message = new MessageBuilder(cont.getClient()).withChannel(cont.getMessage().getChannel());
-            cont.getActions().getTable(UserTable.class).setTimeZone(cont.getMessage().getAuthor(), cont.getArgs().get(2));
+        cont.getActions().getTable(TimeTable.class).setTimeZone(cont.getMessage().getAuthor(), cont.getArgs().get(2));
             message.withContent("Setting your timezone to " + TimeZone.getTimeZone(cont.getArgs().get(2)).getDisplayName());
         cont.getActions().channels().sendMessage(message);
     }
@@ -39,7 +39,7 @@ public class Time implements Command {
     public void execute(CommContext cont) {
         MessageBuilder message = new MessageBuilder(cont.getClient()).withChannel(cont.getMessage().getChannel());
         if (cont.getArgs().size() >= 2 && cont.getMessage().getMentions().size() >= 1) {
-            Optional<String> timezone = cont.getActions().getTable(UserTable.class).getTimeZone(cont.getMessage().getMentions().get(0));
+            Optional<String> timezone = cont.getActions().getTable(TimeTable.class).getTimeZone(cont.getMessage().getMentions().get(0));
             if (timezone.isPresent()) {
                 Calendar time = Calendar.getInstance(TimeZone.getTimeZone(timezone.get()));
                 message.withContent(cont.getMessage().getMentions().get(0).getDisplayName(cont.getMessage().getGuild()) + "'s timezone: " + timezone + "\n" + BotUtils.getPrettyTime(time));
@@ -47,7 +47,7 @@ public class Time implements Command {
                 message.withContent("They have not set your timezone yet.");
             }
         } else {
-            Optional<String> timezone = cont.getActions().getTable(UserTable.class).getTimeZone(cont.getMessage().getAuthor());
+            Optional<String> timezone = cont.getActions().getTable(TimeTable.class).getTimeZone(cont.getMessage().getAuthor());
             if (timezone.isPresent()) {
                 Calendar time = Calendar.getInstance(TimeZone.getTimeZone(timezone.get()));
                 message.withContent("Your timezone: " + timezone.get() + "\n" + BotUtils.getPrettyTime(time));

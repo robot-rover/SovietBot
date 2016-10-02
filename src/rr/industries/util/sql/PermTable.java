@@ -30,18 +30,18 @@ public class PermTable extends Table {
 
     public Permissions getPerms(IUser user, IGuild guild) {
         try {
-            return BotUtils.toPerms(queryValue("perm", "userid='" + user.getID() + "' AND guildid='" + guild.getID() + "'").getInt("perm"));
+            return BotUtils.toPerms(queryValue(Value.of(guild.getID(), true), Value.of(user.getID(), true), Value.empty()).getInt("perm"));
         } catch (SQLException ex) {
             LOG.error("SQL Error", ex);
             return Permissions.NORMAL;
         }
     }
 
-    public void setPerms(IUser user, IGuild guild, Permissions permissions) {
+    public void setPerms(IGuild guild, IUser user, Permissions permissions) {
         if (permissions == Permissions.NORMAL)
-            removeEntry("userid='" + user.getID() + "' and guildid='" + guild.getID() + "'");
+            removeEntry(Value.of(guild.getID(), true), Value.of(user.getID(), true), Value.empty());
         else
-            setValue("userid='" + user.getID() + "' AND guildid='" + guild.getID() + "'", guild.getID(), user.getID(), Integer.toString(permissions.level));
+            insertValue(Value.of(guild.getID(), true), Value.of(user.getID(), true), Value.of(Integer.toString(permissions.level), false));
     }
 
     public List<Entry<String, Integer>> getAllPerms(IGuild guild) {

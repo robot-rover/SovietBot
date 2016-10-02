@@ -5,6 +5,8 @@ import rr.industries.util.*;
 import sx.blah.discord.handle.obj.IUser;
 import sx.blah.discord.util.MessageBuilder;
 
+import java.time.format.DateTimeFormatter;
+import java.time.format.FormatStyle;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
@@ -37,6 +39,7 @@ public class WhoIs implements Command {
         }
         message.appendContent("\n**--------------**\n");
         message.appendContent("ID: " + examine.getID() + "\n");
+        message.appendContent("Joined: " + DateTimeFormatter.ofLocalizedDateTime(FormatStyle.SHORT).format(examine.getCreationDate()) + "\n");
         message.appendContent("Status: " + WordUtils.capitalizeFully(examine.getPresence().name()) + "\n");
         message.appendContent("Roles: " + examine.getRolesForGuild(cont.getMessage().getGuild()).stream().filter(v -> !v.isEveryoneRole()).map(v -> v.getName()).collect(Collectors.joining(", ")) + "\n");
         if (examine.getAvatar() != null)

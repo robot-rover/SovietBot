@@ -1,7 +1,6 @@
 package rr.industries.modules;
 
 import com.google.gson.Gson;
-import com.google.gson.internal.bind.util.ISO8601Utils;
 import org.apache.http.client.HttpClient;
 import org.apache.http.impl.client.HttpClients;
 import org.slf4j.Logger;
@@ -9,7 +8,6 @@ import org.slf4j.LoggerFactory;
 import rr.industries.modules.githubwebhooks.Ping;
 import rr.industries.modules.githubwebhooks.Restart;
 import rr.industries.modules.travisciwebhooks.TravisWebhook;
-import rr.industries.util.BotUtils;
 import rr.industries.util.ChannelActions;
 import spark.Request;
 import spark.Response;
@@ -27,7 +25,10 @@ import java.net.URLConnection;
 import java.net.URLDecoder;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
-import java.text.ParsePosition;
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
+import java.time.format.DateTimeFormatter;
+import java.time.format.FormatStyle;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
@@ -143,7 +144,8 @@ public class Webhooks implements Module {
                         message.append(" - ").append(payload.branch);
                 message.append("\n");
                 if (payload.startedAt != null) {
-                    message.append("Started ").append(BotUtils.getPrettyTime(ISO8601Utils.parse(payload.startedAt, new ParsePosition(0))));
+                    message.append("Started ").append(DateTimeFormatter.ofLocalizedTime(FormatStyle.FULL).format(ZonedDateTime.parse(payload.startedAt, DateTimeFormatter.ISO_OFFSET_DATE_TIME.withZone(ZoneId.of("UTC")))));
+
                 }
                 if (payload.duration != null)
                     message.append(" -> ").append(payload.duration).append("s");

@@ -11,7 +11,6 @@ import java.lang.reflect.Method;
 import java.security.ProviderException;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.NoSuchElementException;
 
 /**
  * @author Sam
@@ -93,9 +92,6 @@ public class CommandList {
             if (subCommand == null && baseSubCommand != null) {
                 subCommand = baseSubCommand;
             }
-        }
-        if (subCommand == null) {
-            throw new NoSuchElementException("Couldn't find command " + args.get(0));
         }
         return new Entry<>(command, subCommand);
     }

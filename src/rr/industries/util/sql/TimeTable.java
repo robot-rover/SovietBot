@@ -12,19 +12,18 @@ import java.util.Optional;
  * @project sovietBot
  * @created 9/17/2016
  */
-public class UserTable extends Table {
-    public UserTable(Statement executor) {
+public class TimeTable extends Table {
+    public TimeTable(Statement executor) {
         super("users", executor,
                 new Column("userid", "text", false),
-                new Column("timezone", "text", true),
-                new Column("zipcode", "text", true)
+                new Column("timezone", "text", true)
         );
         this.createIndex("userindex", "userid", true);
     }
 
     public Optional<String> getTimeZone(IUser user) {
         try {
-            ResultSet rs = queryValue("timezone", "userid='" + user.getID() + "'");
+            ResultSet rs = queryValue(Value.of(user.getID(), true), Value.empty());
             if (rs.next()) {
                 return Optional.ofNullable(rs.getString("timezone"));
             } else {
@@ -37,6 +36,6 @@ public class UserTable extends Table {
     }
 
     public void setTimeZone(IUser user, String timeZone) {
-        setValue("userid='" + user.getID() + "'", user.getID(), timeZone, null);
+        insertValue(Value.of(user.getID(), true), Value.of(timeZone, false));
     }
 }

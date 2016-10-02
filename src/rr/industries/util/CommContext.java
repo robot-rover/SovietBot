@@ -11,6 +11,7 @@ import rr.industries.util.sql.PermTable;
 import sx.blah.discord.api.IDiscordClient;
 import sx.blah.discord.handle.impl.events.MessageReceivedEvent;
 import sx.blah.discord.handle.obj.IMessage;
+import sx.blah.discord.util.MessageBuilder;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -43,10 +44,17 @@ public class CommContext {
     }
 
     public String getConcatArgs(int first) {
+        if (first >= args.size()) {
+            return "";
+        }
         List<String> concat = args;
-        for (int i = 0; i < first; i++)
-            concat.remove(i);
+        for (int i = 0; i < first && args.size() > 0; i++)
+            concat.remove(0);
         return concat.stream().collect(Collectors.joining(" "));
+    }
+
+    public MessageBuilder builder() {
+        return new MessageBuilder(actions.getClient()).withChannel(message.getChannel());
     }
 
     public BotActions getActions() {

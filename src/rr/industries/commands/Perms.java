@@ -66,7 +66,7 @@ public class Perms implements Command {
                     message.appendContent("Did not change " + user.getDisplayName(cont.getMessage().getGuild()) + "'s perms because your level is not higher than " + user.getDisplayName(cont.getMessage().getGuild()) + "'s\n");
                 } else {
                     //and finally, change their perms
-                    cont.getActions().getTable(PermTable.class).setPerms(user, cont.getMessage().getGuild(), setPerm);
+                    cont.getActions().getTable(PermTable.class).setPerms(cont.getMessage().getGuild(), user, setPerm);
                     message.appendContent("Changing " + user.mention() + " to a" + BotUtils.startsWithVowel(setPerm.title, "n **", " **") + "**\n");
                 }
             }
@@ -80,7 +80,7 @@ public class Perms implements Command {
                         message.appendContent("Did not change " + user.getDisplayName(cont.getMessage().getGuild()) + "'s perms because your level is not higher than " + user.getDisplayName(cont.getMessage().getGuild()) + "'s\n");
                     } else {
                         //and finally, change their perms
-                        cont.getActions().getTable(PermTable.class).setPerms(user, cont.getMessage().getGuild(), setPerm);
+                        cont.getActions().getTable(PermTable.class).setPerms(cont.getMessage().getGuild(), user, setPerm);
                         message.appendContent("Changing " + user.mention() + " to a" + BotUtils.startsWithVowel(setPerm.title, "n **", " **") + "**\n");
                     }
                 }

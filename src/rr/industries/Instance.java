@@ -12,12 +12,14 @@ import rr.industries.modules.Webhooks;
 import rr.industries.util.*;
 import rr.industries.util.sql.PermTable;
 import rr.industries.util.sql.Table;
-import rr.industries.util.sql.UserTable;
+import rr.industries.util.sql.TagTable;
+import rr.industries.util.sql.TimeTable;
 import sx.blah.discord.Discord4J;
 import sx.blah.discord.api.ClientBuilder;
 import sx.blah.discord.api.IDiscordClient;
 import sx.blah.discord.api.events.EventSubscriber;
 import sx.blah.discord.handle.impl.events.*;
+import sx.blah.discord.handle.obj.IGuild;
 import sx.blah.discord.util.DiscordException;
 import sx.blah.discord.util.Image;
 import sx.blah.discord.util.MessageBuilder;
@@ -43,14 +45,13 @@ import static rr.industries.SovietBot.defaultConfig;
 /**
  * todo: XP and Levels
  * todo: RSS feeds module
- * todo: reintegrate as modules
  * todo: refractor to modules to allow hotswap
  * todo: [Long Term] Write unit tests
+ * todo: add help options
  * Commands -
  * Command: GitHub command
  * Command: Add Strawpole Command
  * Command: Tag Command
- * Command: Whois Command
  * Command: Dictionary Command
  * Command: Triggered Text Command: http://eeemo.net/
  * Command: URL Shortener
@@ -92,10 +93,8 @@ public class Instance {
         try {
             Connection connection = DriverManager.getConnection("jdbc:sqlite:sovietBot.db");
             statement = connection.createStatement();
-            statement.setQueryTimeout(20);  // set timeout to 30 sec.
-            tables = new Table[2];
-            tables[0] = (new PermTable(statement));
-            tables[1] = (new UserTable(statement));
+            statement.setQueryTimeout(20);  // set timeout to 20 sec.
+            tables = new Table[]{new PermTable(statement), new TimeTable(statement), new TagTable(statement)};
         } catch (SQLException ex) {
             LOG.error("Unable to Initialize Database", ex);
             System.exit(1);
@@ -114,10 +113,7 @@ public class Instance {
 
     @EventSubscriber
     public void onGuildCreate(GuildCreateEvent e) {
-        actions.getTable(PermTable.class).setPerms(e.getGuild().getOwner(), e.getGuild(), Permissions.ADMIN);
-        for (String op : config.operators)
-            actions.getTable(PermTable.class).setPerms(client.getUserByID(op), e.getGuild(), Permissions.BOTOPERATOR);
-        LOG.info("Connected to Guild: " + e.getGuild().getName() + " (" + e.getGuild().getID() + ")");
+
     }
 
     @EventSubscriber
@@ -131,6 +127,12 @@ public class Instance {
         }
         String[] filename = config.botAvatar.split("[.]");
         client.changeAvatar(Image.forStream(filename[filename.length - 1], SovietBot.resourceLoader.getResourceAsStream(config.botAvatar)));
+        for (IGuild guild : client.getGuilds()) {
+            actions.getTable(PermTable.class).setPerms(guild, guild.getOwner(), Permissions.ADMIN);
+            for (String op : config.operators)
+                actions.getTable(PermTable.class).setPerms(guild, client.getUserByID(op), Permissions.BOTOPERATOR);
+            LOG.info("Connected to Guild: " + guild.getName() + " (" + guild.getID() + ")");
+        }
         LOG.info("\n------------------------------------------------------------------------\n"
                 + "*** " + botName + " Ready ***\n"
                 + "------------------------------------------------------------------------");
@@ -151,14 +153,17 @@ public class Instance {
         if (message.startsWith(config.commChar)) {
             CommContext cont = new CommContext(e, actions);
             Entry<Command, Method> commandSet = commandList.getSubCommand(cont.getArgs());
-            SubCommand subComm = commandSet.second().getAnnotation(SubCommand.class);
-            CommandInfo commandInfo = commandSet.first().getClass().getAnnotation(CommandInfo.class);
             if (commandSet.second() != null) {
+                SubCommand subComm = commandSet.second().getAnnotation(SubCommand.class);
+                CommandInfo commandInfo = commandSet.first().getClass().getAnnotation(CommandInfo.class);
                 if (subComm.permLevel().level > cont.getCallerPerms().level || commandInfo.permLevel().level > cont.getCallerPerms().level) {
                     actions.channels().missingPermissions(cont.getMessage().getChannel(), (subComm.permLevel().level > commandInfo.permLevel().level ? subComm.permLevel() : commandInfo.permLevel()));
                 } else {
                     final int iteratorConstant = (subComm.name().equals("") ? 1 : 2);
-                    List<Syntax> syntax = Arrays.asList(subComm.Syntax()).stream().filter(v -> v.args().length + iteratorConstant == cont.getArgs().size()).collect(Collectors.toList());
+                    List<Syntax> syntax = Arrays.asList(subComm.Syntax()).stream().filter(
+                            v -> v.args().length + iteratorConstant == cont.getArgs().size() ||
+                                    v.args().length + iteratorConstant <= cont.getArgs().size() && Arrays.asList(v.args()).contains(Arguments.LONGTEXT))
+                            .collect(Collectors.toList());
                     boolean argsValid = false;
                     if (commandSet.first().getValiddityOverride() != null) {
                         argsValid = commandSet.first().getValiddityOverride().test(cont.getArgs());
@@ -167,10 +172,13 @@ public class Instance {
                         }
                     } else if (!syntax.isEmpty()) {
                         argsValid = true;
-                        int wrongArgsNumber = 0;
                         for (Syntax syntax1 : syntax) {
                             argsValid = true;
                             for (int i = 0; i < syntax1.args().length; i++) {
+                                if (syntax1.args()[i].equals(Arguments.LONGTEXT) && Arguments.LONGTEXT.isValid.test(cont.getArgs().get(i + iteratorConstant))) {
+                                    argsValid = true;
+                                    break;
+                                }
                                 if (!syntax1.args()[i].isValid.test(cont.getArgs().get(i + iteratorConstant))) {
                                     argsValid = false;
                                     break;
@@ -193,7 +201,7 @@ public class Instance {
                             actions.channels().customException("onMessage", "Could not access subcommand", ex, LOG, true);
                         } catch (InvocationTargetException ex) {
                             if (ex.getCause() instanceof Exception)
-                                actions.channels().customException("onMessage", ex.getCause().getMessage(), (Exception) ex.getCause(), LOG, true);
+                                actions.channels().customException("onMessage", ex.getClass().getName() + " - " + ex.getCause().getMessage(), (Exception) ex.getCause(), LOG, true);
                         }
                     }
 
@@ -201,8 +209,6 @@ public class Instance {
                 if (commandInfo.deleteMessage() && !cont.getMessage().getChannel().isPrivate()) {
                     actions.channels().delayDelete(cont.getMessage(), 2500);
                 }
-            } else {
-
             }
         }
     }

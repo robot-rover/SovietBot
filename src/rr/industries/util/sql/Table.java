@@ -2,12 +2,17 @@ package rr.industries.util.sql;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import rr.industries.util.Entry;
 
 import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.InputMismatchException;
+import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * @author Sam
@@ -20,7 +25,7 @@ public class Table {
     private String tableName;
     Statement executor;
 
-    public Table(String tableName, Statement executor, Column... columns) {
+    protected Table(String tableName, Statement executor, Column... columns) {
         this.columns = columns;
         this.executor = executor;
         this.tableName = tableName;
@@ -51,7 +56,7 @@ public class Table {
         }
     }
 
-    public Table createIndex(String indexName, String columns, boolean unique) {
+    protected Table createIndex(String indexName, String columns, boolean unique) {
         try {
             executor.execute("DROP INDEX IF EXISTS " + indexName);
             LOG.info("Creating Index: " + indexName);
@@ -62,11 +67,14 @@ public class Table {
         return this;
     }
 
-    public ResultSet queryValue(String columns, String conditions) throws SQLException {
-        return executor.executeQuery("Select " + columns + " from " + tableName + " where " + conditions);
+    protected ResultSet queryValue(Value... vals) throws SQLException {
+        List<Entry<Column, Value>> values = toEntryList(vals);
+        return executor.executeQuery("Select " + values.stream().map(v -> v.first().name).collect(Collectors.joining(", ")) + " from " + tableName + " where " +
+                values.stream().filter(v -> v.second().shouldQuery()).map(v -> v.first().name + "='" + v.second() + "'").collect(Collectors.joining(" AND ")));
     }
 
-    public void setValue(String conditions, String... vals) {
+    @Deprecated
+    protected void setValue(String conditions, String... vals) {
         try {
             executor.execute("REPLACE INTO " + tableName + " (" + getColumns() + ") VALUES(" + getValues(conditions, vals) + ")");
         } catch (SQLException ex) {
@@ -74,7 +82,19 @@ public class Table {
         }
     }
 
-    private String getColumns() {
+    protected void insertValue(Value... vals) {
+        try {
+            executor.execute("DELETE FROM " + tableName + " WHERE " +
+                    toEntryList(vals).stream().filter(v -> v.second().shouldQuery()).map(v -> v.first().name + "='" + v.second() + "'").collect(Collectors.joining(" AND ")));
+            executor.execute("INSERT INTO " + tableName + " VALUES (" +
+                    Arrays.asList(vals).stream().map(v -> "'" + v + "'").collect(Collectors.joining(", ")) + ")");
+        } catch (SQLException ex) {
+            LOG.error("SQL Error", ex);
+        }
+
+    }
+
+    protected String getColumns() {
         StringBuilder string = new StringBuilder();
         for (int i = 0; i < columns.length; i++) {
             string.append(columns[i].name);
@@ -84,7 +104,7 @@ public class Table {
         return string.toString();
     }
 
-    private String getValues(String conditions, String[] cols) {
+    protected String getValues(String conditions, String[] cols) {
         StringBuilder string = new StringBuilder();
         for (int i = 0; i < cols.length; i++) {
             if (cols[i] == null)
@@ -97,12 +117,24 @@ public class Table {
         return string.toString();
     }
 
-    public void removeEntry(String conditions) {
+    protected void removeEntry(Value... vals) {
         try {
-            executor.execute("DELETE FROM " + tableName + " Where " + conditions);
+            executor.execute("DELETE FROM " + tableName + " Where " +
+                    toEntryList(vals).stream().filter(v -> v.second().shouldQuery()).map(v -> v.first().name + "='" + v.second() + "'")
+                            .collect(Collectors.joining(" AND ")));
         } catch (SQLException ex) {
             LOG.error("SQL Error", ex);
         }
+    }
+
+    private List<Entry<Column, Value>> toEntryList(Value... vals) {
+        if (vals.length != columns.length)
+            throw new InputMismatchException("Received " + vals.length + " values. Required " + columns.length + ".");
+        List<Entry<Column, Value>> entries = new ArrayList<>();
+        for (int i = 0; i < vals.length; i++) {
+            entries.add(new Entry<>(columns[i], vals[i]));
+        }
+        return entries;
     }
 
     public String getName() {

@@ -23,9 +23,9 @@ public enum Arguments {
         return true;
     }),
     TEXTCHANNEL("#<Channel>", (v) -> v.matches("^<#[0-9]{18}>$")), VOICECHANNEL("<VoiceChannel>", (v) -> v.matches("^.+$")),
-    TEXT("<Some_Words>", (v) -> v.matches("^.+$")), COMMAND("<Command>", (v) -> CommandList.isCommand(v)),
+    TEXT("<Text>", (v) -> v.length() > 0), COMMAND("<Command>", (v) -> CommandList.isCommand(v)),
     DND("<X>d<Y>", (v) -> v.matches("^[0-9]+d[0-9]+$")), MENTIONROLE("@<\u200BRole>", (v) -> v.matches("^<@&[0-9]{18}>$")),
-    LOCATION("<Location>", (v) -> v.matches("^.+$"));
+    LOCATION("<Location>", (v) -> v.matches("^.+$")), LONGTEXT("<Lots_of_Text>", (v) -> v.length() > 0);
     public final String text;
     public final Predicate<String> isValid;
 
