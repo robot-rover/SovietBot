@@ -47,7 +47,7 @@ public class Table {
             }
             for (Column column : columns) {
                 if (!currentColumns.contains(column.name)) {
-                    LOG.info("Adding Column: " + column.name);
+                    LOG.info("Adding Column: " + column.toString());
                     executor.execute("ALTER TABLE " + tableName + " ADD COLUMN " + column.toString());
                 }
             }
@@ -69,52 +69,36 @@ public class Table {
 
     protected ResultSet queryValue(Value... vals) throws SQLException {
         List<Entry<Column, Value>> values = toEntryList(vals);
-        return executor.executeQuery("Select " + values.stream().map(v -> v.first().name).collect(Collectors.joining(", ")) + " from " + tableName + " where " +
-                values.stream().filter(v -> v.second().shouldQuery()).map(v -> v.first().name + "='" + v.second() + "'").collect(Collectors.joining(" AND ")));
+        return executor.executeQuery("Select " + values.stream().map(v -> v.first().name).collect(Collectors.joining(", ")) + " from " + tableName +
+                getConditions(vals));
     }
 
-    @Deprecated
-    protected void setValue(String conditions, String... vals) {
+    /**
+     * @return true if overwritten, false if created
+     */
+    protected boolean insertValue(Value... vals) {
+        boolean found;
         try {
-            executor.execute("REPLACE INTO " + tableName + " (" + getColumns() + ") VALUES(" + getValues(conditions, vals) + ")");
-        } catch (SQLException ex) {
-            LOG.warn("SQL Exception", ex);
+            found = queryValue(vals).next();
+        } catch (SQLException e) {
+            found = false;
+            LOG.error(SQLException.class.getName(), e);
         }
-    }
-
-    protected void insertValue(Value... vals) {
         try {
-            executor.execute("DELETE FROM " + tableName + " WHERE " +
-                    toEntryList(vals).stream().filter(v -> v.second().shouldQuery()).map(v -> v.first().name + "='" + v.second() + "'").collect(Collectors.joining(" AND ")));
+            executor.execute("DELETE FROM " + tableName + getConditions(vals));
             executor.execute("INSERT INTO " + tableName + " VALUES (" +
                     Arrays.asList(vals).stream().map(v -> "'" + v + "'").collect(Collectors.joining(", ")) + ")");
         } catch (SQLException ex) {
             LOG.error("SQL Error", ex);
         }
+        return found;
 
     }
 
-    protected String getColumns() {
-        StringBuilder string = new StringBuilder();
-        for (int i = 0; i < columns.length; i++) {
-            string.append(columns[i].name);
-            if (i + 1 < columns.length)
-                string.append(", ");
-        }
-        return string.toString();
-    }
-
-    protected String getValues(String conditions, String[] cols) {
-        StringBuilder string = new StringBuilder();
-        for (int i = 0; i < cols.length; i++) {
-            if (cols[i] == null)
-                string.append("(SELECT " + columns[i].name + " FROM " + tableName + " WHERE " + conditions + ")");
-            else
-                string.append("'" + cols[i] + "'");
-            if (i + 1 < cols.length)
-                string.append(", ");
-        }
-        return string.toString();
+    private String getConditions(Value... vals) {
+        if (!toEntryList(vals).stream().filter(v -> v.second().shouldQuery()).findAny().isPresent())
+            return "";
+        return " where " + toEntryList(vals).stream().filter(v -> v.second().shouldQuery()).map(v -> v.first().name + "='" + v.second() + "'").collect(Collectors.joining(" AND "));
     }
 
     protected void removeEntry(Value... vals) {

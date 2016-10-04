@@ -81,7 +81,7 @@ public class Perms implements Command {
                     } else {
                         //and finally, change their perms
                         cont.getActions().getTable(PermTable.class).setPerms(cont.getMessage().getGuild(), user, setPerm);
-                        message.appendContent("Changing " + user.mention() + " to a" + BotUtils.startsWithVowel(setPerm.title, "n **", " **") + "**\n");
+                        message.appendContent("Changing " + user.mention() + " to a" + BotUtils.startsWithVowel(setPerm.title, "n ", " ") + setPerm.formatted + "\n");
                     }
                 }
             }

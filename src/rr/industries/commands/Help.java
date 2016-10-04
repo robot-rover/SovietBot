@@ -46,6 +46,8 @@ public class Help implements Command {
                         if (sub.name().equals("")) {
                             mainSubCommand = sub;
                         } else {
+                            if (sub.permLevel() == Permissions.BOTOPERATOR)
+                                continue;
                             subCommands.add(sub);
                         }
                     }
@@ -83,7 +85,7 @@ public class Help implements Command {
                 try {
                     MessageBuilder message2 = new MessageBuilder(cont.getClient()).withChannel(cont.getClient().getOrCreatePMChannel(cont.getMessage().getAuthor()));
                     message2.appendContent("```markdown\n# " + SovietBot.botName + " - \"" + cont.getCommChar() + "\" #\n");
-                    message2.appendContent("For more help type >help <command>...\n");
+                    message2.appendContent("For more help type >help <command>\n");
                     message2.appendContent("Or visit <" + SovietBot.website + ">\n");
                     for (Permissions perm : Permissions.values()) {
                         if (perm.equals(Permissions.BOTOPERATOR) && !cont.getActions().getTable(PermTable.class).getPerms(cont.getMessage().getAuthor(), cont.getMessage().getGuild()).equals(Permissions.BOTOPERATOR)) {

@@ -6,6 +6,7 @@ import com.sun.istack.internal.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import rr.industries.Configuration;
+import rr.industries.Exceptions.BotException;
 import rr.industries.SovietBot;
 import sx.blah.discord.api.IDiscordClient;
 import sx.blah.discord.handle.obj.IChannel;
@@ -46,37 +47,54 @@ public class ChannelActions {
         return config;
     }
 
-    public void threadInterrupted(InterruptedException ex, String methodName, Logger log) {
-        log.warn(methodName + " - Sleep was interrupted - ", ex);
+    /**
+     * Method for Handling BotExceptions
+     *
+     * @param exception The exception to be handled
+     * @param builder   MessageBuilder with channel and client already set
+     */
+    public <T extends BotException> void exception(T exception, MessageBuilder builder) {
+        if (exception.isCritical()) {
+            messageOwner("[Critical Error] - " + exception, true);
+        } else {
+            sendMessage(builder.withContent(exception.toString()));
+        }
     }
 
+    @Deprecated
     public void sqlError(SQLException ex, String methodName, Logger log) {
         log.warn("SQL Error in " + methodName, ex);
         messageOwner("SQL Error in " + methodName + ": " + ex.getMessage(), true);
     }
 
+    @Deprecated
     public void notFound(IMessage imessage, String methodName, String type, String name, Logger log) {
         String message = methodName + " failed to find " + type + ": \"" + name + "\" in Server: \"" + imessage.getGuild().getName() + "\"";
         log.info(message);
         sendMessage(new MessageBuilder(client).withContent(message).withChannel(imessage.getChannel()));
     }
 
+    @Deprecated
     public void missingPermissions(IChannel channel, MissingPermissionsException ex) {
         sendMessage(new MessageBuilder(client).withChannel(channel).withContent(ex.getErrorMessage()));
     }
 
+    @Deprecated
     public void missingPermissions(IChannel channel, Permissions neededPerm) {
         sendMessage(new MessageBuilder(client).withChannel(channel).withContent("You need to be a" + BotUtils.startsWithVowel(neededPerm.title, "n **", " **") + "** (" + neededPerm.level + ") to do that!"));
     }
 
+    @Deprecated
     public void missingArgs(IChannel channel) {
         sendMessage(new MessageBuilder(client).withChannel(channel).withContent("You have the wrong number of arguments"));
     }
 
+    @Deprecated
     public void wrongArgs(IChannel channel) {
         sendMessage(new MessageBuilder(client).withChannel(channel).withContent("Your arguments are incorrect"));
     }
 
+    @Deprecated
     public void customException(String methodName, String message, @Nullable Exception ex, Logger log, boolean error) {
         String fullMessage = methodName + ": " + message;
         if (error) {
@@ -111,7 +129,7 @@ public class ChannelActions {
         try {
             Thread.sleep(delay);
         } catch (InterruptedException ex) {
-            threadInterrupted(ex, "onMessage", LOG);
+            LOG.warn("delayDelete - Sleep was interrupted - ", ex);
         }
         RequestBuffer.request(() -> {
             try {

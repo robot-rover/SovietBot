@@ -17,7 +17,7 @@ import java.util.List;
  * @project sovietBot
  * @created 9/17/2016
  */
-public class PermTable extends Table {
+public class PermTable extends Table implements ITable {
     public PermTable(Statement executor) {
         super("perms", executor,
                 new Column("guildid", "text", false),
@@ -30,11 +30,14 @@ public class PermTable extends Table {
 
     public Permissions getPerms(IUser user, IGuild guild) {
         try {
-            return BotUtils.toPerms(queryValue(Value.of(guild.getID(), true), Value.of(user.getID(), true), Value.empty()).getInt("perm"));
+            ResultSet result = queryValue(Value.of(guild.getID(), true), Value.of(user.getID(), true), Value.empty());
+            if (result.next()) {
+                return BotUtils.toPerms(result.getInt("perm"));
+            }
         } catch (SQLException ex) {
             LOG.error("SQL Error", ex);
-            return Permissions.NORMAL;
         }
+        return Permissions.NORMAL;
     }
 
     public void setPerms(IGuild guild, IUser user, Permissions permissions) {

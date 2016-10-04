@@ -12,7 +12,7 @@ import java.util.Optional;
  * @project sovietBot
  * @created 9/17/2016
  */
-public class TimeTable extends Table {
+public class TimeTable extends Table implements ITable {
     public TimeTable(Statement executor) {
         super("users", executor,
                 new Column("userid", "text", false),

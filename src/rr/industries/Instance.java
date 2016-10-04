@@ -4,14 +4,15 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import rr.industries.Exceptions.BotException;
 import rr.industries.commands.Command;
 import rr.industries.modules.Console;
 import rr.industries.modules.Module;
 import rr.industries.modules.UTCStatus;
 import rr.industries.modules.Webhooks;
 import rr.industries.util.*;
+import rr.industries.util.sql.ITable;
 import rr.industries.util.sql.PermTable;
-import rr.industries.util.sql.Table;
 import rr.industries.util.sql.TagTable;
 import rr.industries.util.sql.TimeTable;
 import sx.blah.discord.Discord4J;
@@ -48,6 +49,7 @@ import static rr.industries.SovietBot.defaultConfig;
  * todo: refractor to modules to allow hotswap
  * todo: [Long Term] Write unit tests
  * todo: add help options
+ * todo: math.random -> Random
  * Commands -
  * Command: GitHub command
  * Command: Add Strawpole Command
@@ -69,7 +71,7 @@ public class Instance {
     private final Configuration config;
     private final CommandList commandList;
     private volatile IDiscordClient client;
-    private Table[] tables;
+    private ITable[] tables;
     private Statement statement;
     private BotActions actions;
 
@@ -94,7 +96,7 @@ public class Instance {
             Connection connection = DriverManager.getConnection("jdbc:sqlite:sovietBot.db");
             statement = connection.createStatement();
             statement.setQueryTimeout(20);  // set timeout to 20 sec.
-            tables = new Table[]{new PermTable(statement), new TimeTable(statement), new TagTable(statement)};
+            tables = new ITable[]{new PermTable(statement), new TimeTable(statement), new TagTable(statement)};
         } catch (SQLException ex) {
             LOG.error("Unable to Initialize Database", ex);
             System.exit(1);
@@ -113,7 +115,10 @@ public class Instance {
 
     @EventSubscriber
     public void onGuildCreate(GuildCreateEvent e) {
-
+        actions.getTable(PermTable.class).setPerms(e.getGuild(), e.getGuild().getOwner(), Permissions.ADMIN);
+        for (String op : config.operators)
+            actions.getTable(PermTable.class).setPerms(e.getGuild(), client.getUserByID(op), Permissions.BOTOPERATOR);
+        LOG.info("Connected to Guild: " + e.getGuild().getName() + " (" + e.getGuild().getID() + ")");
     }
 
     @EventSubscriber
@@ -200,8 +205,13 @@ public class Instance {
                         } catch (IllegalAccessException ex) {
                             actions.channels().customException("onMessage", "Could not access subcommand", ex, LOG, true);
                         } catch (InvocationTargetException ex) {
-                            if (ex.getCause() instanceof Exception)
-                                actions.channels().customException("onMessage", ex.getClass().getName() + " - " + ex.getCause().getMessage(), (Exception) ex.getCause(), LOG, true);
+                            if (ex.getCause() instanceof Exception) {
+                                Exception cause = (Exception) ex.getCause();
+                                if (cause instanceof BotException) {
+                                    cont.getActions().channels().exception((BotException) cause, cont.builder());
+                                } else
+                                    actions.channels().customException("onMessage", ex.getClass().getName() + " - " + cause.getMessage(), cause, LOG, true);
+                            }
                         }
                     }
 

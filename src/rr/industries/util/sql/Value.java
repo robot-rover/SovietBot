@@ -8,7 +8,10 @@ public class Value {
     private boolean isQueried;
 
     private <T> Value(T raw, boolean isQueried) {
-        value = String.valueOf(raw);
+        if (raw instanceof Boolean)
+            value = ((Boolean) raw ? "1" : "0");
+        else
+            value = String.valueOf(raw);
         this.isQueried = isQueried;
     }
 

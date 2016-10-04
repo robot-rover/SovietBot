@@ -5,7 +5,7 @@ import org.slf4j.LoggerFactory;
 import rr.industries.CommandList;
 import rr.industries.Configuration;
 import rr.industries.modules.Module;
-import rr.industries.util.sql.Table;
+import rr.industries.util.sql.ITable;
 import sx.blah.discord.api.IDiscordClient;
 
 import java.sql.Statement;
@@ -24,7 +24,7 @@ public final class BotActions {
     private final Configuration config;
     private final CommandList commands;
     private final Statement sql;
-    private final Table[] tables;
+    private final ITable[] tables;
     private final Module[] modules;
     private final ChannelActions message;
     private static List<BotActions> cache = new ArrayList<>();
@@ -33,7 +33,7 @@ public final class BotActions {
         return cache.stream().filter((v) -> v.getClient().equals(client)).findAny().orElse(null);
     }
 
-    public BotActions(IDiscordClient client, CommandList commands, Statement sql, Table[] tables, Module[] modules, ChannelActions message) {
+    public BotActions(IDiscordClient client, CommandList commands, Statement sql, ITable[] tables, Module[] modules, ChannelActions message) {
         this.client = client;
         this.tables = tables;
         this.config = message.config;
@@ -68,8 +68,8 @@ public final class BotActions {
     }
 
     @SuppressWarnings("unchecked")
-    public <T extends Table> T getTable(Class<T> tableType) {
-        for (Table table : tables) {
+    public <T extends ITable> T getTable(Class<T> tableType) {
+        for (ITable table : tables) {
             if (table.getClass().equals(tableType))
                 return (T) table;
         }

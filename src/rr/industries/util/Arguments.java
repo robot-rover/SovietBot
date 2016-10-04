@@ -34,7 +34,8 @@ public enum Arguments {
     TEXTCHANNEL("#<Channel>", (v) -> v.matches("^<#[0-9]{18}>$")), VOICECHANNEL("<VoiceChannel>", (v) -> v.matches("^.+$")),
     TEXT("<Text>", (v) -> v.length() > 0), COMMAND("<Command>", (v) -> CommandList.isCommand(v)),
     DND("<X>d<Y>", (v) -> v.matches("^[0-9]+d[0-9]+$")), MENTIONROLE("@<\u200BRole>", (v) -> v.matches("^<@&[0-9]{18}>$")),
-    LOCATION("<Location>", (v) -> v.matches("^.+$")), LONGTEXT("<Lots_of_Text>", (v) -> v.length() > 0);
+    LOCATION("<Location>", (v) -> v.matches("^.+$")), LONGTEXT("<Lots_of_Text>", (v) -> v.length() > 0),
+    BOOLEAN("<Boolean>", (v) -> v.equals("true") || v.equals("false"));
     public final String text;
     public final Predicate<String> isValid;
 
