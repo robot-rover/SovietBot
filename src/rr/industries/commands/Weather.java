@@ -27,7 +27,6 @@ import java.util.stream.Collectors;
         helpText = "Interface for getting the weather in your area."
 )
 public class Weather implements Command {
-    private static String deg = "\u00B0F";
     private OwmClient map;
 
     //fixme: update weather api url as gh fork - (OwmClient.baseOwmUrl)
@@ -40,15 +39,6 @@ public class Weather implements Command {
         List<String> googleQuery = cont.getArgs();
         googleQuery.remove(0);
         MessageBuilder message = new MessageBuilder(cont.getClient()).withChannel(cont.getMessage().getChannel());
-        /*try {
-
-        } catch (IOException ex) {
-            cont.getActions().customException("Weather", ex.getMessage(), ex, LOG, true);
-        } catch (NoSuchElementException ex){
-            message.appendContent("No weather data available for this location...");
-        } finally {
-            cont.getActions().sendMessage(message);
-        }*/
         cont.getActions().channels().sendMessage(message.withContent("Coming Soon"));
     }
 
@@ -70,6 +60,7 @@ public class Weather implements Command {
             if (weather.hasWeatherStatus() && weather.getWeatherStatus().size() > 0) {
                 StatusWeatherData set = weather.getWeatherStatus().get(0);
                 message.appendContent("Station: " + set.getName() + "\n");
+                String deg = "\u00B0F";
                 message.appendContent(Math.round(set.getMain().getTemp()) + deg + " (" + Math.round(set.getMain().getTempMax()) + deg + "/" + Math.round(set.getMain().getTempMin()) + deg + ")\n");
                 message.appendContent(Math.round(set.getHumidity()) + "% Humidity\n");
                 if (set.hasRain() && set.getRain() != Integer.MIN_VALUE) {

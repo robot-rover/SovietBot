@@ -5,9 +5,7 @@ import rr.industries.util.ChannelActions;
 import java.util.Scanner;
 
 /**
- * @author Sam
- * @project sovietBot
- * @created 9/16/2016
+ * @author robot_rover
  */
 public class Console implements Module {
     boolean isEnabled;

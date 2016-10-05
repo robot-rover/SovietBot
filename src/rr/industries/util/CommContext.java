@@ -33,7 +33,6 @@ public class CommContext {
         } else {
             callerPerms = actions.getTable(PermTable.class).getPerms(e.getMessage().getAuthor(), e.getMessage().getGuild());
         }
-        boolean next = true;
         Scanner parser = new Scanner(e.getMessage().getContent());
         while (parser.hasNext()) {
             args.add(parser.next());

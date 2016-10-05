@@ -10,9 +10,7 @@ import java.util.List;
 import java.util.function.Predicate;
 
 /**
- * @author Sam
- * @project sovietBot
- * @created 9/6/2016
+ * @author robot_rover
  */
 
 @CommandInfo(

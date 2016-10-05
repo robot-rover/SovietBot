@@ -10,9 +10,7 @@ import java.util.Timer;
 import java.util.TimerTask;
 
 /**
- * @author Sam
- * @project sovietBot
- * @created 9/9/2016
+ * @author robot_rover
  */
 public class UTCStatus implements Module {
     private static Logger LOG = LoggerFactory.getLogger(UTCStatus.class);

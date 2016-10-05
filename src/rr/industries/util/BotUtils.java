@@ -5,19 +5,11 @@
  */
 package rr.industries.util;
 
-import java.util.Calendar;
-import java.util.Date;
 import java.util.regex.Pattern;
 
 public class BotUtils {
     public static boolean tryInt(String i) {
-        boolean parsable = true;
-        try {
-            Integer.parseInt(i);
-        } catch (NumberFormatException ex) {
-            parsable = false;
-        }
-        return parsable;
+        return i.matches("^/d+$");
     }
 
     public static boolean tryDouble(String i) {
@@ -46,20 +38,5 @@ public class BotUtils {
             }
         }
         throw new IndexOutOfBoundsException("The level " + level + "is out of the range of Permissions");
-    }
-
-    @Deprecated
-    public static String getPrettyTime(Calendar time) {
-        return (time.get(Calendar.HOUR) == 0 ? "12" : time.get(Calendar.HOUR)) + ":" + String.format("%2s", time.get(Calendar.MINUTE)).replace(" ", "0") + " " + (time.get(Calendar.AM_PM) == 1 ? "PM" : "AM");
-    }
-
-    /*public static String getPrettyTime(LocalDate date) {
-        return date.format(DateTimeFormatter.ofLocalizedTime(FormatStyle.SHORT));
-    }*/
-
-    public static String getPrettyTime(Date date) {
-        Calendar calendar = Calendar.getInstance();
-        calendar.setTime(date);
-        return getPrettyTime(calendar);
     }
 }

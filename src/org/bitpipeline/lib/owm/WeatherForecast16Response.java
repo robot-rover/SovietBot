@@ -16,7 +16,7 @@ public class WeatherForecast16Response extends AbstractOwmResponse {
         JSONArray jsonForecasts = json
                 .optJSONArray(AbstractOwmResponse.JSON_LIST);
         if (jsonForecasts != null) {
-            this.forecasts = new ArrayList<Forecast16WeatherData>(
+            this.forecasts = new ArrayList<>(
                     jsonForecasts.length());
 
             for (int i = 0; i < jsonForecasts.length(); i++) {

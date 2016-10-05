@@ -1,9 +1,7 @@
 package rr.industries.util.sql;
 
 /**
- * @author Sam
- * @project sovietBot
- * @created 9/6/2016
+ * @author robot_rover
  */
 public class Column {
     public final String name;

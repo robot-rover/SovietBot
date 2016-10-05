@@ -1,9 +1,7 @@
 package rr.industries.util;
 
 /**
- * @author Sam
- * @project sovietBot
- * @created 9/16/2016
+ * @author robot_rover
  */
 public class Operators {
     public String[] Operators;

@@ -72,7 +72,6 @@ public class Instance {
     private final CommandList commandList;
     private volatile IDiscordClient client;
     private ITable[] tables;
-    private Statement statement;
     private BotActions actions;
 
     Instance() throws DiscordException {
@@ -94,7 +93,7 @@ public class Instance {
         commandList = new CommandList();
         try {
             Connection connection = DriverManager.getConnection("jdbc:sqlite:sovietBot.db");
-            statement = connection.createStatement();
+            Statement statement = connection.createStatement();
             statement.setQueryTimeout(20);  // set timeout to 20 sec.
             tables = new ITable[]{new PermTable(statement), new TimeTable(statement), new TagTable(statement)};
         } catch (SQLException ex) {
@@ -110,7 +109,7 @@ public class Instance {
         client.getDispatcher().registerListener(this);
         client.login(false);
         ChannelActions ca = new ChannelActions(client, config);
-        actions = new BotActions(client, commandList, statement, tables, new Module[]{new Console(ca), new UTCStatus(client), new Webhooks(ca)}, ca);
+        actions = new BotActions(client, commandList, tables, new Module[]{new Console(ca), new UTCStatus(client), new Webhooks(ca)}, ca);
     }
 
     @EventSubscriber
@@ -165,7 +164,7 @@ public class Instance {
                     actions.channels().missingPermissions(cont.getMessage().getChannel(), (subComm.permLevel().level > commandInfo.permLevel().level ? subComm.permLevel() : commandInfo.permLevel()));
                 } else {
                     final int iteratorConstant = (subComm.name().equals("") ? 1 : 2);
-                    List<Syntax> syntax = Arrays.asList(subComm.Syntax()).stream().filter(
+                    List<Syntax> syntax = Arrays.stream(subComm.Syntax()).filter(
                             v -> v.args().length + iteratorConstant == cont.getArgs().size() ||
                                     v.args().length + iteratorConstant <= cont.getArgs().size() && Arrays.asList(v.args()).contains(Arguments.LONGTEXT))
                             .collect(Collectors.toList());
@@ -189,11 +188,11 @@ public class Instance {
                                     break;
                                 }
                             }
-                            if (argsValid == true) {
+                            if (argsValid) {
                                 break;
                             }
                         }
-                        if (argsValid == false)
+                        if (!argsValid)
                             actions.channels().wrongArgs(cont.getMessage().getChannel());
 
                     } else {

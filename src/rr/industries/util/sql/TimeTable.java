@@ -8,9 +8,7 @@ import java.sql.Statement;
 import java.util.Optional;
 
 /**
- * @author Sam
- * @project sovietBot
- * @created 9/17/2016
+ * @author robot_rover
  */
 public class TimeTable extends Table implements ITable {
     public TimeTable(Statement executor) {

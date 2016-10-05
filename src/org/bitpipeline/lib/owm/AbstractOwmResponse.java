@@ -5,6 +5,7 @@ import org.json.JSONObject;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+@SuppressWarnings("ALL")
 abstract class AbstractOwmResponse {
     static private final String JSON_COD = "cod";
     static private final String JSON_MESSAGE = "message";

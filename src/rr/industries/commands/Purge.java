@@ -10,6 +10,7 @@ import sx.blah.discord.util.*;
         deleteMessage = false
 )
 public class Purge implements Command {
+    @SuppressWarnings("CollectionAddedToSelf")
     @SubCommand(name = "", Syntax = {@Syntax(helpText = "Deletes the number off messages you specify", args = {Arguments.NUMBER})})
     public void execute(CommContext cont) {
 

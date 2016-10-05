@@ -34,7 +34,6 @@ public class Log implements Command {
 
     public void uploadLog(Path path, CommContext cont) {
         final AtomicReference<String> log = new AtomicReference<>("");
-        String result = "";
         try {
             Files.readAllLines(path).forEach(v -> log.set(log.get().concat(v.concat("\n"))));
             HttpClient client = HttpClients.createDefault();
@@ -42,7 +41,7 @@ public class Log implements Command {
             post.setEntity(new StringEntity(log.get()));
             post.addHeader("Content-Type", "application/json");
             HttpResponse response = client.execute(post);
-            result = EntityUtils.toString(response.getEntity());
+            String result = EntityUtils.toString(response.getEntity());
             String message = "**Log** -  http://hastebin.com/" + gson.fromJson(result, Hastebin.class).getKey();
             cont.getActions().channels().sendMessage(new MessageBuilder(cont.getClient())
                     .withChannel(cont.getMessage().getChannel()).withContent(message));

@@ -15,9 +15,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 /**
- * @author Sam
- * @project sovietBot
- * @created 9/17/2016
+ * @author robot_rover
  */
 public class Table {
     static Logger LOG = LoggerFactory.getLogger(Table.class);
@@ -87,7 +85,7 @@ public class Table {
         try {
             executor.execute("DELETE FROM " + tableName + getConditions(vals));
             executor.execute("INSERT INTO " + tableName + " VALUES (" +
-                    Arrays.asList(vals).stream().map(v -> "'" + v + "'").collect(Collectors.joining(", ")) + ")");
+                    Arrays.stream(vals).map(v -> "'" + v + "'").collect(Collectors.joining(", ")) + ")");
         } catch (SQLException ex) {
             LOG.error("SQL Error", ex);
         }

@@ -14,9 +14,7 @@ import java.util.Locale;
 import java.util.Optional;
 
 /**
- * @author Sam
- * @project sovietBot
- * @created 9/9/2016
+ * @author robot_rover
  */
 @CommandInfo(
         commandName = "time",

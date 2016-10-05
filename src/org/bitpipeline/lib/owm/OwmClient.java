@@ -1,18 +1,18 @@
-/**
- * Copyright 2013 J. Miguel P. Tavares
- * <p>
- * Licensed under the Apache License, Version 2.0 (the "License"); you may not
- * use this file except in compliance with the License. You may obtain a copy of
- * the License at
- * <p>
- * http://www.apache.org/licenses/LICENSE-2.0
- * <p>
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
- * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
- * License for the specific language governing permissions and limitations under
- * the License.
- ***************************************************************************/
+/*
+  Copyright 2013 J. Miguel P. Tavares
+  <p>
+  Licensed under the Apache License, Version 2.0 (the "License"); you may not
+  use this file except in compliance with the License. You may obtain a copy of
+  the License at
+  <p>
+  http://www.apache.org/licenses/LICENSE-2.0
+  <p>
+  Unless required by applicable law or agreed to in writing, software
+  distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
+  WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
+  License for the specific language governing permissions and limitations under
+  the License.
+ */
 package org.bitpipeline.lib.owm;
 
 import org.apache.http.HttpEntity;
@@ -85,6 +85,7 @@ public class OwmClient {
     /**
      * the base URL for Open Weather Map
      */
+    @SuppressWarnings("FieldCanBeLocal")
     private String baseOwmUrl = "http://api.openweathermap.org/data/2.5/";
     private String owmAPPID = null;
 
@@ -143,7 +144,7 @@ public class OwmClient {
         // {
         String subUrl = String.format(Locale.ROOT,
                 "weather?lat=%f&lon=%f&cnt=%d&cluster=yes&units=%s",
-                Float.valueOf(lat), Float.valueOf(lon), Integer.valueOf(cnt),
+                Float.valueOf(lat), lon, cnt,
                 units.toString().toLowerCase());
         JSONObject response = doQuery(subUrl);
         if (isError(response)) {
@@ -177,7 +178,7 @@ public class OwmClient {
         // {
         String subUrl = String.format(Locale.ROOT,
                 "weather?lat=%f&lon=%f&cnt=%d&cluster=yes&units=%s",
-                Float.valueOf(lat), Float.valueOf(lon), Integer.valueOf(cnt),
+                lat, lon, cnt,
                 units.toString().toLowerCase());
         JSONObject response = doQuery(subUrl);
         if (isError(response)) {
@@ -214,8 +215,8 @@ public class OwmClient {
         // OwmClient.Lang lang) {
         String subUrl = String.format(Locale.ROOT,
                 "box/city?bbox=%f,%f,%f,%f&cluster=yes&units=%s",
-                Float.valueOf(northLat), Float.valueOf(westLon),
-                Float.valueOf(southLat), Float.valueOf(eastLon),
+                northLat, westLon,
+                southLat, eastLon,
                 units.toString().toLowerCase());
         JSONObject response = doQuery(subUrl);
         if (isError(response)) {
@@ -252,8 +253,8 @@ public class OwmClient {
         // OwmClient.Lang lang) {
         String subUrl = String.format(Locale.ROOT,
                 "box/city?bbox=%f,%f,%f,%f&cluster=yes&units=%s",
-                Float.valueOf(northLat), Float.valueOf(westLon),
-                Float.valueOf(southLat), Float.valueOf(eastLon),
+                northLat, westLon,
+                southLat, eastLon,
                 units.toString().toLowerCase());
         JSONObject response = doQuery(subUrl);
         if (isError(response)) {
@@ -286,8 +287,8 @@ public class OwmClient {
         // OwmClient.Lang
         // lang) {
         String subUrl = String.format(Locale.ROOT,
-                "find?lat=%f&lon=%f&cluster=yes&units=%s", Float.valueOf(lat),
-                Float.valueOf(lon), Float.valueOf(radius),
+                "find?lat=%f&lon=%f&cluster=yes&units=%s", lat,
+                lon, radius,
                 units.toString().toLowerCase());
         JSONObject response = doQuery(subUrl);
         if (isError(response)) {
@@ -317,8 +318,8 @@ public class OwmClient {
     public WeatherStatusResponse currentWeatherAtCityCircle(float lat,
                                                             float lon, float radius) throws IOException, JSONException {
         String subUrl = String.format(Locale.ROOT,
-                "find?lat=%f&lon=%f&cluster=yes&units=%s", Float.valueOf(lat),
-                Float.valueOf(lon), Float.valueOf(radius),
+                "find?lat=%f&lon=%f&cluster=yes&units=%s", lat,
+                lon, radius,
                 units.toString().toLowerCase());
         JSONObject response = doQuery(subUrl);
         if (isError(response)) {
@@ -342,7 +343,7 @@ public class OwmClient {
     public StatusWeatherData currentWeatherAtCity(int cityId)
             throws IOException, JSONException {
         String subUrl = String.format(Locale.ROOT,
-                "weather?id=%d&type=json&units=%s", Integer.valueOf(cityId),
+                "weather?id=%d&type=json&units=%s", cityId,
                 units.toString().toLowerCase());
         JSONObject response = doQuery(subUrl);
         if (isError(response)) {
@@ -406,7 +407,7 @@ public class OwmClient {
     public StatusWeatherData currentWeatherAtStation(int stationId)
             throws IOException, JSONException {
         String subUrl = String.format(Locale.ROOT,
-                "station?id=%d&type=json&units=%s", Integer.valueOf(stationId),
+                "station?id=%d&type=json&units=%s", stationId,
                 units.toString().toLowerCase());
         JSONObject response = doQuery(subUrl);
         if (isError(response)) {
@@ -655,8 +656,7 @@ public class OwmClient {
         try {
             StatusLine statusLine = response.getStatusLine();
             if (statusLine == null) {
-                throw new IOException(String
-                        .format("Unable to get a response from OWM server"));
+                throw new IOException("Unable to get a response from OWM server");
             }
             int statusCode = statusLine.getStatusCode();
             if (statusCode < 200 || statusCode >= 300) {
@@ -673,7 +673,7 @@ public class OwmClient {
                 contentSize = 8 * 1024;
             StringWriter strWriter = new StringWriter(contentSize);
             char[] buffer = new char[8 * 1024];
-            int n = 0;
+            int n;
             while ((n = isReader.read(buffer)) != -1) {
                 strWriter.write(buffer, 0, n);
             }

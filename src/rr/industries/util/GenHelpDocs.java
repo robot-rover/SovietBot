@@ -8,7 +8,6 @@ import rr.industries.commands.Command;
 
 import java.io.BufferedWriter;
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.lang.reflect.Method;
 import java.nio.file.Files;
@@ -19,9 +18,7 @@ import static java.util.Comparator.comparing;
 import static org.apache.commons.lang3.StringEscapeUtils.escapeHtml4;
 
 /**
- * @author Sam
- * @project sovietBot
- * @created 9/13/2016
+ * @author robot_rover
  */
 public class GenHelpDocs {
     private static Logger LOG = LoggerFactory.getLogger(GenHelpDocs.class);
@@ -33,7 +30,6 @@ public class GenHelpDocs {
             LOG.error("gh-pages not mirrored, Can not generate CommDocs");
             return;
         }
-        List<String> pages = new ArrayList<>();
         git("pull");
         git("checkout", "gh-pages");
         try {
@@ -88,7 +84,7 @@ public class GenHelpDocs {
             }
             commInfo.sort(comparing(CommandInfo::commandName));
             for (CommandInfo info : commInfo) {
-                commandListText.append("<a href=\"commands" + File.separator + info.commandName() + ".html" + "\"><li>" + escapeHtml4(SovietBot.defaultConfig.commChar + info.commandName()) + "</li></a>\n");
+                commandListText.append("<a href=\"commands").append(File.separator).append(info.commandName()).append(".html").append("\"><li>").append(escapeHtml4(SovietBot.defaultConfig.commChar + info.commandName())).append("</li></a>\n");
             }
             commandListText.append("<div style=\"clear:both\"></ul>");
             string = string.replace("{css-prefix}", "");
@@ -116,8 +112,9 @@ public class GenHelpDocs {
         git("push");
     }
 
-    private static void delete(File f) throws FileNotFoundException {
+    private static void delete(File f) {
         if (f.isDirectory()) {
+            //noinspection ConstantConditions
             for (File c : f.listFiles())
                 delete(c);
         }
@@ -135,7 +132,6 @@ public class GenHelpDocs {
                 log = log.concat(" " + s);
             }
             try {
-                String output;
                 Process git = new ProcessBuilder(modArgs).directory(new File("SovietBot")).start();
                 LOG.info(log + "\nGit: " + IOUtils.toString(git.getInputStream()));
                 if (git.waitFor() != 0)

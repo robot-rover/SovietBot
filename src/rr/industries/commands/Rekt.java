@@ -37,7 +37,6 @@ public class Rekt implements Command {
             @Syntax(helpText = "Plays the specified rekt clip", args = {Arguments.TEXT}, options = {"wombo", "wrong", "airhorn", "never", "scope", "nope"})
     })
     public void execute(CommContext cont) {
-        int i = 0;
         AudioInputStream[] sources = sfx;
         /*if (cont.getArgs().size() > 1) {
             for (String command : sfxIndex) {

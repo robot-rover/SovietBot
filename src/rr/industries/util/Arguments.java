@@ -9,12 +9,10 @@ import java.time.ZoneId;
 import java.util.function.Predicate;
 
 /**
- * @author Sam
- * @project sovietBot
- * @created 9/10/2016
+ * @author robot_rover
  */
 public enum Arguments {
-    NUMBER("<#>", (v) -> BotUtils.tryInt(v)), MENTION("@<\u200BUser>", (v) -> v.matches("^<@!?[0-9]{18}>$")),
+    NUMBER("<#>", BotUtils::tryInt), MENTION("@<\u200BUser>", (v) -> v.matches("^<@!?[0-9]{18}>$")),
     TIMEZONE("<Timezone>", (v) -> {
         try {
             ZoneId.of(v);
@@ -32,7 +30,7 @@ public enum Arguments {
         return true;
     }),
     TEXTCHANNEL("#<Channel>", (v) -> v.matches("^<#[0-9]{18}>$")), VOICECHANNEL("<VoiceChannel>", (v) -> v.matches("^.+$")),
-    TEXT("<Text>", (v) -> v.length() > 0), COMMAND("<Command>", (v) -> CommandList.isCommand(v)),
+    TEXT("<Text>", (v) -> v.length() > 0), COMMAND("<Command>", CommandList::isCommand),
     DND("<X>d<Y>", (v) -> v.matches("^[0-9]+d[0-9]+$")), MENTIONROLE("@<\u200BRole>", (v) -> v.matches("^<@&[0-9]{18}>$")),
     LOCATION("<Location>", (v) -> v.matches("^.+$")), LONGTEXT("<Lots_of_Text>", (v) -> v.length() > 0),
     BOOLEAN("<Boolean>", (v) -> v.equals("true") || v.equals("false"));

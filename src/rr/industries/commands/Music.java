@@ -129,7 +129,6 @@ public class Music implements Command {
             return;
         }
         ConcurrentLinkedQueue<AudioSource> sources = new ConcurrentLinkedQueue<>(playlist.getSources());
-        int i = 0;
         for (AudioSource source : sources) {
             AudioInfo info = source.getInfo();
             List<AudioSource> queue = player.getAudioQueue();

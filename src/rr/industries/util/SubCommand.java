@@ -3,9 +3,7 @@ package rr.industries.util;
 import java.lang.annotation.*;
 
 /**
- * @author Sam
- * @project sovietBot
- * @created 9/10/2016
+ * @author robot_rover
  */
 @Retention(RetentionPolicy.RUNTIME)
 @Documented

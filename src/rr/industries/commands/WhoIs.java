@@ -2,6 +2,7 @@ package rr.industries.commands;
 
 import org.apache.commons.lang3.text.WordUtils;
 import rr.industries.util.*;
+import sx.blah.discord.handle.obj.IRole;
 import sx.blah.discord.handle.obj.IUser;
 import sx.blah.discord.util.MessageBuilder;
 
@@ -41,7 +42,7 @@ public class WhoIs implements Command {
         message.appendContent("ID: " + examine.getID() + "\n");
         message.appendContent("Joined: " + DateTimeFormatter.ofLocalizedDateTime(FormatStyle.SHORT).format(examine.getCreationDate()) + "\n");
         message.appendContent("Status: " + WordUtils.capitalizeFully(examine.getPresence().name()) + "\n");
-        message.appendContent("Roles: " + examine.getRolesForGuild(cont.getMessage().getGuild()).stream().filter(v -> !v.isEveryoneRole()).map(v -> v.getName()).collect(Collectors.joining(", ")) + "\n");
+        message.appendContent("Roles: " + examine.getRolesForGuild(cont.getMessage().getGuild()).stream().filter(v -> !v.isEveryoneRole()).map(IRole::getName).collect(Collectors.joining(", ")) + "\n");
         if (examine.getAvatar() != null)
             message.appendContent("Avatar: " + examine.getAvatarURL() + "\n");
         cont.getActions().channels().sendMessage(message);

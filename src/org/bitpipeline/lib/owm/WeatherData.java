@@ -1,18 +1,18 @@
-/**
- * Copyright 2013 J. Miguel P. Tavares
- * <p>
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- * <p>
- * http://www.apache.org/licenses/LICENSE-2.0
- * <p>
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- ***************************************************************************/
+/*
+  Copyright 2013 J. Miguel P. Tavares
+  <p>
+  Licensed under the Apache License, Version 2.0 (the "License");
+  you may not use this file except in compliance with the License.
+  You may obtain a copy of the License at
+  <p>
+  http://www.apache.org/licenses/LICENSE-2.0
+  <p>
+  Unless required by applicable law or agreed to in writing, software
+  distributed under the License is distributed on an "AS IS" BASIS,
+  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  See the License for the specific language governing permissions and
+  limitations under the License.
+ */
 package org.bitpipeline.lib.owm;
 
 import org.json.JSONArray;
@@ -23,6 +23,191 @@ import java.util.*;
 public class WeatherData extends AbstractWeatherData {
     private static final String JSON_CLOUDS = "clouds";
     private static final String JSON_WEATHER = "weather";
+    private final Main main;
+    private final Wind wind;
+    private final Clouds clouds;
+    private final Precipitation rain;
+    private final Precipitation snow;
+    private final List<WeatherCondition> weatherConditions;
+
+
+    public WeatherData(JSONObject json) {
+        super(json);
+
+        JSONObject jsonMain = json.optJSONObject(WeatherData.JSON_MAIN);
+        this.main = jsonMain != null ? new Main(jsonMain) : null;
+
+        JSONObject jsonWind = json.optJSONObject(WeatherData.JSON_WIND);
+        this.wind = jsonWind != null ? new Wind(jsonWind) : null;
+
+        if (json.has(WeatherData.JSON_CLOUDS)) {
+            JSONArray coudsArray = json.optJSONArray(WeatherData.JSON_CLOUDS);
+            if (coudsArray != null)
+                this.clouds = new Clouds(coudsArray);
+            else {
+                JSONObject cloudsObj = json.optJSONObject(WeatherData.JSON_CLOUDS);
+                if (cloudsObj != null)
+                    this.clouds = new Clouds(cloudsObj);
+                else
+                    this.clouds = null;
+            }
+        } else
+            this.clouds = null;
+
+        JSONObject jsonRain = json.optJSONObject(WeatherData.JSON_RAIN);
+        this.rain = jsonRain != null ? new Precipitation(jsonRain) : null;
+
+        JSONObject jsonSnow = json.optJSONObject(WeatherData.JSON_SNOW);
+        this.snow = jsonSnow != null ? new Precipitation(jsonSnow) : null;
+
+        if (json.has(WeatherData.JSON_WEATHER)) {
+            JSONArray jsonConditions = json.optJSONArray(WeatherData.JSON_WEATHER);
+            if (jsonConditions != null) {
+                this.weatherConditions = new ArrayList<>(jsonConditions.length());
+                for (int i = 0; i < jsonConditions.length(); i++) {
+                    JSONObject jsonCondition = jsonConditions.optJSONObject(i);
+                    if (jsonCondition != null)
+                        this.weatherConditions.add(
+                                new WeatherCondition(jsonCondition));
+                }
+            } else {
+                this.weatherConditions = Collections.emptyList();
+            }
+        } else {
+            this.weatherConditions = Collections.emptyList();
+        }
+    }
+
+    public boolean hasMain() {
+        return this.main != null;
+    }
+
+    public Main getMain() {
+        return this.main;
+    }
+
+    public boolean hasWind() {
+        return this.wind != null;
+    }
+
+    public Wind getWind() {
+        return this.wind;
+    }
+
+    public boolean hasClouds() {
+        return this.clouds != null;
+    }
+
+    public Clouds getClouds() {
+        return this.clouds;
+    }
+
+    public boolean hasRain() {
+        return this.rain != null;
+    }
+
+    public Precipitation getRainObj() {
+        return this.rain;
+    }
+
+    public boolean hasSnow() {
+        return this.snow != null;
+    }
+
+    public Precipitation getSnowObj() {
+        return this.snow;
+    }
+
+    /**
+     * Returns if the perciptation is specified.
+     *
+     * @return <code>true</code> if the perciptation is specified
+     * @see #getPrecipitation()
+     */
+    public boolean hasPerciptation() {
+        return hasRain() || hasSnow();
+    }
+
+    public boolean hasWeatherConditions() {
+        return this.weatherConditions != null && !this.weatherConditions.isEmpty();
+    }
+
+    public List<WeatherCondition> getWeatherConditions() {
+        return this.weatherConditions;
+    }
+
+    public Temperature getTemperature() {
+        return this.main.getTemperature();
+    }
+
+    public float getHumidity() {
+        if (hasMain() && this.main.hasHumidity())
+            return this.main.getHumidity();
+        return Float.NaN;
+    }
+
+    public float getPressure() {
+        if (hasMain() && this.main.hasPressure())
+            return this.main.getPressure();
+        return Float.NaN;
+    }
+
+    public float getWindSpeed() {
+        if (hasWind() && this.wind.hasSpeed())
+            return this.wind.getSpeed();
+        return Float.NaN;
+    }
+
+    public float getWindGust() {
+        if (hasWind() && this.wind.hasGust())
+            return this.wind.getGust();
+        return Float.NaN;
+    }
+
+    public int getWindDeg() {
+        if (hasWind() && this.wind.hasDeg())
+            return this.wind.getDeg();
+        return Integer.MIN_VALUE;
+    }
+
+	/* */
+
+    public int getRain() {
+        if (!hasRain())
+            return Integer.MIN_VALUE;
+        int measure = this.rain.getMeasure(1);
+        if (measure != Integer.MIN_VALUE)
+            return measure;
+        return this.rain.getToday();
+    }
+
+    public int getSnow() {
+        if (!hasSnow())
+            return Integer.MIN_VALUE;
+        int measure = this.snow.getMeasure(1);
+        if (measure != Integer.MIN_VALUE)
+            return measure;
+        return this.snow.getToday();
+    }
+
+    public int getPrecipitation() {
+        int precipitation = Integer.MIN_VALUE;
+        if (hasRain())
+            precipitation = getRain();
+        if (hasSnow())
+            precipitation = precipitation != Integer.MIN_VALUE ? precipitation + getSnow() : getSnow();
+        return precipitation;
+    }
+
+    /* (non-Javadoc)
+     * @see java.lang.Object#toString()
+     */
+    @Override
+    public String toString() {
+        return WeatherData.class.getSimpleName() + " [getDateTime()=" + getDateTime() + ", main=" + main + ", wind=" + wind + ", clouds="
+                + clouds + ", rain=" + rain + ", snow=" + snow + ", weatherConditions="
+                + Arrays.toString(weatherConditions.toArray()) + "]";
+    }
 
     public static class Main extends AbstractWeatherData.Main {
         private final Temperature temp;
@@ -158,7 +343,7 @@ public class WeatherData extends AbstractWeatherData {
                     try {
                         putMeasure(i, Integer.valueOf(value));
                     } catch (NumberFormatException nfe) {
-                        continue;
+                        //Oh well
                     }
                 }
             }
@@ -170,8 +355,8 @@ public class WeatherData extends AbstractWeatherData {
 
         private void putMeasure(int lastHours, Integer value) {
             if (this.measurements == null)
-                this.measurements = new HashMap<Integer, Integer>();
-            this.measurements.put(Integer.valueOf(lastHours), value);
+                this.measurements = new HashMap<>();
+            this.measurements.put(lastHours, value);
         }
 
         public int getMeasure(int lastHours) {
@@ -203,11 +388,119 @@ public class WeatherData extends AbstractWeatherData {
 
     public static class Clouds extends TimedDetails {
         private static final String JSON_ALL = "all";
+        private final int all;
+        private final List<CloudDescription> conditions;
+
+        public Clouds(JSONObject json) {
+            super(json);
+            this.all = json.optInt(Clouds.JSON_ALL, Integer.MIN_VALUE);
+            this.conditions = Collections.emptyList();
+        }
+
+        public Clouds(JSONArray jsonArray) {
+            this.all = Integer.MIN_VALUE;
+            this.conditions = new ArrayList<>(jsonArray.length());
+            for (int i = 0; i < jsonArray.length(); i++) {
+                JSONObject jsonCloudDescription = jsonArray.optJSONObject(i);
+                if (jsonCloudDescription != null)
+                    this.conditions.add(
+                            new CloudDescription(jsonCloudDescription));
+            }
+        }
+
+        /**
+         * Returns if the cloudiness is specified.
+         *
+         * @return <code>true</code> if the cloudiness is specified
+         * @see #getAll()
+         */
+        public boolean hasAll() {
+            return this.all != Integer.MIN_VALUE;
+        }
+
+        /**
+         * Returns the cloudiness in percent.
+         *
+         * @return the cloudiness in %
+         */
+        public int getAll() {
+            return this.all;
+        }
+
+        public boolean hasConditions() {
+            return this.conditions != null && !this.conditions.isEmpty();
+        }
+
+        public List<CloudDescription> getConditions() {
+            return this.conditions;
+        }
+
+        /* (non-Javadoc)
+         * @see java.lang.Object#toString()
+         */
+        @Override
+        public String toString() {
+            return Clouds.class.getSimpleName() + " [conditions=" + Arrays.toString(conditions.toArray()) + ", all="
+                    + all + ", " + super.toString() + "]";
+        }
 
         public static class CloudDescription {
             private static final String JSON_DISTANCE = "distance";
             private static final String JSON_CONDITION = "condition";
             private static final String JSON_CUMULUS = "cumulus";
+            private final int distance;
+            private SkyCondition skyCondition = null;
+            private Cumulus cumulus = null;
+            public CloudDescription(JSONObject json) {
+                this.distance = json.optInt(CloudDescription.JSON_DISTANCE, Integer.MIN_VALUE);
+                if (json.has(CloudDescription.JSON_CONDITION)) {
+                    try {
+                        this.skyCondition = SkyCondition.valueOf(json.optString(CloudDescription.JSON_CONDITION));
+                    } catch (IllegalArgumentException e) {
+                        this.skyCondition = SkyCondition.UNKNOWN;
+                    }
+                }
+                if (json.has(CloudDescription.JSON_CUMULUS)) {
+                    try {
+                        this.cumulus = Cumulus.valueOf(json.optString(CloudDescription.JSON_CUMULUS));
+                    } catch (IllegalArgumentException e) {
+                        this.cumulus = Cumulus.UNKNOWN;
+                    }
+                }
+            }
+
+            public boolean hasDistance() {
+                return this.distance != Integer.MIN_VALUE;
+            }
+
+            public int getDistance() {
+                return this.distance;
+            }
+
+            public boolean hasSkyCondition() {
+                return this.skyCondition != null;
+            }
+
+            public SkyCondition getSkyCondition() {
+                return this.skyCondition;
+            }
+
+            public boolean hasCumulus() {
+                return this.cumulus != null;
+            }
+
+            public Cumulus getCumulus() {
+                return this.cumulus;
+            }
+
+            /* (non-Javadoc)
+             * @see java.lang.Object#toString()
+             */
+            @Override
+            public String toString() {
+                return "CloudDescription [skyCondition=" + skyCondition + ", cumulus=" + cumulus + ", distance="
+                        + distance + "]";
+            }
 
             public enum SkyCondition {
                 UNKNOWN("unknown"),
@@ -261,117 +554,6 @@ public class WeatherData extends AbstractWeatherData {
                     return "Cumulus [" + getDescription() + "]";
                 }
             }
-
-            private SkyCondition skyCondition = null;
-            private Cumulus cumulus = null;
-            private final int distance;
-
-            public CloudDescription(JSONObject json) {
-                this.distance = json.optInt(CloudDescription.JSON_DISTANCE, Integer.MIN_VALUE);
-                if (json.has(CloudDescription.JSON_CONDITION)) {
-                    try {
-                        this.skyCondition = SkyCondition.valueOf(json.optString(CloudDescription.JSON_CONDITION));
-                    } catch (IllegalArgumentException e) {
-                        this.skyCondition = SkyCondition.UNKNOWN;
-                    }
-                }
-                if (json.has(CloudDescription.JSON_CUMULUS)) {
-                    try {
-                        this.cumulus = Cumulus.valueOf(json.optString(CloudDescription.JSON_CUMULUS));
-                    } catch (IllegalArgumentException e) {
-                        this.cumulus = Cumulus.UNKNOWN;
-                    }
-                }
-            }
-
-            public boolean hasDistance() {
-                return this.distance != Integer.MIN_VALUE;
-            }
-
-            public int getDistance() {
-                return this.distance;
-            }
-
-            public boolean hasSkyCondition() {
-                return this.skyCondition != null;
-            }
-
-            public SkyCondition getSkyCondition() {
-                return this.skyCondition;
-            }
-
-            public boolean hasCumulus() {
-                return this.cumulus != null;
-            }
-
-            public Cumulus getCumulus() {
-                return this.cumulus;
-            }
-
-            /* (non-Javadoc)
-             * @see java.lang.Object#toString()
-             */
-            @Override
-            public String toString() {
-                return "CloudDescription [skyCondition=" + skyCondition + ", cumulus=" + cumulus + ", distance="
-                        + distance + "]";
-            }
-        }
-
-        private final int all;
-        private final List<CloudDescription> conditions;
-
-        public Clouds(JSONObject json) {
-            super(json);
-            this.all = json.optInt(Clouds.JSON_ALL, Integer.MIN_VALUE);
-            this.conditions = Collections.emptyList();
-        }
-
-        public Clouds(JSONArray jsonArray) {
-            this.all = Integer.MIN_VALUE;
-            this.conditions = new ArrayList<CloudDescription>(jsonArray.length());
-            for (int i = 0; i < jsonArray.length(); i++) {
-                JSONObject jsonCloudDescription = jsonArray.optJSONObject(i);
-                if (jsonCloudDescription != null)
-                    this.conditions.add(
-                            new CloudDescription(jsonCloudDescription));
-            }
-        }
-
-        /**
-         * Returns if the cloudiness is specified.
-         *
-         * @return <code>true</code> if the cloudiness is specified
-         * @see #getAll()
-         */
-        public boolean hasAll() {
-            return this.all != Integer.MIN_VALUE;
-        }
-
-        /**
-         * Returns the cloudiness in percent.
-         *
-         * @return the cloudiness in %
-         */
-        public int getAll() {
-            return this.all;
-        }
-
-        public boolean hasConditions() {
-            return this.conditions != null && !this.conditions.isEmpty();
-        }
-
-        public List<CloudDescription> getConditions() {
-            return this.conditions;
-        }
-
-        /* (non-Javadoc)
-         * @see java.lang.Object#toString()
-         */
-        @Override
-        public String toString() {
-            return Clouds.class.getSimpleName() + " [conditions=" + Arrays.toString(conditions.toArray()) + ", all="
-                    + all + ", " + super.toString() + "]";
         }
     }
 
@@ -402,6 +584,59 @@ public class WeatherData extends AbstractWeatherData {
     }
 
     public static class WeatherCondition {
+        private static final String JSON_ID = "id";
+        private static final String JSON_MAIN = "main";
+        private static final String JSON_DESCRIPTION = "description";
+        private static final String JSON_ICON = "icon";
+        private ConditionCode code = null;
+        private String main = null;
+        private String description = null;
+        private String iconName = null;
+
+        public WeatherCondition(JSONObject json) {
+            this.code = ConditionCode.valueof(json.optInt(WeatherCondition.JSON_ID, Integer.MIN_VALUE));
+            this.main = json.optString(WeatherCondition.JSON_MAIN);
+            this.description = json.optString(WeatherCondition.JSON_DESCRIPTION);
+            this.iconName = json.optString(WeatherCondition.JSON_ICON);
+        }
+
+        public ConditionCode getCode() {
+            return this.code;
+        }
+
+        public boolean hasMain() {
+            return this.main != null && this.main.length() > 0;
+        }
+
+        public String getMain() {
+            return this.main;
+        }
+
+        public boolean hasDescription() {
+            return this.description != null && this.description.length() > 0;
+        }
+
+        public String getDescription() {
+            return this.description;
+        }
+
+        public boolean hasIconName() {
+            return this.iconName != null && this.iconName.length() > 0;
+        }
+
+        public String getIconName() {
+            return this.iconName;
+        }
+
+        /* (non-Javadoc)
+         * @see java.lang.Object#toString()
+         */
+        @Override
+        public String toString() {
+            return WeatherCondition.class.getSimpleName() + " [code=" + code + ", main=" + main + ", description=" + description + ", iconName="
+                    + iconName + "]";
+        }
+
         public enum ConditionCode {
             UNKNOWN(Integer.MIN_VALUE),
             /* Thunderstorm */
@@ -486,247 +721,5 @@ public class WeatherData extends AbstractWeatherData {
                 return super.toString() + "(" + getId() + ")";
             }
         }
-
-        private static final String JSON_ID = "id";
-        private static final String JSON_MAIN = "main";
-        private static final String JSON_DESCRIPTION = "description";
-        private static final String JSON_ICON = "icon";
-
-        private ConditionCode code = null;
-        private String main = null;
-        private String description = null;
-        private String iconName = null;
-
-        public WeatherCondition(JSONObject json) {
-            this.code = ConditionCode.valueof(json.optInt(WeatherCondition.JSON_ID, Integer.MIN_VALUE));
-            this.main = json.optString(WeatherCondition.JSON_MAIN);
-            this.description = json.optString(WeatherCondition.JSON_DESCRIPTION);
-            this.iconName = json.optString(WeatherCondition.JSON_ICON);
-        }
-
-        public ConditionCode getCode() {
-            return this.code;
-        }
-
-        public boolean hasMain() {
-            return this.main != null && this.main.length() > 0;
-        }
-
-        public String getMain() {
-            return this.main;
-        }
-
-        public boolean hasDescription() {
-            return this.description != null && this.description.length() > 0;
-        }
-
-        public String getDescription() {
-            return this.description;
-        }
-
-        public boolean hasIconName() {
-            return this.iconName != null && this.iconName.length() > 0;
-        }
-
-        public String getIconName() {
-            return this.iconName;
-        }
-
-        /* (non-Javadoc)
-         * @see java.lang.Object#toString()
-         */
-        @Override
-        public String toString() {
-            return WeatherCondition.class.getSimpleName() + " [code=" + code + ", main=" + main + ", description=" + description + ", iconName="
-                    + iconName + "]";
-        }
-    }
-
-
-    private final Main main;
-    private final Wind wind;
-    private final Clouds clouds;
-    private final Precipitation rain;
-    private final Precipitation snow;
-    private final List<WeatherCondition> weatherConditions;
-
-    public WeatherData(JSONObject json) {
-        super(json);
-
-        JSONObject jsonMain = json.optJSONObject(WeatherData.JSON_MAIN);
-        this.main = jsonMain != null ? new Main(jsonMain) : null;
-
-        JSONObject jsonWind = json.optJSONObject(WeatherData.JSON_WIND);
-        this.wind = jsonWind != null ? new Wind(jsonWind) : null;
-
-        if (json.has(WeatherData.JSON_CLOUDS)) {
-            JSONArray coudsArray = json.optJSONArray(WeatherData.JSON_CLOUDS);
-            if (coudsArray != null)
-                this.clouds = new Clouds(coudsArray);
-            else {
-                JSONObject cloudsObj = json.optJSONObject(WeatherData.JSON_CLOUDS);
-                if (cloudsObj != null)
-                    this.clouds = new Clouds(cloudsObj);
-                else
-                    this.clouds = null;
-            }
-        } else
-            this.clouds = null;
-
-        JSONObject jsonRain = json.optJSONObject(WeatherData.JSON_RAIN);
-        this.rain = jsonRain != null ? new Precipitation(jsonRain) : null;
-
-        JSONObject jsonSnow = json.optJSONObject(WeatherData.JSON_SNOW);
-        this.snow = jsonSnow != null ? new Precipitation(jsonSnow) : null;
-
-        if (json.has(WeatherData.JSON_WEATHER)) {
-            JSONArray jsonConditions = json.optJSONArray(WeatherData.JSON_WEATHER);
-            if (jsonConditions != null) {
-                this.weatherConditions = new ArrayList<WeatherCondition>(jsonConditions.length());
-                if (jsonConditions != null) {
-                    for (int i = 0; i < jsonConditions.length(); i++) {
-                        JSONObject jsonCondition = jsonConditions.optJSONObject(i);
-                        if (jsonCondition != null)
-                            this.weatherConditions.add(
-                                    new WeatherCondition(jsonCondition));
-                    }
-                }
-            } else {
-                this.weatherConditions = Collections.emptyList();
-            }
-        } else {
-            this.weatherConditions = Collections.emptyList();
-        }
-    }
-
-    public boolean hasMain() {
-        return this.main != null;
-    }
-
-    public Main getMain() {
-        return this.main;
-    }
-
-    public boolean hasWind() {
-        return this.wind != null;
-    }
-
-    public Wind getWind() {
-        return this.wind;
-    }
-
-    public boolean hasClouds() {
-        return this.clouds != null;
-    }
-
-    public Clouds getClouds() {
-        return this.clouds;
-    }
-
-    public boolean hasRain() {
-        return this.rain != null;
-    }
-
-    public Precipitation getRainObj() {
-        return this.rain;
-    }
-
-    public boolean hasSnow() {
-        return this.snow != null;
-    }
-
-    public Precipitation getSnowObj() {
-        return this.snow;
-    }
-
-    /**
-     * Returns if the perciptation is specified.
-     *
-     * @return <code>true</code> if the perciptation is specified
-     * @see #getPrecipitation()
-     */
-    public boolean hasPerciptation() {
-        return hasRain() || hasSnow();
-    }
-
-    public boolean hasWeatherConditions() {
-        return this.weatherConditions != null && !this.weatherConditions.isEmpty();
-    }
-
-    public List<WeatherCondition> getWeatherConditions() {
-        return this.weatherConditions;
-    }
-
-	/* */
-
-    public Temperature getTemperature() {
-        return this.main.getTemperature();
-    }
-
-    public float getHumidity() {
-        if (hasMain() && this.main.hasHumidity())
-            return this.main.getHumidity();
-        return Float.NaN;
-    }
-
-    public float getPressure() {
-        if (hasMain() && this.main.hasPressure())
-            return this.main.getPressure();
-        return Float.NaN;
-    }
-
-    public float getWindSpeed() {
-        if (hasWind() && this.wind.hasSpeed())
-            return this.wind.getSpeed();
-        return Float.NaN;
-    }
-
-    public float getWindGust() {
-        if (hasWind() && this.wind.hasGust())
-            return this.wind.getGust();
-        return Float.NaN;
-    }
-
-    public int getWindDeg() {
-        if (hasWind() && this.wind.hasDeg())
-            return this.wind.getDeg();
-        return Integer.MIN_VALUE;
-    }
-
-    public int getRain() {
-        if (!hasRain())
-            return Integer.MIN_VALUE;
-        int measure = this.rain.getMeasure(1);
-        if (measure != Integer.MIN_VALUE)
-            return measure;
-        return this.rain.getToday();
-    }
-
-    public int getSnow() {
-        if (!hasSnow())
-            return Integer.MIN_VALUE;
-        int measure = this.snow.getMeasure(1);
-        if (measure != Integer.MIN_VALUE)
-            return measure;
-        return this.snow.getToday();
-    }
-
-    public int getPrecipitation() {
-        int precipitation = Integer.MIN_VALUE;
-        if (hasRain())
-            precipitation = getRain();
-        if (hasSnow())
-            precipitation = precipitation != Integer.MIN_VALUE ? precipitation + getSnow() : getSnow();
-        return precipitation;
-    }
-
-    /* (non-Javadoc)
-     * @see java.lang.Object#toString()
-     */
-    @Override
-    public String toString() {
-        return WeatherData.class.getSimpleName() + " [getDateTime()=" + getDateTime() + ", main=" + main + ", wind=" + wind + ", clouds="
-                + clouds + ", rain=" + rain + ", snow=" + snow + ", weatherConditions="
-                + Arrays.toString(weatherConditions.toArray()) + "]";
     }
 }

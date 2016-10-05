@@ -13,9 +13,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * @author Sam
- * @project sovietBot
- * @created 9/17/2016
+ * @author robot_rover
  */
 public class PermTable extends Table implements ITable {
     public PermTable(Statement executor) {
@@ -52,7 +50,7 @@ public class PermTable extends Table implements ITable {
             List<Entry<String, Integer>> list = new ArrayList<>();
             ResultSet rs = executor.executeQuery("SELECT userid, perm FROM " + getName() + " where guildid=" + guild.getID() + " ORDER BY perm DESC;");
             while (rs.next()) {
-                list.add(new Entry<String, Integer>(rs.getString("userid"), rs.getInt("perm")));
+                list.add(new Entry<>(rs.getString("userid"), rs.getInt("perm")));
             }
             return list;
         } catch (SQLException ex) {

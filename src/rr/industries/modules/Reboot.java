@@ -7,9 +7,7 @@ import sx.blah.discord.api.events.EventSubscriber;
 import sx.blah.discord.handle.impl.events.DiscordDisconnectedEvent;
 
 /**
- * @author Sam
- * @project sovietBot
- * @created 9/9/2016
+ * @author robot_rover
  */
 public class Reboot implements Module {
     private static final Logger LOG = LoggerFactory.getLogger(Reboot.class);

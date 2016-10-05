@@ -168,7 +168,7 @@ public class ChannelActions {
     }
 
     public Optional<IMessage> sendMessage(MessageBuilder builder) {
-        RequestBuffer.RequestFuture message = RequestBuffer.request(() -> {
+        RequestBuffer.IRequest<Optional<IMessage>> request = () -> {
             try {
                 return Optional.of(builder.send());
             } catch (DiscordException ex) {
@@ -177,8 +177,8 @@ public class ChannelActions {
                 missingPermissions(builder.getChannel(), ex);
             }
             return Optional.empty();
-        });
-        return (Optional<IMessage>) message.get();
+        };
+        return RequestBuffer.request(request).get();
     }
 
     public void disconnectFromChannel(IGuild guild, List<IVoiceChannel> connectedChannels) {

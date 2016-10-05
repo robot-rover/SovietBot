@@ -1,9 +1,7 @@
 package rr.industries.modules.githubwebhooks;
 
 /**
- * @author Sam
- * @project sovietBot
- * @created 9/1/2016
+ * @author robot_rover
  */
 public class Restart {
     public String command;

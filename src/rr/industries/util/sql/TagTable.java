@@ -3,7 +3,6 @@ package rr.industries.util.sql;
 import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import rr.industries.Exceptions.AlreadyExistsException;
 import rr.industries.Exceptions.MissingPermsException;
 import rr.industries.util.Permissions;
 import rr.industries.util.TagData;
@@ -45,7 +44,7 @@ public class TagTable implements ITable {
     /**
      * @return the old tag, if it could be found
      */
-    public Optional<TagData> setGlobal(IGuild guild, String name, boolean global, Permissions perm) throws MissingPermsException, AlreadyExistsException {
+    public Optional<TagData> setGlobal(IGuild guild, String name, boolean global, Permissions perm) throws MissingPermsException {
         Optional<TagData> tag = getTag(guild, name);
         if (tag.isPresent()) {
             deleteTag(guild, name, perm);
@@ -57,7 +56,7 @@ public class TagTable implements ITable {
     /**
      * @return the tag changed, if it was found
      */
-    public Optional<TagData> setPermanent(@Nullable IGuild guild, String name, boolean permanent, Permissions perm) throws MissingPermsException, AlreadyExistsException {
+    public Optional<TagData> setPermanent(@Nullable IGuild guild, String name, boolean permanent, Permissions perm) throws MissingPermsException {
         Optional<TagData> tag = getTag(guild, name);
         if (tag.isPresent()) {
             deleteTag(guild, name, perm);
@@ -70,7 +69,7 @@ public class TagTable implements ITable {
     /**
      * @return the previous tag, if it existed
      */
-    public Optional<TagData> makeTag(@Nullable IGuild guild, String name, String content, boolean permanent, Permissions perm) throws AlreadyExistsException, MissingPermsException {
+    public Optional<TagData> makeTag(@Nullable IGuild guild, String name, String content, boolean permanent, Permissions perm) throws MissingPermsException {
         Optional<TagData> previous = getTag(guild, name);
         if (previous.isPresent()) {
             checkTag(previous.get(), perm);
@@ -92,6 +91,7 @@ public class TagTable implements ITable {
             if (tag.get().isGlobal())
                 globalTags.removeEntry(Value.of(name, true), Value.empty());
             else
+                //noinspection OptionalGetWithoutIsPresent
                 localTags.removeEntry(Value.of(tag.get().getGuild().get(), true), Value.of(name, true), Value.empty(), Value.empty());
         }
         return tag;
@@ -130,13 +130,15 @@ public class TagTable implements ITable {
      */
     private TagData getTagDataFromSQL(ResultSet result) throws SQLException, ConfigurationException {
         String table = result.getMetaData().getTableName(1);
-        if (table.equals("tags"))
-            return new TagData(result.getString("guildid"), result.getString("tagname"),
-                    result.getString("tagcontent"), result.getBoolean("ispermanent"));
-        else if (table.equals("globaltags"))
-            return new TagData(result.getString("tagname"), result.getString("tagcontent"));
-        else
-            throw new ConfigurationException("ResultSet did not contain a global or local tag table");
+        switch (table) {
+            case "tags":
+                return new TagData(result.getString("guildid"), result.getString("tagname"),
+                        result.getString("tagcontent"), result.getBoolean("ispermanent"));
+            case "globaltags":
+                return new TagData(result.getString("tagname"), result.getString("tagcontent"));
+            default:
+                throw new ConfigurationException("ResultSet did not contain a global or local tag table");
+        }
     }
 
     public List<TagData> getGlobalTags() {

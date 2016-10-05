@@ -6,7 +6,6 @@ import rr.industries.util.*;
 import rr.industries.util.sql.TagTable;
 import sx.blah.discord.util.MessageBuilder;
 
-import javax.management.InstanceAlreadyExistsException;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
@@ -18,7 +17,7 @@ import java.util.stream.Collectors;
 @CommandInfo(commandName = "tag", helpText = "Makes custom commands")
 public class Tag implements Command {
     @SubCommand(name = "add", Syntax = {@Syntax(helpText = "Adds the Tag <Text> with the Content <Lots_of_Text>", args = {Arguments.TEXT, Arguments.LONGTEXT})}, permLevel = Permissions.REGULAR)
-    public void add(CommContext cont) throws AlreadyExistsException, MissingPermsException {
+    public void add(CommContext cont) throws MissingPermsException {
         MessageBuilder message = cont.builder();
         String name = cont.getArgs().get(2);
         if (Arrays.stream(this.getClass().getMethods()).filter(v -> v.getAnnotation(SubCommand.class) != null && v.getAnnotation(SubCommand.class).name().equals(name)).findAny().isPresent()) {
@@ -51,7 +50,7 @@ public class Tag implements Command {
     }
 
     @SubCommand(name = "global", Syntax = {@Syntax(helpText = "Sets the Tag <Text> as global or not", args = {Arguments.TEXT, Arguments.BOOLEAN})}, permLevel = Permissions.BOTOPERATOR)
-    public void global(CommContext cont) throws InstanceAlreadyExistsException, MissingPermsException, AlreadyExistsException {
+    public void global(CommContext cont) throws MissingPermsException, AlreadyExistsException {
         String name = cont.getArgs().get(2);
         boolean global = Boolean.parseBoolean(cont.getArgs().get(3));
         MessageBuilder message = cont.builder();

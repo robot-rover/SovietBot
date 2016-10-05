@@ -6,31 +6,31 @@ import java.util.Optional;
  * @author Sam
  */
 public class TagData {
-    private Optional<String> guild;
+    private String guild;
     private String name;
     private String content;
     private boolean permanent;
 
     public TagData(String guild, String name, String content, boolean permanent) {
-        this.guild = Optional.of(guild);
+        this.guild = guild;
         this.name = name;
         this.content = content;
         this.permanent = permanent;
     }
 
     public TagData(String name, String content) {
-        this.guild = Optional.empty();
+        this.guild = null;
         this.name = name;
         this.content = content;
         this.permanent = false;
     }
 
     public Optional<String> getGuild() {
-        return guild;
+        return Optional.ofNullable(guild);
     }
 
     public void setGuild(String guild) {
-        this.guild = Optional.ofNullable(guild);
+        this.guild = guild;
     }
 
     public String getName() {
@@ -50,7 +50,7 @@ public class TagData {
     }
 
     public boolean isGlobal() {
-        return !guild.isPresent();
+        return guild == null;
     }
 
     public boolean isPermanent() {

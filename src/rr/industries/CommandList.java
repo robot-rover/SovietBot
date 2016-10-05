@@ -13,9 +13,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * @author Sam
- * @project sovietBot
- * @created 8/28/2016
+ * @author robot_rover
  */
 public class CommandList {
     private static Logger LOG = LoggerFactory.getLogger(CommandList.class);
@@ -75,7 +73,6 @@ public class CommandList {
         Command command = getCommand(args.get(0));
         Method subCommand = null;
         if (command != null) {
-            CommandInfo info = command.getClass().getDeclaredAnnotation(CommandInfo.class);
             Method baseSubCommand = null;
             for (Method subComm : command.getClass().getDeclaredMethods()) {
                 if (subComm.getAnnotation(SubCommand.class) == null) {

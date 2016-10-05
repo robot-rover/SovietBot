@@ -8,22 +8,18 @@ import rr.industries.modules.Module;
 import rr.industries.util.sql.ITable;
 import sx.blah.discord.api.IDiscordClient;
 
-import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.NoSuchElementException;
 
 /**
- * @author Sam
- * @project sovietBot
- * @created 8/29/2016
+ * @author robot_rover
  */
 public final class BotActions {
     private static final Logger LOG = LoggerFactory.getLogger(BotActions.class);
     private final IDiscordClient client;
     private final Configuration config;
     private final CommandList commands;
-    private final Statement sql;
     private final ITable[] tables;
     private final Module[] modules;
     private final ChannelActions message;
@@ -33,12 +29,11 @@ public final class BotActions {
         return cache.stream().filter((v) -> v.getClient().equals(client)).findAny().orElse(null);
     }
 
-    public BotActions(IDiscordClient client, CommandList commands, Statement sql, ITable[] tables, Module[] modules, ChannelActions message) {
+    public BotActions(IDiscordClient client, CommandList commands, ITable[] tables, Module[] modules, ChannelActions message) {
         this.client = client;
         this.tables = tables;
         this.config = message.config;
         this.commands = commands;
-        this.sql = sql;
         this.modules = modules;
         this.message = message;
         cache.add(this);

@@ -25,9 +25,7 @@ public class Test implements Command {
     public void testSub(CommContext cont) {
         try {
             cont.getMessage().reply("The test worked");
-        } catch (MissingPermissionsException e) {
-            e.printStackTrace();
-        } catch (RateLimitException e) {
+        } catch (MissingPermissionsException | RateLimitException e) {
             e.printStackTrace();
         } catch (DiscordException e) {
             e.printStackTrace();
