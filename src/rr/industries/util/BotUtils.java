@@ -9,7 +9,7 @@ import java.util.regex.Pattern;
 
 public class BotUtils {
     public static boolean tryInt(String i) {
-        return i.matches("^/d+$");
+        return i.matches("^\\d+$");
     }
 
     public static boolean tryDouble(String i) {
