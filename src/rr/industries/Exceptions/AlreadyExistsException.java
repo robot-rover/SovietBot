@@ -3,6 +3,8 @@ package rr.industries.Exceptions;
 import rr.industries.util.BotUtils;
 import rr.industries.util.Permissions;
 
+import java.util.Optional;
+
 /**
  * @author Sam
  */
@@ -30,7 +32,7 @@ public class AlreadyExistsException extends BotException {
     }
 
     @Override
-    public boolean isCritical() {
-        return false;
+    public Optional<String> criticalMessage() {
+        return Optional.empty();
     }
 }

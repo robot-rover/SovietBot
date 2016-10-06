@@ -3,7 +3,10 @@ package rr.industries.Exceptions;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import sx.blah.discord.util.DiscordException;
+import sx.blah.discord.util.MissingPermissionsException;
 import sx.blah.discord.util.RateLimitException;
+
+import java.util.Optional;
 
 
 /**
@@ -15,20 +18,24 @@ public abstract class BotException extends Exception {
         super(message);
     }
 
-    public abstract boolean isCritical();
+    public abstract Optional<String> criticalMessage();
 
     @Override
     public String toString() {
         return getMessage();
     }
 
-    public static void translateException(Exception ex) {
+    public static void translateException(Exception ex) throws BotException {
+        throw returnException(ex);
+    }
+
+    public static BotException returnException(Exception ex) {
         if (ex instanceof DiscordException) {
-
+            return new DiscordError((DiscordException) ex);
         } else if (ex instanceof RateLimitException) {
-
+            return new InternalError("A RateLimitException was not handled!", ex);
         } else if (ex instanceof MissingPermsException) {
-
+            return new BotMissingPermsException(((MissingPermissionsException) ex).getErrorMessage());
         } else {
             throw new UnsupportedOperationException(ex.getClass().getName() + " is not a supported exception", ex);
         }

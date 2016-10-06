@@ -5,6 +5,7 @@ import com.google.gson.GsonBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import rr.industries.Exceptions.BotException;
+import rr.industries.Exceptions.IncorrectArgumentsException;
 import rr.industries.commands.Command;
 import rr.industries.modules.Console;
 import rr.industries.modules.Module;
@@ -156,68 +157,58 @@ public class Instance {
         String message = e.getMessage().getContent();
         if (message.startsWith(config.commChar)) {
             CommContext cont = new CommContext(e, actions);
-            Entry<Command, Method> commandSet = commandList.getSubCommand(cont.getArgs());
-            if (commandSet.second() != null) {
-                SubCommand subComm = commandSet.second().getAnnotation(SubCommand.class);
-                CommandInfo commandInfo = commandSet.first().getClass().getAnnotation(CommandInfo.class);
-                if (subComm.permLevel().level > cont.getCallerPerms().level || commandInfo.permLevel().level > cont.getCallerPerms().level) {
-                    actions.channels().missingPermissions(cont.getMessage().getChannel(), (subComm.permLevel().level > commandInfo.permLevel().level ? subComm.permLevel() : commandInfo.permLevel()));
-                } else {
-                    final int iteratorConstant = (subComm.name().equals("") ? 1 : 2);
-                    List<Syntax> syntax = Arrays.stream(subComm.Syntax()).filter(
-                            v -> v.args().length + iteratorConstant == cont.getArgs().size() ||
-                                    v.args().length + iteratorConstant <= cont.getArgs().size() && Arrays.asList(v.args()).contains(Arguments.LONGTEXT))
-                            .collect(Collectors.toList());
-                    boolean argsValid = false;
-                    if (commandSet.first().getValiddityOverride() != null) {
-                        argsValid = commandSet.first().getValiddityOverride().test(cont.getArgs());
-                        if (!argsValid) {
-                            actions.channels().wrongArgs(cont.getMessage().getChannel());
-                        }
-                    } else if (!syntax.isEmpty()) {
-                        argsValid = true;
-                        for (Syntax syntax1 : syntax) {
-                            argsValid = true;
-                            for (int i = 0; i < syntax1.args().length; i++) {
-                                if (syntax1.args()[i].equals(Arguments.LONGTEXT) && Arguments.LONGTEXT.isValid.test(cont.getArgs().get(i + iteratorConstant))) {
-                                    argsValid = true;
-                                    break;
-                                }
-                                if (!syntax1.args()[i].isValid.test(cont.getArgs().get(i + iteratorConstant))) {
-                                    argsValid = false;
-                                    break;
-                                }
-                            }
-                            if (argsValid) {
-                                break;
-                            }
-                        }
-                        if (!argsValid)
-                            actions.channels().wrongArgs(cont.getMessage().getChannel());
-
+            try {
+                Entry<Command, Method> commandSet = commandList.getSubCommand(cont.getArgs());
+                if (commandSet.second() != null) {
+                    SubCommand subComm = commandSet.second().getAnnotation(SubCommand.class);
+                    CommandInfo commandInfo = commandSet.first().getClass().getAnnotation(CommandInfo.class);
+                    if (subComm.permLevel().level > cont.getCallerPerms().level || commandInfo.permLevel().level > cont.getCallerPerms().level) {
+                        actions.channels().missingPermissions(cont.getMessage().getChannel(), (subComm.permLevel().level > commandInfo.permLevel().level ? subComm.permLevel() : commandInfo.permLevel()));
                     } else {
-                        actions.channels().missingArgs(cont.getMessage().getChannel());
-                    }
-                    if (argsValid) {
+                        final int iteratorConstant = (subComm.name().equals("") ? 1 : 2);
+                        List<Syntax> syntax = Arrays.stream(subComm.Syntax()).filter(
+                                v -> v.args().length + iteratorConstant == cont.getArgs().size() ||
+                                        v.args().length + iteratorConstant <= cont.getArgs().size() && Arrays.asList(v.args()).contains(Arguments.LONGTEXT))
+                                .collect(Collectors.toList());
+                        if (commandSet.first().getValiddityOverride() != null) {
+                            if (!commandSet.first().getValiddityOverride().test(cont.getArgs())) {
+                                throw new IncorrectArgumentsException();
+                            }
+                        } else if (!syntax.isEmpty()) {
+                            outerLoop:
+                            for (Syntax syntax1 : syntax) {
+                                for (int i = 0; i < syntax1.args().length; i++) {
+                                    if (syntax1.args()[i].equals(Arguments.LONGTEXT) && Arguments.LONGTEXT.isValid.test(cont.getArgs().get(i + iteratorConstant))) {
+                                        break outerLoop;
+                                    }
+                                    if (!syntax1.args()[i].isValid.test(cont.getArgs().get(i + iteratorConstant))) {
+                                        throw new IncorrectArgumentsException("Excepted " + syntax1.args()[i].text + " as the " + BotUtils.numberExtension(i + iteratorConstant) + "argument");
+                                    }
+                                }
+                            }
+                        } else {
+                            throw new IncorrectArgumentsException();
+                        }
                         try {
                             commandSet.second().invoke(commandSet.first(), cont);
                         } catch (IllegalAccessException ex) {
-                            actions.channels().customException("onMessage", "Could not access subcommand", ex, LOG, true);
+                            throw new InternalError("Could not access subcommand", ex);
                         } catch (InvocationTargetException ex) {
                             if (ex.getCause() instanceof Exception) {
                                 Exception cause = (Exception) ex.getCause();
                                 if (cause instanceof BotException) {
-                                    cont.getActions().channels().exception((BotException) cause, cont.builder());
+                                    throw (BotException) cause;
                                 } else
-                                    actions.channels().customException("onMessage", ex.getClass().getName() + " - " + cause.getMessage(), cause, LOG, true);
+                                    throw new InternalError("The subcommand threw an uncaught exception", ex);
                             }
-                        }
+                            }
                     }
-
+                    if (commandInfo.deleteMessage() && !cont.getMessage().getChannel().isPrivate()) {
+                        actions.channels().delayDelete(cont.getMessage(), 2500);
+                    }
                 }
-                if (commandInfo.deleteMessage() && !cont.getMessage().getChannel().isPrivate()) {
-                    actions.channels().delayDelete(cont.getMessage(), 2500);
-                }
+            } catch (BotException ex) {
+                cont.getActions().channels().exception(ex, cont.builder());
             }
         }
     }

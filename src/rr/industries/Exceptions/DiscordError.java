@@ -2,6 +2,8 @@ package rr.industries.Exceptions;
 
 import sx.blah.discord.util.DiscordException;
 
+import java.util.Optional;
+
 /**
  * @author Sam
  */
@@ -12,7 +14,7 @@ public class DiscordError extends BotException {
     }
 
     @Override
-    public boolean isCritical() {
-        return true;
+    public Optional<String> criticalMessage() {
+        return Optional.empty();
     }
 }

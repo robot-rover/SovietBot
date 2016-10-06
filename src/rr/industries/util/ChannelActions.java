@@ -54,10 +54,10 @@ public class ChannelActions {
      * @param builder   MessageBuilder with channel and client already set
      */
     public <T extends BotException> void exception(T exception, MessageBuilder builder) {
-        if (exception.isCritical()) {
-            messageOwner("[Critical Error] - " + exception, true);
+        if (exception.criticalMessage().isPresent()) {
+            messageOwner("[Critical Error] - " + exception.criticalMessage().get(), true);
         } else {
-            sendMessage(builder.withContent(exception.toString()));
+            sendMessage(builder.withContent(exception.getMessage()));
         }
     }
 

@@ -1,15 +1,20 @@
 package rr.industries.Exceptions;
 
+import java.util.Optional;
+
 /**
  * @author Sam
  */
 public class BotMissingPermsException extends BotException {
-    public BotMissingPermsException(String message, String neededPerm) {
+    public BotMissingPermsException(String neededPerm) {
         super("The bot requires the " + neededPerm + " permission to continue!");
     }
 
-    @Override
-    public boolean isCritical() {
-        return false;
+    public BotMissingPermsException(String action, String neededPerm) {
+        super("The bot requires the " + neededPerm + " permission to " + action);
+    }
+
+    public Optional<String> criticalMessage() {
+        return Optional.empty();
     }
 }
