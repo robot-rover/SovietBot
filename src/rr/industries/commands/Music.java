@@ -119,7 +119,7 @@ public class Music implements Command {
         } catch (NullPointerException ex) {
             LOG.warn("The YT-DL playlist process resulted in a null or zero-length INFO!");
             try {
-                writer.write("The YT-DL playlist process resulted in a null or zero-length INFO!");
+                writer.write("The Link resulted in no content]");
                 writer.flush();
             } catch (IOException ex2) {
                 LOG.warn("Error with Message Output Stream", ex2);

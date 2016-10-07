@@ -5,7 +5,6 @@ import rr.industries.util.CommContext;
 import rr.industries.util.CommandInfo;
 import rr.industries.util.SubCommand;
 import rr.industries.util.Syntax;
-import sx.blah.discord.util.MessageBuilder;
 
 import static rr.industries.SovietBot.*;
 
@@ -23,6 +22,6 @@ public class Info implements Command {
                 "[Invite Link](" + SovietBot.invite + ")\n" +
                 "[Website](" + SovietBot.website + ")\n" +
                 "```";
-        cont.getActions().channels().sendMessage(new MessageBuilder(cont.getClient()).withContent(message).withChannel(cont.getMessage().getChannel()));
+        cont.getActions().channels().sendMessage(cont.builder().withContent(message));
     }
 }

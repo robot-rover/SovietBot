@@ -1,12 +1,12 @@
 package rr.industries.commands;
 
+import rr.industries.Exceptions.BotException;
 import rr.industries.util.*;
 import sx.blah.discord.handle.obj.IUser;
 import sx.blah.discord.handle.obj.IVoiceChannel;
 import sx.blah.discord.util.DiscordException;
 import sx.blah.discord.util.MessageBuilder;
 import sx.blah.discord.util.MissingPermissionsException;
-import sx.blah.discord.util.RequestBuffer;
 
 
 @CommandInfo(
@@ -17,7 +17,7 @@ import sx.blah.discord.util.RequestBuffer;
 //todo: @mention to bring one user to your channel
 public class Bring implements Command {
     @SubCommand(name = "", Syntax = {@Syntax(helpText = "Moves all users connected to a voice channel to your channel", args = {})})
-    public void execute(CommContext cont) {
+    public void execute(CommContext cont) throws BotException {
         boolean found = false;
         IUser[] Users = cont.getMessage().getGuild().getUsers().toArray(new IUser[0]);
         IVoiceChannel back;
@@ -40,14 +40,11 @@ public class Bring implements Command {
                     message.appendContent("\n");
                 }
                 message.appendContent("Moving " + user.getName() + " to " + back.toString());
-                RequestBuffer.request(() -> {
+                BotUtils.bufferRequest(() -> {
                     try {
                         user.moveToVoiceChannel(back);
-                    } catch (DiscordException ex) {
-                        cont.getActions().channels().customException("Bring", ex.getErrorMessage(), ex, LOG, true);
-                    } catch (MissingPermissionsException ex) {
-                        message.appendContent("Unable to move ").appendContent(user.getDisplayName(cont.getMessage().getGuild()))
-                                .appendContent(". ").appendContent(ex.getErrorMessage()).appendContent("\n");
+                    } catch (DiscordException | MissingPermissionsException ex) {
+                        BotException.translateException(ex);
                     }
                 });
             }

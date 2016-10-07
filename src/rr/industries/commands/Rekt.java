@@ -37,21 +37,10 @@ public class Rekt implements Command {
             @Syntax(helpText = "Plays the specified rekt clip", args = {Arguments.TEXT}, options = {"wombo", "wrong", "airhorn", "never", "scope", "nope"})
     })
     public void execute(CommContext cont) {
-        AudioInputStream[] sources = sfx;
-        /*if (cont.getArgs().size() > 1) {
-            for (String command : sfxIndex) {
-                if (command.equalsIgnoreCase(cont.getArgs().get(1))) {
-                    sources = new AudioInputStream[1];
-                    sources[0] = sfx[i];
-                }
-                i++;
-            }
-        }*/
-
         try {
-            getAudioPlayerForGuild(cont.getMessage().getGuild()).queue(sources[rn.nextInt(sources.length)]);
+            getAudioPlayerForGuild(cont.getMessage().getGuild()).queue(sfx[rn.nextInt(sfx.length)]);
         } catch (IOException ex) {
-            cont.getActions().channels().customException("Rekt", ex.getMessage(), ex, LOG, true);
+            throw new InternalError("IOException on Rekt Command", ex);
         }
     }
 }

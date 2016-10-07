@@ -15,6 +15,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.stream.Collectors;
 
 @CommandInfo(
         commandName = "log",
@@ -33,30 +34,29 @@ public class Log implements Command {
     }
 
     public void uploadLog(Path path, CommContext cont) {
+        MessageBuilder message = cont.builder();
         final AtomicReference<String> log = new AtomicReference<>("");
         try {
-            Files.readAllLines(path).forEach(v -> log.set(log.get().concat(v.concat("\n"))));
+            Files.readAllLines(path).stream().collect(Collectors.joining("\n"));
             HttpClient client = HttpClients.createDefault();
             HttpPost post = new HttpPost("http://hastebin.com/documents");
             post.setEntity(new StringEntity(log.get()));
             post.addHeader("Content-Type", "application/json");
             HttpResponse response = client.execute(post);
             String result = EntityUtils.toString(response.getEntity());
-            String message = "**Log** -  http://hastebin.com/" + gson.fromJson(result, Hastebin.class).getKey();
-            cont.getActions().channels().sendMessage(new MessageBuilder(cont.getClient())
-                    .withChannel(cont.getMessage().getChannel()).withContent(message));
+            message.withContent("**Log** -  http://hastebin.com/" + gson.fromJson(result, Hastebin.class).getKey());
+            cont.getActions().channels().sendMessage(message);
         } catch (IOException ex) {
-            LOG.warn("Exception Sending Log", ex);
+            throw new InternalError("IOException on Log Command", ex);
         } catch (JsonSyntaxException ex) {
             LOG.warn("Hastebin is Down!");
-            cont.getActions().channels().sendMessage(new MessageBuilder(cont.getClient()).withChannel(cont.getMessage().getChannel())
-                    .withContent("Hastebin appears to be down..."));
+            cont.getActions().channels().sendMessage(message.withContent("Hastebin appears to be down..."));
         }
     }
 
     public class Hastebin {
 
-        public String key;
+        private String key;
 
         public String getKey() {
             return key;

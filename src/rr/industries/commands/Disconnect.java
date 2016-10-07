@@ -1,13 +1,12 @@
 package rr.industries.commands;
 
+import rr.industries.Exceptions.BotException;
+import rr.industries.Exceptions.IncorrectArgumentsException;
 import rr.industries.util.*;
 import sx.blah.discord.handle.obj.IUser;
 import sx.blah.discord.handle.obj.IVoiceChannel;
 import sx.blah.discord.util.DiscordException;
 import sx.blah.discord.util.MissingPermissionsException;
-import sx.blah.discord.util.RequestBuffer;
-
-import java.util.concurrent.atomic.AtomicReference;
 
 @CommandInfo(
         commandName = "disconnect",
@@ -17,34 +16,19 @@ import java.util.concurrent.atomic.AtomicReference;
 //todo: disconnect multiple users
 public class Disconnect implements Command {
     @SubCommand(name = "", Syntax = {@Syntax(helpText = "Disconnects the mentioned user", args = {Arguments.MENTION})})
-    public void execute(CommContext cont) {
+    public void execute(CommContext cont) throws BotException {
 
         if (cont.getMessage().getMentions().size() == 0) {
-            cont.getActions().channels().missingArgs(cont.getMessage().getChannel());
-            return;
+            throw new IncorrectArgumentsException("You didn't mention any users");
         }
         IUser user = cont.getMessage().getMentions().get(0);
-        AtomicReference<IVoiceChannel> remove = new AtomicReference<>(null);
-        RequestBuffer.request(() -> {
+        BotUtils.bufferRequest(() -> {
             try {
-                remove.set(cont.getMessage().getGuild().createVoiceChannel("Disconnect"));
-                user.moveToVoiceChannel(remove.get());
-            } catch (DiscordException ex) {
-                cont.getActions().channels().customException("Disconnect", ex.getErrorMessage(), ex, LOG, true);
-            } catch (MissingPermissionsException ex) {
-                cont.getActions().channels().missingPermissions(cont.getMessage().getChannel(), ex);
-            } finally {
-                RequestBuffer.request(() -> {
-                    try {
-                        if (remove.get() != null) {
-                            remove.get().delete();
-                        }
-                    } catch (DiscordException ex) {
-                        cont.getActions().channels().customException("Disconnect", ex.getErrorMessage(), ex, LOG, true);
-                    } catch (MissingPermissionsException ex) {
-                        cont.getActions().channels().missingPermissions(cont.getMessage().getChannel(), ex);
-                    }
-                });
+                IVoiceChannel channel = cont.getMessage().getGuild().createVoiceChannel("Disconnect");
+                user.moveToVoiceChannel(channel);
+                channel.delete();
+            } catch (DiscordException | MissingPermissionsException ex) {
+                BotException.translateException(ex);
             }
         });
     }

@@ -7,6 +7,11 @@ import java.util.Optional;
  */
 public class IncorrectArgumentsException extends BotException {
 
+    /**
+     * Your arguments are incorrect:
+     *
+     * @param message
+     */
     public IncorrectArgumentsException(String message) {
         super("Your arguments are incorrect: " + message);
     }

@@ -4,7 +4,6 @@ import rr.industries.util.CommContext;
 import rr.industries.util.CommandInfo;
 import rr.industries.util.SubCommand;
 import rr.industries.util.Syntax;
-import sx.blah.discord.util.MessageBuilder;
 
 @CommandInfo(
         commandName = "coin",
@@ -13,12 +12,6 @@ import sx.blah.discord.util.MessageBuilder;
 public class Coin implements Command {
     @SubCommand(name = "", Syntax = {@Syntax(helpText = "Says either heads or tails", args = {})})
     public void execute(CommContext cont) {
-        String message;
-        if (rn.nextBoolean()) {
-            message = "Heads";
-        } else {
-            message = "Tails";
-        }
-        cont.getActions().channels().sendMessage(new MessageBuilder(cont.getClient()).withContent(message).withChannel(cont.getMessage().getChannel()));
+        cont.getActions().channels().sendMessage(cont.builder().withContent((rn.nextBoolean() ? "Heads" : "Tails")));
     }
 }

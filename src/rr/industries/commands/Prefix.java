@@ -1,7 +1,6 @@
 package rr.industries.commands;
 
 import rr.industries.util.*;
-import sx.blah.discord.util.MessageBuilder;
 
 @CommandInfo(
         commandName = "prefix",
@@ -13,7 +12,6 @@ public class Prefix implements Command {
     @SubCommand(name = "", Syntax = {@Syntax(helpText = "The command character is changed to the value you specify", args = {Arguments.TEXT})})
     public void execute(CommContext cont) {
         cont.getActions().getConfig().commChar = cont.getArgs().get(1);
-        cont.getActions().channels().sendMessage(new MessageBuilder(cont.getClient()).withChannel(cont.getMessage().getChannel())
-                .withContent("Command Prefix changed to `" + cont.getArgs().get(1) + "`"));
+        cont.getActions().channels().sendMessage(cont.builder().withContent("Command Prefix changed to `" + cont.getArgs().get(1) + "`"));
     }
 }

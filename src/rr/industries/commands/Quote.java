@@ -4,7 +4,6 @@ import rr.industries.util.CommContext;
 import rr.industries.util.CommandInfo;
 import rr.industries.util.SubCommand;
 import rr.industries.util.Syntax;
-import sx.blah.discord.util.MessageBuilder;
 
 @CommandInfo(
         commandName = "quote",
@@ -37,7 +36,7 @@ public class Quote implements Command {
     @SubCommand(name = "", Syntax = {@Syntax(helpText = "Danger, this command is very dank", args = {})})
     public void execute(CommContext cont) {
 
-        cont.getActions().channels().sendMessage(new MessageBuilder(cont.getClient()).withContent(quotes[rn.nextInt(quotes.length)]).withChannel(cont.getMessage().getChannel()));
+        cont.getActions().channels().sendMessage(cont.builder().withContent(quotes[rn.nextInt(quotes.length)]));
 
     }
 }

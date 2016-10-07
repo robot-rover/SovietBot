@@ -4,8 +4,6 @@ import rr.industries.util.*;
 import sx.blah.discord.handle.obj.IUser;
 import sx.blah.discord.util.MessageBuilder;
 
-import java.util.List;
-import java.util.function.Predicate;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -18,7 +16,7 @@ public class Rip implements Command {
 
     @SubCommand(name = "", Syntax = {
             @Syntax(helpText = "No Messing about here, just gives you the link", args = {}),
-            @Syntax(helpText = "Specify the thing(s) that are rip (Works with @\u200Bmentions)", args = {Arguments.TEXT})
+            @Syntax(helpText = "Specify the thing(s) that are rip (Works with @\u200Bmentions)", args = {Arguments.LONGTEXT})
     })
     public void execute(CommContext cont) {
         Pattern p = Pattern.compile("<@!?([0-9]{18})>");
@@ -35,10 +33,5 @@ public class Rip implements Command {
             }
         }
         cont.getActions().channels().sendMessage(message.appendContent(rawSubject.replace(" ", "%20")));
-    }
-
-    @Override
-    public Predicate<List<String>> getValiddityOverride() {
-        return (v) -> true;
     }
 }

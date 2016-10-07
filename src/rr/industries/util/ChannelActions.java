@@ -22,7 +22,6 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.StandardCopyOption;
 import java.sql.SQLException;
-import java.util.List;
 import java.util.Optional;
 
 /**
@@ -111,16 +110,13 @@ public class ChannelActions {
         }
     }
 
-    public void connectToChannel(IVoiceChannel channel, List<IVoiceChannel> connectedChannels) {
-        IVoiceChannel possible = connectedChannels.stream().filter(v -> v.getGuild().equals(channel.getGuild())).findAny().orElse(null);
+    public void connectToChannel(IVoiceChannel channel) throws BotException {
         if (!channel.isConnected()) {
-            if (possible != null) {
-                possible.leave();
-            }
+            channel.getClient().getConnectedVoiceChannels().stream().filter(v -> v.getGuild().equals(channel.getGuild())).findAny().ifPresent((t) -> channel.leave());
             try {
                 channel.join();
             } catch (MissingPermissionsException ex) {
-                missingPermissions(channel, ex);
+                BotException.translateException(ex);
             }
         }
     }
@@ -181,11 +177,9 @@ public class ChannelActions {
         return RequestBuffer.request(request).get();
     }
 
-    public void disconnectFromChannel(IGuild guild, List<IVoiceChannel> connectedChannels) {
-        IVoiceChannel possible = connectedChannels.stream().filter(v -> v.getGuild().equals(guild)).findAny().orElse(null);
-        if (possible != null) {
-            possible.leave();
-        }
+    public void disconnectFromChannel(IGuild guild) {
+        guild.getClient().getConnectedVoiceChannels().stream().filter(v -> v.getGuild().equals(guild)).findAny().ifPresent(IVoiceChannel::leave);
+
     }
 
     public void terminate(Boolean restart) {
