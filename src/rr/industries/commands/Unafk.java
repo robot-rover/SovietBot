@@ -1,12 +1,13 @@
 package rr.industries.commands;
 
+import rr.industries.exceptions.BotException;
+import rr.industries.exceptions.IncorrectArgumentsException;
 import rr.industries.util.*;
 import sx.blah.discord.handle.obj.IUser;
 import sx.blah.discord.handle.obj.IVoiceChannel;
 import sx.blah.discord.util.DiscordException;
 import sx.blah.discord.util.MessageBuilder;
 import sx.blah.discord.util.MissingPermissionsException;
-import sx.blah.discord.util.RequestBuffer;
 
 @CommandInfo(
         commandName = "unafk",
@@ -15,50 +16,27 @@ import sx.blah.discord.util.RequestBuffer;
 )
 public class Unafk implements Command {
     @SubCommand(name = "", Syntax = {@Syntax(helpText = "All players in the AFK channel will be moved to your channel", args = {})})
-    public void execute(CommContext cont) {
-        String message = "";
-        boolean found = false;
+    public void execute(CommContext cont) throws BotException {
+        MessageBuilder message = cont.builder();
+        if (cont.getMessage().getAuthor().getConnectedVoiceChannels().isEmpty())
+            throw new IncorrectArgumentsException("You aren't connected to a voice channel");
         IVoiceChannel afk = cont.getMessage().getGuild().getAFKChannel();
+        IVoiceChannel bringToo = cont.getMessage().getAuthor().getConnectedVoiceChannels().get(0);
         if (afk == null) {
-            cont.getActions().channels().sendMessage(new MessageBuilder(cont.getClient()).withContent("There is no AFK Channel.").withChannel(cont.getMessage().getChannel()));
-            return;
-        }
-        IUser[] Users = cont.getMessage().getGuild().getUsers().toArray(new IUser[0]);
-        IVoiceChannel back;
-        IVoiceChannel current;
-        try {
-            back = cont.getMessage().getAuthor().getConnectedVoiceChannels().get(0);
-        } catch (ArrayIndexOutOfBoundsException ex) {
-            return;
-        }
-        for (IUser user : Users) {
-            try {
-                current = user.getConnectedVoiceChannels().get(0);
-            } catch (ArrayIndexOutOfBoundsException ex) {
-                continue;
-            }
-            if (current == afk) {
-                found = true;
-                if (!message.equals("")) {
-                    message = message + "\n";
-                }
-                message = message + "User Found in AFK: " + user.getName() + " - Moving to " + back.toString();
-                RequestBuffer.request(() -> {
+            message.withContent("There is no AFK Channel.");
+        } else
+            for (IUser user : afk.getConnectedUsers()) {
+                message.appendContent("User Found in AFK: " + user.getName() + " - Moving...");
+                BotUtils.bufferRequest(() -> {
                     try {
-                        user.moveToVoiceChannel(back);
-                    } catch (DiscordException ex) {
-                        cont.getActions().channels().customException("Unafk", ex.getMessage(), ex, LOG, true);
-                    } catch (MissingPermissionsException ex) {
-                        cont.getActions().channels().missingPermissions(cont.getMessage().getChannel(), ex);
+                        user.moveToVoiceChannel(bringToo);
+                    } catch (DiscordException | MissingPermissionsException ex) {
+                        BotException.translateException(ex);
                     }
                 });
             }
-        }
-        if (!found) {
-            cont.getActions().channels().sendMessage(new MessageBuilder(cont.getClient()).withContent("No Users found in AFK Channel").withChannel(cont.getMessage().getChannel()));
-
-        } else {
-            cont.getActions().channels().sendMessage(new MessageBuilder(cont.getClient()).withContent(message).withChannel(cont.getMessage().getChannel()));
-        }
+        if (message.getContent().length() == 0)
+            message.withContent("No users found in AFK channel (" + afk.getName() + ")");
+        cont.getActions().channels().sendMessage(message);
     }
 }

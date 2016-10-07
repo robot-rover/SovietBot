@@ -1,4 +1,4 @@
-package rr.industries.Exceptions;
+package rr.industries.exceptions;
 
 import java.util.Optional;
 

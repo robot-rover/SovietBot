@@ -1,4 +1,4 @@
-package rr.industries.Exceptions;
+package rr.industries.exceptions;
 
 import rr.industries.util.BotUtils;
 import rr.industries.util.Permissions;
@@ -17,8 +17,11 @@ public class MissingPermsException extends BotException {
 
     private String action;
 
+    /**
+     * You need to be a(n) (perm.formatted) to (action)!
+     */
     public MissingPermsException(String action, Permissions perm) {
-        super("You need to be a" + BotUtils.startsWithVowel(perm.title, "n **", " **") + "** (" + perm.level + ") to " + action + "!");
+        super("You need to be a" + BotUtils.startsWithVowel(perm.title, "n ", " ", false) + perm.formatted + " to " + action + "!");
         this.neededPerm = perm;
     }
 

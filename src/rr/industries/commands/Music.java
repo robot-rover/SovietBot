@@ -4,6 +4,7 @@ import net.dv8tion.d4j.player.MusicPlayer;
 import net.dv8tion.jda.player.Playlist;
 import net.dv8tion.jda.player.source.AudioInfo;
 import net.dv8tion.jda.player.source.AudioSource;
+import rr.industries.exceptions.BotException;
 import rr.industries.util.*;
 import sx.blah.discord.handle.audio.IAudioProvider;
 import sx.blah.discord.handle.obj.IMessage;
@@ -28,7 +29,7 @@ import static sx.blah.discord.util.audio.AudioPlayer.getAudioPlayerForGuild;
 //todo: Music Loading Progress Bar
 public class Music implements Command {
     @SubCommand(name = "list", Syntax = {@Syntax(helpText = "Shows you what tracks are queued up", args = {})})
-    public void playlist(CommContext cont) {
+    public void playlist(CommContext cont) throws BotException {
         AudioPlayer aPlayer = getAudioPlayerForGuild(cont.getMessage().getGuild());
         List<AudioPlayer.Track> playlist = aPlayer.getPlaylist();
         ArrayList<String> messageLines = new ArrayList<>();
@@ -63,8 +64,11 @@ public class Music implements Command {
         }
         message = message + "```";
         Optional<IMessage> delete = cont.getActions().channels().sendMessage(new MessageBuilder(cont.getClient()).withContent(message).withChannel(cont.getMessage().getChannel()));
-        delete.ifPresent((v) -> cont.getActions().channels().delayDelete(v, 15000));
+        if (delete.isPresent())
+            cont.getActions().channels().delayDelete(delete.get(), 15000);
     }
+
+    //todo: save volume
 
     @SubCommand(name = "volume", Syntax = {@Syntax(helpText = "Sets the Volume for the bot", args = {Arguments.NUMBER})})
     public void volume(CommContext cont) {
@@ -102,53 +106,38 @@ public class Music implements Command {
     @SubCommand(name = "", Syntax = {@Syntax(helpText = "Queues the video the link is for", args = {Arguments.LINK})})
     public void execute(CommContext cont) {
         BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(new MessageOutputStream(cont.getMessage().getChannel())));
-        try {
-            writer.write("Processing Queue [");
-            writer.flush();
-        } catch (IOException ex) {
-            LOG.warn("Error with Message Output Stream", ex);
-        }
+        writeChars(writer, "Processing Queue [");
         AudioPlayer aPlayer = getAudioPlayerForGuild(cont.getMessage().getGuild());
         MusicPlayer player = new MusicPlayer();
         player.setVolume(1);
         aPlayer.queue(player);
-        String url = cont.getArgs().get(1);
-        Playlist playlist;
         try {
-            playlist = Playlist.getPlaylist(url);
+            Playlist playlist = Playlist.getPlaylist(cont.getArgs().get(1));
+            ConcurrentLinkedQueue<AudioSource> sources = new ConcurrentLinkedQueue<>(playlist.getSources());
+            for (AudioSource source : sources) {
+                AudioInfo info = source.getInfo();
+                List<AudioSource> queue = player.getAudioQueue();
+                if (info.getError() == null) {
+                    writeChars(writer, "][");
+                    queue.add(source);
+                    if (player.isStopped()) {
+                        player.play();
+                    }
+                } else {
+                    sources.remove(source);
+                }
+            }
+            writeChars(writer, "] Done!");
         } catch (NullPointerException ex) {
             LOG.warn("The YT-DL playlist process resulted in a null or zero-length INFO!");
-            try {
-                writer.write("The Link resulted in no content]");
-                writer.flush();
-            } catch (IOException ex2) {
-                LOG.warn("Error with Message Output Stream", ex2);
-            }
-
+            writeChars(writer, "The Link resulted in no content]");
             aPlayer.skip();
-            return;
         }
-        ConcurrentLinkedQueue<AudioSource> sources = new ConcurrentLinkedQueue<>(playlist.getSources());
-        for (AudioSource source : sources) {
-            AudioInfo info = source.getInfo();
-            List<AudioSource> queue = player.getAudioQueue();
-            if (info.getError() == null) {
-                try {
-                    writer.write("][");
-                    writer.flush();
-                } catch (IOException ex2) {
-                    LOG.warn("Error with Message Output Stream", ex2);
-                }
-                queue.add(source);
-                if (player.isStopped()) {
-                    player.play();
-                }
-            } else {
-                sources.remove(source);
-            }
-        }
+    }
+
+    private void writeChars(BufferedWriter writer, String chars) {
         try {
-            writer.write("] Done!");
+            writer.write(chars);
             writer.close();
         } catch (IOException ex2) {
             LOG.warn("Error with Message Output Stream", ex2);

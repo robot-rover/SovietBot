@@ -1,8 +1,8 @@
 package rr.industries.commands;
 
-import rr.industries.Exceptions.BotException;
-import rr.industries.Exceptions.NotFoundException;
 import rr.industries.SovietBot;
+import rr.industries.exceptions.BotException;
+import rr.industries.exceptions.NotFoundException;
 import rr.industries.util.*;
 import rr.industries.util.sql.PermTable;
 import sx.blah.discord.util.DiscordException;

@@ -1,4 +1,4 @@
-package rr.industries.Exceptions;
+package rr.industries.exceptions;
 
 import java.util.Optional;
 
@@ -8,7 +8,7 @@ import java.util.Optional;
 public class IncorrectArgumentsException extends BotException {
 
     /**
-     * Your arguments are incorrect:
+     * Your arguments are incorrect: (message)
      *
      * @param message
      */
@@ -16,6 +16,9 @@ public class IncorrectArgumentsException extends BotException {
         super("Your arguments are incorrect: " + message);
     }
 
+    /**
+     * Your arguments are incorrect
+     */
     public IncorrectArgumentsException() {
         super("Your arguments are incorrect");
     }

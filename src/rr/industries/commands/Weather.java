@@ -6,6 +6,7 @@ import org.bitpipeline.lib.owm.StatusWeatherData;
 import org.bitpipeline.lib.owm.WeatherStatusResponse;
 import org.json.JSONException;
 import rr.industries.Instance;
+import rr.industries.exceptions.BotException;
 import rr.industries.geoCoding.AddressComponent;
 import rr.industries.geoCoding.GeoCoding;
 import rr.industries.geoCoding.Result;
@@ -28,8 +29,6 @@ import java.util.stream.Collectors;
 )
 public class Weather implements Command {
     private OwmClient map;
-
-    //fixme: update weather api url as gh fork - (OwmClient.baseOwmUrl)
     //link - https://github.com/migtavares/owmClient
     //todo: implement forcasting
     @SubCommand(name = "forecast", Syntax = {@Syntax(helpText = "Displays forecast for your area. Give your location any way you like.", args = {Arguments.LOCATION})})
@@ -45,7 +44,7 @@ public class Weather implements Command {
     @SubCommand(name = "", Syntax = {
             @Syntax(helpText = "Displays the current weather in your area. Give your location any way you like.", args = {Arguments.LOCATION})
     })
-    public void execute(CommContext cont) {
+    public void execute(CommContext cont) throws BotException {
         OwmClient map = new OwmClient();
         map.setAPPID(cont.getActions().getConfig().owmKey);
         List<String> googleQuery = cont.getArgs();
@@ -73,15 +72,14 @@ public class Weather implements Command {
                 message.appendContent("No weather data available for this location...");
             }
         } catch (IOException ex) {
-            cont.getActions().channels().customException("Weather", ex.getMessage(), ex, LOG, true);
+            throw new InternalError("IOException connecting to OWM Servers", ex);
         } catch (NoSuchElementException ex) {
             message.appendContent("No weather data available for this location...");
         } catch (JSONException ex) {
-            message.appendContent("There was an error getting weather data...");
-            cont.getActions().channels().customException("Weather", "Error retrieving weather data", ex, LOG, true);
-        } finally {
-            cont.getActions().channels().sendMessage(message);
+            throw new InternalError("Malformed JSON on weather command", ex);
         }
+        cont.getActions().channels().sendMessage(message);
+
     }
 
 

@@ -3,7 +3,7 @@ package rr.industries.util.sql;
 import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import rr.industries.Exceptions.MissingPermsException;
+import rr.industries.exceptions.MissingPermsException;
 import rr.industries.util.Permissions;
 import rr.industries.util.TagData;
 import sx.blah.discord.handle.obj.IGuild;

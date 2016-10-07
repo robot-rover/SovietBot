@@ -1,5 +1,6 @@
 package rr.industries.util.sql;
 
+import rr.industries.exceptions.BotException;
 import rr.industries.util.BotUtils;
 import rr.industries.util.Entry;
 import rr.industries.util.Permissions;
@@ -34,6 +35,8 @@ public class PermTable extends Table implements ITable {
             }
         } catch (SQLException ex) {
             LOG.error("SQL Error", ex);
+        } catch (BotException ex) {
+            LOG.warn("Corrupted Perm found in database", ex);
         }
         return Permissions.NORMAL;
     }

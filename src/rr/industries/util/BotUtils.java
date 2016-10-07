@@ -5,7 +5,8 @@
  */
 package rr.industries.util;
 
-import rr.industries.Exceptions.BotException;
+import rr.industries.exceptions.BotException;
+import rr.industries.exceptions.IncorrectArgumentsException;
 import sx.blah.discord.util.RateLimitException;
 import sx.blah.discord.util.RequestBuffer;
 
@@ -26,26 +27,22 @@ public class BotUtils {
         return parsable;
     }
 
-    public static String startsWithVowel(String input, String ifYes, String ifNo) {
+    public static String startsWithVowel(String input, String ifYes, String ifNo, boolean addInput) {
         Pattern vowel = Pattern.compile("^[aAeEiIoOuU].*");
-        if (vowel.matcher(input).find()) {
-            return ifYes + input;
-        } else {
-            return ifNo + input;
-        }
+        return (vowel.matcher(input).find() ? ifYes : ifNo) + (addInput ? input : "");
     }
 
-    public static Permissions toPerms(int level) {
+    public static Permissions toPerms(int level) throws BotException {
         for (Permissions perm : Permissions.values()) {
             if (level == perm.level) {
                 return perm;
             }
         }
-        throw new IndexOutOfBoundsException("The level " + level + "is out of the range of Permissions");
+        throw new IncorrectArgumentsException(level + " is not a valid perm level");
     }
 
     public static String numberExtension(int number) {
-        StringBuilder result = new StringBuilder(number);
+        StringBuilder result = new StringBuilder(Integer.toString(number));
         number = number % 10;
         switch (number) {
             case 1:

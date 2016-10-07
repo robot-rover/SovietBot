@@ -1,4 +1,4 @@
-package rr.industries.Exceptions;
+package rr.industries.exceptions;
 
 import java.util.Optional;
 
@@ -15,11 +15,12 @@ public class InternalError extends BotException {
 
     public InternalError(String reasonForFailure, Throwable cause) {
         super("There was an internal error. The bot Operator has been notified.");
-        LOG.error("The bot is Misconfigured: " + reasonForFailure, cause);
+        LOG.error("The bot threw an Internal Error: " + reasonForFailure, cause);
+        this.reasonForFailure = reasonForFailure;
     }
 
     @Override
     public Optional<String> criticalMessage() {
-        return Optional.of("Bot is Misconfigured: " + reasonForFailure);
+        return Optional.of("The bot threw an Internal Error: " + reasonForFailure);
     }
 }

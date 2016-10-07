@@ -4,9 +4,10 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import rr.industries.Exceptions.BotException;
-import rr.industries.Exceptions.IncorrectArgumentsException;
 import rr.industries.commands.Command;
+import rr.industries.exceptions.BotException;
+import rr.industries.exceptions.IncorrectArgumentsException;
+import rr.industries.exceptions.InternalError;
 import rr.industries.modules.Console;
 import rr.industries.modules.Module;
 import rr.industries.modules.UTCStatus;
@@ -51,7 +52,12 @@ import static rr.industries.SovietBot.defaultConfig;
  * todo: [Long Term] Write unit tests
  * todo: add help options
  * todo: math.random -> Random
+ * todo: look into unirest
+ * todo: remove GH webhook
+ * todo: per guild prefix
+ * todo: add volumeprovider to music and rekt command
  * Commands -
+ * Command: twitch stream / video on interweb
  * Command: GitHub command
  * Command: Add Strawpole Command
  * Command: Tag Command
@@ -175,17 +181,25 @@ public class Instance {
                                 throw new IncorrectArgumentsException();
                             }
                         } else if (!syntax.isEmpty()) {
+                            boolean found = false;
                             outerLoop:
                             for (Syntax syntax1 : syntax) {
+                                found = true;
                                 for (int i = 0; i < syntax1.args().length; i++) {
                                     if (syntax1.args()[i].equals(Arguments.LONGTEXT) && Arguments.LONGTEXT.isValid.test(cont.getArgs().get(i + iteratorConstant))) {
                                         break outerLoop;
                                     }
                                     if (!syntax1.args()[i].isValid.test(cont.getArgs().get(i + iteratorConstant))) {
-                                        throw new IncorrectArgumentsException("Excepted " + syntax1.args()[i].text + " as the " + BotUtils.numberExtension(i + iteratorConstant) + "argument");
+                                        found = false;
+                                        break;
                                     }
                                 }
+                                if (found) {
+                                    break;
+                                }
                             }
+                            if (!found)
+                                throw new IncorrectArgumentsException();
                         } else {
                             throw new IncorrectArgumentsException();
                         }
@@ -199,9 +213,9 @@ public class Instance {
                                 if (cause instanceof BotException) {
                                     throw (BotException) cause;
                                 } else
-                                    throw new InternalError("The subcommand threw an uncaught exception", ex);
+                                    throw new InternalError("The subcommand threw an uncaught " + cause.getClass().getName(), cause);
                             }
-                            }
+                        }
                     }
                     if (commandInfo.deleteMessage() && !cont.getMessage().getChannel().isPrivate()) {
                         actions.channels().delayDelete(cont.getMessage(), 2500);

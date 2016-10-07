@@ -1,8 +1,8 @@
 package rr.industries.commands;
 
 import org.apache.commons.io.IOUtils;
-import rr.industries.Exceptions.BotException;
-import rr.industries.Exceptions.InternalError;
+import rr.industries.exceptions.BotException;
+import rr.industries.exceptions.InternalError;
 import rr.industries.pojos.CatRequest;
 import rr.industries.util.CommContext;
 import rr.industries.util.CommandInfo;

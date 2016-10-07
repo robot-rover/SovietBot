@@ -6,8 +6,8 @@ import com.sun.istack.internal.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import rr.industries.Configuration;
-import rr.industries.Exceptions.BotException;
 import rr.industries.SovietBot;
+import rr.industries.exceptions.BotException;
 import sx.blah.discord.api.IDiscordClient;
 import sx.blah.discord.handle.obj.IChannel;
 import sx.blah.discord.handle.obj.IGuild;
@@ -29,9 +29,8 @@ import java.util.Optional;
  */
 public class ChannelActions {
     private static final Logger LOG = LoggerFactory.getLogger(ChannelActions.class);
-
-    private IDiscordClient client;
     Configuration config;
+    private IDiscordClient client;
 
     public ChannelActions(IDiscordClient client, Configuration config) {
         this.client = client;
@@ -55,9 +54,8 @@ public class ChannelActions {
     public <T extends BotException> void exception(T exception, MessageBuilder builder) {
         if (exception.criticalMessage().isPresent()) {
             messageOwner("[Critical Error] - " + exception.criticalMessage().get(), true);
-        } else {
-            sendMessage(builder.withContent(exception.getMessage()));
         }
+        sendMessage(builder.withContent(exception.getMessage()));
     }
 
     @Deprecated
@@ -80,7 +78,7 @@ public class ChannelActions {
 
     @Deprecated
     public void missingPermissions(IChannel channel, Permissions neededPerm) {
-        sendMessage(new MessageBuilder(client).withChannel(channel).withContent("You need to be a" + BotUtils.startsWithVowel(neededPerm.title, "n **", " **") + "** (" + neededPerm.level + ") to do that!"));
+        sendMessage(new MessageBuilder(client).withChannel(channel).withContent("You need to be a" + BotUtils.startsWithVowel(neededPerm.title, "n ", " ", false) + neededPerm.formatted + " to do that!"));
     }
 
     @Deprecated
@@ -121,13 +119,14 @@ public class ChannelActions {
         }
     }
 
-    public void delayDelete(IMessage message, int delay) {
-        try {
-            Thread.sleep(delay);
-        } catch (InterruptedException ex) {
-            LOG.warn("delayDelete - Sleep was interrupted - ", ex);
-        }
-        RequestBuffer.request(() -> {
+    public void delayDelete(IMessage message, int delay) throws BotException {
+        if (delay > 0)
+            try {
+                Thread.sleep(delay);
+            } catch (InterruptedException ex) {
+                LOG.warn("delayDelete - Sleep was interrupted - ", ex);
+            }
+        BotUtils.bufferRequest(() -> {
             try {
                 if (SovietBot.loggedIn && !message.getChannel().isPrivate()) {
                     message.delete();
@@ -136,7 +135,7 @@ public class ChannelActions {
                 //fail silently
                 LOG.debug("Did not delete message, missing permissions");
             } catch (DiscordException ex) {
-                customException("delayDelete", ex.getErrorMessage(), ex, LOG, true);
+                BotException.translateException(ex);
             }
         });
     }

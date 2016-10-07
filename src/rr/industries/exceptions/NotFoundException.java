@@ -1,4 +1,4 @@
-package rr.industries.Exceptions;
+package rr.industries.exceptions;
 
 import rr.industries.util.BotUtils;
 
@@ -13,7 +13,7 @@ public class NotFoundException extends BotException {
     }
 
     public NotFoundException(String type, String name) {
-        super("Could not find a" + BotUtils.startsWithVowel(type, "n ", " ") + " called `" + name + "`");
+        super("Could not find a" + BotUtils.startsWithVowel(type, "n ", " ", true) + " called `" + name + "`");
     }
 
     @Override

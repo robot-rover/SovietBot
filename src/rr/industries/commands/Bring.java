@@ -1,6 +1,6 @@
 package rr.industries.commands;
 
-import rr.industries.Exceptions.BotException;
+import rr.industries.exceptions.BotException;
 import rr.industries.util.*;
 import sx.blah.discord.handle.obj.IUser;
 import sx.blah.discord.handle.obj.IVoiceChannel;

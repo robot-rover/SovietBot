@@ -1,7 +1,7 @@
 package rr.industries.commands;
 
-import rr.industries.Exceptions.BotException;
-import rr.industries.Exceptions.NotFoundException;
+import rr.industries.exceptions.BotException;
+import rr.industries.exceptions.NotFoundException;
 import rr.industries.util.*;
 import sx.blah.discord.handle.obj.IVoiceChannel;
 

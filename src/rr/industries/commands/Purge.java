@@ -1,7 +1,11 @@
 package rr.industries.commands;
 
+import rr.industries.exceptions.BotException;
+import rr.industries.exceptions.IncorrectArgumentsException;
 import rr.industries.util.*;
-import sx.blah.discord.util.*;
+import sx.blah.discord.util.DiscordException;
+import sx.blah.discord.util.MessageList;
+import sx.blah.discord.util.MissingPermissionsException;
 
 @CommandInfo(
         commandName = "purge",
@@ -10,25 +14,21 @@ import sx.blah.discord.util.*;
         deleteMessage = false
 )
 public class Purge implements Command {
-    @SuppressWarnings("CollectionAddedToSelf")
+    //    @SuppressWarnings("CollectionAddedToSelf")
     @SubCommand(name = "", Syntax = {@Syntax(helpText = "Deletes the number off messages you specify", args = {Arguments.NUMBER})})
-    public void execute(CommContext cont) {
+    public void execute(CommContext cont) throws BotException {
 
         MessageList clear;
         int number = Integer.parseInt(cont.getArgs().get(1)) + 1;
-        if (number > 100) {
-            cont.getActions().channels().sendMessage(new MessageBuilder(cont.getClient()).withContent("Cannot delete more than 99 messages at a time (" + number + ")")
-                    .withChannel(cont.getMessage().getChannel()));
-            return;
+        if (number > 100 || number < 2) {
+            throw new IncorrectArgumentsException("Your number must be between 1 and 99");
         }
         clear = new MessageList(cont.getClient(), cont.getMessage().getChannel(), number);
-        RequestBuffer.request(() -> {
+        BotUtils.bufferRequest(() -> {
             try {
                 clear.bulkDelete(clear);
-            } catch (DiscordException ex) {
-                cont.getActions().channels().customException("Purge", ex.getErrorMessage(), ex, LOG, true);
-            } catch (MissingPermissionsException ex) {
-                cont.getActions().channels().missingPermissions(cont.getMessage().getChannel(), ex);
+            } catch (DiscordException | MissingPermissionsException ex) {
+                BotException.translateException(ex);
             }
         });
     }

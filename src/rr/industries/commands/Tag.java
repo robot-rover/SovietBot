@@ -1,7 +1,7 @@
 package rr.industries.commands;
 
-import rr.industries.Exceptions.AlreadyExistsException;
-import rr.industries.Exceptions.MissingPermsException;
+import rr.industries.exceptions.AlreadyExistsException;
+import rr.industries.exceptions.MissingPermsException;
 import rr.industries.util.*;
 import rr.industries.util.sql.TagTable;
 import sx.blah.discord.util.MessageBuilder;
