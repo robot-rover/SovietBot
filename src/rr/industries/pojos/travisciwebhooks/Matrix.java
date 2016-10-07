@@ -1,5 +1,5 @@
 
-package rr.industries.modules.travisciwebhooks;
+package rr.industries.pojos.travisciwebhooks;
 
 import com.google.gson.annotations.Expose;
 import com.google.gson.annotations.SerializedName;
