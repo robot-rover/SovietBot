@@ -10,7 +10,9 @@ import sx.blah.discord.util.MessageBuilder;
 
 import java.lang.reflect.Method;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
+import java.util.stream.Collectors;
 
 //todo: add options
 @CommandInfo(
@@ -50,14 +52,15 @@ public class Help implements Command {
                 subCommands.add(0, mainSubCommand);
                 for (SubCommand subCom : subCommands) {
                     for (Syntax syntax : subCom.Syntax()) {
-                        String args = "";
-                        for (Arguments arg : syntax.args())
-                            args = args.concat(arg.text);
-                        message.appendContent("`[" + cont.getActions().getConfig().commChar + commandInfo.commandName() + " " + subCom.name() + args + "]:` ");
+                        message.appendContent("[" + cont.getActions().getConfig().commChar + commandInfo.commandName() + " " + subCom.name()
+                                + Arrays.stream(syntax.args()).map(v -> v.text).collect(Collectors.joining(" ")) + "]: ");
                         if (subCom.permLevel().level > commandInfo.permLevel().level) {
                             message.appendContent("<*" + subCom.permLevel().title + "*> ");
                         }
                         message.appendContent(syntax.helpText() + "\n");
+                        if (syntax.options().length > 0) {
+                            message.appendContent(Arrays.stream(syntax.options()).collect(Collectors.joining(" | ", "( ", " )"))).appendContent("\n");
+                        }
                     }
                 }
 

@@ -12,7 +12,9 @@ import java.io.IOException;
 import java.lang.reflect.Method;
 import java.nio.file.Files;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import static java.util.Comparator.comparing;
 import static org.apache.commons.lang3.StringEscapeUtils.escapeHtml4;
@@ -58,6 +60,8 @@ public class GenHelpDocs {
                         for (Arguments arg : syntax.args())
                             body.append(escapeHtml4(arg.text));
                         body.append("</h2>\n<p>").append(escapeHtml4(syntax.helpText())).append("</p>\n");
+                        if (syntax.options().length > 0)
+                            body.append("<p>Options: ").append(escapeHtml4(Arrays.stream(syntax.options()).collect(Collectors.joining(" | ")))).append("</p>\n");
                     }
 
                 }

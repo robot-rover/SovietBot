@@ -38,7 +38,7 @@ public enum Arguments {
     public final Predicate<String> isValid;
 
     Arguments(String text, Predicate<String> predicate) {
-        this.text = " " + text;
+        this.text = text;
         this.isValid = predicate;
     }
 }

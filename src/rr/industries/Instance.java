@@ -58,9 +58,7 @@ import static rr.industries.SovietBot.defaultConfig;
  * todo: add volumeprovider to music and rekt command
  * Commands -
  * Command: twitch stream / video on interweb
- * Command: GitHub command
  * Command: Add Strawpole Command
- * Command: Tag Command
  * Command: Dictionary Command
  * Command: Triggered Text Command: http://eeemo.net/
  * Command: URL Shortener
