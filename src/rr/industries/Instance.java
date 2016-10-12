@@ -52,8 +52,6 @@ import static rr.industries.SovietBot.defaultConfig;
  * todo: refractor to modules to allow hotswap
  * todo: [Long Term] Write unit tests
  * todo: add help options
- * todo: look into unirest
- * todo: remove GH webhook
  * todo: per guild prefix
  * todo: add volumeprovider to music and rekt command
  * Commands -

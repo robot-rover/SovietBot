@@ -23,6 +23,12 @@
     </repositories>
 
     <dependencies>
+        <!-- Google URL Shortener -->
+        <dependency>
+            <groupId>com.google.apis</groupId>
+            <artifactId>google-api-services-urlshortener</artifactId>
+            <version>v1-rev45-1.22.0</version>
+        </dependency>
         <!-- Case Formatter -->
         <dependency>
             <groupId>org.apache.commons</groupId>
