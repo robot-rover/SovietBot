@@ -20,23 +20,14 @@ public class Tag implements Command {
     public void add(CommContext cont) throws MissingPermsException {
         MessageBuilder message = cont.builder();
         String name = cont.getArgs().get(2);
+        String content = cont.getConcatArgs(3);
         if (Arrays.stream(this.getClass().getMethods()).filter(v -> v.getAnnotation(SubCommand.class) != null && v.getAnnotation(SubCommand.class).name().equals(name)).findAny().isPresent()) {
             message.withContent("`" + name + "` is a protected name");
         } else {
-            String content = cont.getConcatArgs(3);
-            Optional<TagData> prev = cont.getActions().getTable(TagTable.class).makeTag(cont.getMessage().getGuild(), name, content, false, cont.getCallerPerms());
-            if (!prev.isPresent()) {
-                message.withContent("Successfully created tag `" + name + "`");
-            } else {
-                if (cont.getCallerPerms().level >= Permissions.MOD.level) {
-                    message.withContent("Successfully changed tag `" + name + "`");
-                } else {
-                    message.withContent("Change tag Failed!");
-                    cont.getActions().channels().missingPermissions(cont.getMessage().getChannel(), Permissions.MOD);
-                    cont.getActions().getTable(TagTable.class).makeTag(cont.getMessage().getGuild(), name, prev.get().getContent(), false, Permissions.BOTOPERATOR);
-                }
-            }
+            cont.getActions().getTable(TagTable.class).makeTag(cont.getMessage().getGuild(), name, content, false, cont.getCallerPerms());
+            message.withContent("Successfully Created Tag `" + name + "`");
         }
+        cont.getActions().channels().sendMessage(message);
     }
 
     @SubCommand(name = "remove", Syntax = {@Syntax(helpText = "Removes the command <Text>", args = {Arguments.TEXT})}, permLevel = Permissions.MOD)

@@ -20,10 +20,6 @@
             <id>ossrh</id>
             <url>https://oss.sonatype.org/content/groups/public/</url>
         </repository>
-        <!--<repository>
-            <id>gigadot.net</id>
-            <url>http://maven2.gigadot.net/</url>
-        </repository>-->
     </repositories>
 
     <dependencies>
@@ -51,12 +47,6 @@
             <artifactId>json</artifactId>
             <version>20090211</version>
         </dependency>
-        <!-- Weather API -->
-        <!--<dependency>
-            <groupId>net.aksingh</groupId>
-            <artifactId>owm-japis</artifactId>
-            <version>2.5.0.3</version>
-        </dependency>-->
         <!-- SQLite Database Driver -->
         <dependency>
             <groupId>org.xerial</groupId>
@@ -79,7 +69,7 @@
         <dependency>
             <groupId>net.dv8tion</groupId>
             <artifactId>d4j-player</artifactId>
-            <version>0.2.2_21</version>
+            <version>0.2.3_24</version>
             <exclusions>
                 <exclusion>
                     <artifactId>Discord4j</artifactId>
@@ -87,11 +77,11 @@
                 </exclusion>
             </exclusions>
         </dependency>
-        <!-- HTTP Client: Send Webhook POST -->
+        <!-- WebHook POST -->
         <dependency>
-            <groupId>org.apache.httpcomponents</groupId>
-            <artifactId>httpclient</artifactId>
-            <version>4.5.2</version>
+            <groupId>com.mashape.unirest</groupId>
+            <artifactId>unirest-java</artifactId>
+            <version>1.4.9</version>
         </dependency>
         <!--Discord4J: Base API for discord -->
         <dependency>

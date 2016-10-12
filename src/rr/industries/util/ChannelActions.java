@@ -215,7 +215,12 @@ public class ChannelActions {
                         }
                     }
                     try {
-                        new ProcessBuilder("java", "-jar", "-server", "sovietBot-master.jar").inheritIO().start();
+                        File launcher = new File("launch");
+                        if (launcher.exists()) {
+                            new ProcessBuilder("/bin/bash", launcher.getAbsolutePath()).inheritIO().start();
+                        } else {
+                            new ProcessBuilder("java", "-jar", "-server", "sovietBot-master.jar").inheritIO().start();
+                        }
                     } catch (IOException ex) {
                         LOG.error("restart failed :-(", ex);
                     }

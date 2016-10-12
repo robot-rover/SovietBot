@@ -5,7 +5,11 @@ import org.slf4j.LoggerFactory;
 import sx.blah.discord.api.IDiscordClient;
 import sx.blah.discord.handle.obj.Status;
 
-import java.util.Calendar;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
+import java.time.format.DateTimeFormatter;
+import java.time.temporal.ChronoField;
 import java.util.Timer;
 import java.util.TimerTask;
 
@@ -17,20 +21,14 @@ public class UTCStatus implements Module {
     private static java.util.TimeZone tz = java.util.TimeZone.getTimeZone("GMT");
     private static java.util.Calendar c;
     private boolean isEnabled;
-    private int displayedTime;
     TimerTask updateStatus;
     Timer executor;
     public UTCStatus(IDiscordClient client) {
         isEnabled = false;
         this.executor = null;
-        displayedTime = 0;
         updateStatus = new TimerTask() {
             public void run() {
-                if (java.util.Calendar.getInstance(tz).get(Calendar.MINUTE) != displayedTime) {
-                    c = java.util.Calendar.getInstance(tz);
-                    displayedTime = c.get(Calendar.MINUTE);
-                    client.changeStatus(Status.game("UTC " + Integer.toString(c.get(Calendar.HOUR_OF_DAY)) + ":" + String.format("%2s", c.get(Calendar.MINUTE)).replace(" ", "0")));
-                }
+                client.changeStatus(Status.game(ZonedDateTime.now(ZoneId.of("UTC")).format(DateTimeFormatter.ofPattern("kk':'mm zzz"))));
             }
         };
     }
@@ -43,8 +41,9 @@ public class UTCStatus implements Module {
     @Override
     public Module enable() {
         if (!isEnabled) {
-            executor = new Timer(false);
-            executor.scheduleAtFixedRate(updateStatus, 0, 20000);
+            executor = new Timer(true);
+            LocalDateTime now = LocalDateTime.now();
+            executor.scheduleAtFixedRate(updateStatus, (60 - now.get(ChronoField.SECOND_OF_MINUTE)) * 1000, 60000);
             isEnabled = true;
         }
         return this;

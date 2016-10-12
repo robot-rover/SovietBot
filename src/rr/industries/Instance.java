@@ -8,6 +8,7 @@ import rr.industries.commands.Command;
 import rr.industries.exceptions.BotException;
 import rr.industries.exceptions.IncorrectArgumentsException;
 import rr.industries.exceptions.InternalError;
+import rr.industries.exceptions.MissingPermsException;
 import rr.industries.modules.Console;
 import rr.industries.modules.Module;
 import rr.industries.modules.UTCStatus;
@@ -51,7 +52,6 @@ import static rr.industries.SovietBot.defaultConfig;
  * todo: refractor to modules to allow hotswap
  * todo: [Long Term] Write unit tests
  * todo: add help options
- * todo: math.random -> Random
  * todo: look into unirest
  * todo: remove GH webhook
  * todo: per guild prefix
@@ -167,7 +167,7 @@ public class Instance {
                     SubCommand subComm = commandSet.second().getAnnotation(SubCommand.class);
                     CommandInfo commandInfo = commandSet.first().getClass().getAnnotation(CommandInfo.class);
                     if (subComm.permLevel().level > cont.getCallerPerms().level || commandInfo.permLevel().level > cont.getCallerPerms().level) {
-                        actions.channels().missingPermissions(cont.getMessage().getChannel(), (subComm.permLevel().level > commandInfo.permLevel().level ? subComm.permLevel() : commandInfo.permLevel()));
+                        throw new MissingPermsException("use the " + commandInfo.commandName() + " command", subComm.permLevel().level > commandInfo.permLevel().level ? subComm.permLevel() : commandInfo.permLevel());
                     } else {
                         final int iteratorConstant = (subComm.name().equals("") ? 1 : 2);
                         List<Syntax> syntax = Arrays.stream(subComm.Syntax()).filter(
@@ -214,9 +214,6 @@ public class Instance {
                                     throw new InternalError("The subcommand threw an uncaught " + cause.getClass().getName(), cause);
                             }
                         }
-                    }
-                    if (commandInfo.deleteMessage() && !cont.getMessage().getChannel().isPrivate()) {
-                        actions.channels().delayDelete(cont.getMessage(), 2500);
                     }
                 }
             } catch (BotException ex) {

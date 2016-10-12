@@ -1,12 +1,9 @@
 package rr.industries.commands;
 
 import com.google.gson.JsonSyntaxException;
-import org.apache.http.HttpResponse;
-import org.apache.http.client.HttpClient;
-import org.apache.http.client.methods.HttpPost;
-import org.apache.http.entity.StringEntity;
-import org.apache.http.impl.client.HttpClients;
-import org.apache.http.util.EntityUtils;
+import com.mashape.unirest.http.HttpResponse;
+import com.mashape.unirest.http.Unirest;
+import com.mashape.unirest.http.exceptions.UnirestException;
 import rr.industries.util.*;
 import sx.blah.discord.util.MessageBuilder;
 
@@ -14,7 +11,6 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
 
 @CommandInfo(
@@ -35,22 +31,18 @@ public class Log implements Command {
 
     public void uploadLog(Path path, CommContext cont) {
         MessageBuilder message = cont.builder();
-        final AtomicReference<String> log = new AtomicReference<>("");
         try {
-            Files.readAllLines(path).stream().collect(Collectors.joining("\n"));
-            HttpClient client = HttpClients.createDefault();
-            HttpPost post = new HttpPost("http://hastebin.com/documents");
-            post.setEntity(new StringEntity(log.get()));
-            post.addHeader("Content-Type", "application/json");
-            HttpResponse response = client.execute(post);
-            String result = EntityUtils.toString(response.getEntity());
-            message.withContent("**Log** -  http://hastebin.com/" + gson.fromJson(result, Hastebin.class).getKey());
+            String log = Files.readAllLines(path).stream().collect(Collectors.joining("\n"));
+            HttpResponse<String> response = Unirest.post("http://hastebin.com/documents").header("Content-Type", "text/plain").body(log).asString();
+            message.withContent("**Log** -  http://hastebin.com/" + gson.fromJson(response.getBody(), Hastebin.class).getKey());
             cont.getActions().channels().sendMessage(message);
         } catch (IOException ex) {
             throw new InternalError("IOException on Log Command", ex);
         } catch (JsonSyntaxException ex) {
             LOG.warn("Hastebin is Down!");
             cont.getActions().channels().sendMessage(message.withContent("Hastebin appears to be down..."));
+        } catch (UnirestException ex) {
+            throw new InternalError("UnirestException", ex);
         }
     }
 
