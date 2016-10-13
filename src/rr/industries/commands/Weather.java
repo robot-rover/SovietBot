@@ -1,12 +1,14 @@
 package rr.industries.commands;
 
-import org.apache.commons.io.IOUtils;
+import com.mashape.unirest.http.Unirest;
+import com.mashape.unirest.http.exceptions.UnirestException;
 import org.bitpipeline.lib.owm.OwmClient;
 import org.bitpipeline.lib.owm.StatusWeatherData;
 import org.bitpipeline.lib.owm.WeatherStatusResponse;
 import org.json.JSONException;
-import rr.industries.Instance;
 import rr.industries.exceptions.BotException;
+import rr.industries.exceptions.IncorrectArgumentsException;
+import rr.industries.exceptions.InternalError;
 import rr.industries.geoCoding.AddressComponent;
 import rr.industries.geoCoding.GeoCoding;
 import rr.industries.geoCoding.Result;
@@ -14,8 +16,6 @@ import rr.industries.util.*;
 import sx.blah.discord.util.MessageBuilder;
 
 import java.io.IOException;
-import java.net.URL;
-import java.net.URLConnection;
 import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.Optional;
@@ -88,16 +88,24 @@ public class Weather implements Command {
         return (v) -> (v.size() >= 2 && !v.get(1).equals("forecast") || v.size() >= 3);
     }
 
-    private Result queryGoogle(List<String> args) throws NoSuchElementException, IOException {
-        URL url;
-        url = new URL("https://maps.googleapis.com/maps/api/geocode/json?address=" + args.stream().collect(Collectors.joining(", ")).replace(" ", "%20"));
-        URLConnection con = url.openConnection();
-        GeoCoding response = Instance.gson.fromJson(IOUtils.toString(con.getInputStream()), GeoCoding.class);
-        if (response.results.size() == 0) {
-            throw new NoSuchElementException("Location not found");
-        }
+    private Result queryGoogle(List<String> args) throws BotException {
+        GeoCoding response = null;
+        try {
+            response = gson.fromJson(
+                    Unirest.post("https://maps.googleapis.com/maps/api/geocode/json")
+                            .queryString("address", args.stream().collect(Collectors.joining(", ")).replace(" ", "%20"))
+                            .asString().getBody(), GeoCoding.class
+            );
+
+
+            if (response.results.size() == 0 || response.status.equals("ZERO_RESULTS"))
+                throw new IncorrectArgumentsException("Unable to find the specified location");
         if (!response.status.equals("OK"))
-            throw new IOException("Google returned the status: " + response.status);
+            throw new InternalError("Google returned the status: " + response.status);
         return response.results.get(0);
+        } catch (UnirestException ex) {
+            BotException.translateException(ex);
+        }
+        return new Result();
     }
 }

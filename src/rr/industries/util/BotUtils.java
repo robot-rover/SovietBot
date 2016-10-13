@@ -5,6 +5,7 @@
  */
 package rr.industries.util;
 
+import org.apache.commons.lang3.StringEscapeUtils;
 import rr.industries.exceptions.BotException;
 import rr.industries.exceptions.IncorrectArgumentsException;
 import sx.blah.discord.util.RateLimitException;
@@ -15,6 +16,10 @@ import java.util.regex.Pattern;
 public class BotUtils {
     public static boolean tryInt(String i) {
         return i.matches("^\\d+$");
+    }
+
+    public static String htmlToDiscord(String input) {
+        return StringEscapeUtils.unescapeHtml4(input).replace("<b>", "**").replace("</b>", "**").replace("<i>", "*").replace("</i>", "*");
     }
 
     public static boolean tryDouble(String i) {

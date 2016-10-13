@@ -4,6 +4,7 @@ import com.google.gson.JsonSyntaxException;
 import com.mashape.unirest.http.HttpResponse;
 import com.mashape.unirest.http.Unirest;
 import com.mashape.unirest.http.exceptions.UnirestException;
+import rr.industries.exceptions.BotException;
 import rr.industries.util.*;
 import sx.blah.discord.util.MessageBuilder;
 
@@ -20,16 +21,16 @@ import java.util.stream.Collectors;
 )
 public class Log implements Command {
     @SubCommand(name = "full", Syntax = {@Syntax(helpText = "Uploads the log at Debug Level", args = {})})
-    public void fullLog(CommContext cont) {
+    public void fullLog(CommContext cont) throws BotException {
         uploadLog(new File("debug.log").toPath(), cont);
     }
 
     @SubCommand(name = "", Syntax = {@Syntax(helpText = "Uploads the log to hastebin and sends you the link", args = {})})
-    public void execute(CommContext cont) {
+    public void execute(CommContext cont) throws BotException {
         uploadLog(new File("events.log").toPath(), cont);
     }
 
-    public void uploadLog(Path path, CommContext cont) {
+    public void uploadLog(Path path, CommContext cont) throws BotException {
         MessageBuilder message = cont.builder();
         try {
             String log = Files.readAllLines(path).stream().collect(Collectors.joining("\n"));
@@ -42,7 +43,7 @@ public class Log implements Command {
             LOG.warn("Hastebin is Down!");
             cont.getActions().channels().sendMessage(message.withContent("Hastebin appears to be down..."));
         } catch (UnirestException ex) {
-            throw new InternalError("UnirestException", ex);
+            BotException.translateException(ex);
         }
     }
 

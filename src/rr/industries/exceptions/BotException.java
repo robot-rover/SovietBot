@@ -1,5 +1,6 @@
 package rr.industries.exceptions;
 
+import com.mashape.unirest.http.exceptions.UnirestException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import sx.blah.discord.util.DiscordException;
@@ -36,6 +37,8 @@ public abstract class BotException extends Exception {
             return new InternalError("A RateLimitException was not handled!", ex);
         } else if (ex instanceof MissingPermsException) {
             return new BotMissingPermsException(((MissingPermissionsException) ex).getErrorMessage());
+        } else if (ex instanceof UnirestException) {
+            return new InternalError("Unirest Exception", ex);
         } else {
             throw new UnsupportedOperationException(ex.getClass().getName() + " is not a supported exception", ex);
         }

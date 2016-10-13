@@ -2,6 +2,7 @@ package rr.industries;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+import com.mashape.unirest.http.Unirest;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import rr.industries.commands.Command;
@@ -56,7 +57,6 @@ import static rr.industries.SovietBot.defaultConfig;
  * todo: add volumeprovider to music and rekt command
  * Commands -
  * Command: twitch stream / video on interweb
- * Command: Add Strawpole Command
  * Command: Dictionary Command
  * Command: Triggered Text Command: http://eeemo.net/
  * Command: URL Shortener
@@ -78,6 +78,7 @@ public class Instance {
     private BotActions actions;
 
     Instance() throws DiscordException {
+        Unirest.setTimeouts(1000, 1000);
         Discord4J.disableChannelWarnings();
         config = loadConfig(configFile, gson.toJson(defaultConfig), Configuration.class).orElse(null);
         if (config == null) {
