@@ -1,5 +1,5 @@
 
-package rr.industries.pojos;
+package youtube;
 
 import com.google.gson.annotations.Expose;
 import com.google.gson.annotations.SerializedName;
@@ -7,10 +7,10 @@ import com.google.gson.annotations.SerializedName;
 import javax.annotation.Generated;
 
 @Generated("org.jsonschema2pojo")
-public class Phrase {
+public class Item {
 
-    @SerializedName("text")
+    @SerializedName("id")
     @Expose
-    public String text;
+    public Id id;
 
 }

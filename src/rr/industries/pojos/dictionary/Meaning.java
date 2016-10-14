@@ -1,5 +1,5 @@
 
-package rr.industries.pojos;
+package rr.industries.pojos.dictionary;
 
 import com.google.gson.annotations.Expose;
 import com.google.gson.annotations.SerializedName;

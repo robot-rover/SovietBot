@@ -1,5 +1,5 @@
 
-package rr.industries.pojos;
+package youtube;
 
 import com.google.gson.annotations.Expose;
 import com.google.gson.annotations.SerializedName;
@@ -9,13 +9,10 @@ import java.util.ArrayList;
 import java.util.List;
 
 @Generated("org.jsonschema2pojo")
-public class Tuc {
+public class YoutubeSearch {
 
-    @SerializedName("phrase")
+    @SerializedName("items")
     @Expose
-    public Phrase phrase;
-    @SerializedName("meanings")
-    @Expose
-    public List<Meaning> meanings = new ArrayList<Meaning>();
+    public List<Item> items = new ArrayList<Item>();
 
 }

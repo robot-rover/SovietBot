@@ -1,20 +1,30 @@
 package rr.industries.commands;
 
+import com.mashape.unirest.http.HttpResponse;
+import com.mashape.unirest.http.Unirest;
+import com.mashape.unirest.http.exceptions.UnirestException;
 import net.dv8tion.d4j.player.MusicPlayer;
 import net.dv8tion.jda.player.Playlist;
 import net.dv8tion.jda.player.source.AudioInfo;
 import net.dv8tion.jda.player.source.AudioSource;
 import rr.industries.exceptions.BotException;
+import rr.industries.exceptions.IncorrectArgumentsException;
+import rr.industries.exceptions.InternalError;
 import rr.industries.util.*;
 import sx.blah.discord.handle.audio.IAudioProvider;
 import sx.blah.discord.handle.obj.IMessage;
 import sx.blah.discord.util.MessageBuilder;
 import sx.blah.discord.util.MessageOutputStream;
 import sx.blah.discord.util.audio.AudioPlayer;
+import youtube.YoutubeSearch;
 
 import java.io.BufferedWriter;
 import java.io.IOException;
 import java.io.OutputStreamWriter;
+import java.io.UnsupportedEncodingException;
+import java.net.MalformedURLException;
+import java.net.URL;
+import java.net.URLEncoder;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -91,6 +101,7 @@ public class Music implements Command {
             if (provider instanceof MusicPlayer) {
                 ((MusicPlayer) provider).pause();
                 ((MusicPlayer) provider).skipToNext();
+                if (provider.isReady())
                 ((MusicPlayer) provider).play();
             } else {
                 aPlayer.skip();
@@ -103,22 +114,32 @@ public class Music implements Command {
         getAudioPlayerForGuild(cont.getMessage().getGuild()).clear();
     }
 
-    @SubCommand(name = "", Syntax = {@Syntax(helpText = "Queues the video the link is for", args = {Arguments.LINK})})
-    public void execute(CommContext cont) {
+    @SubCommand(name = "", Syntax = {
+            @Syntax(helpText = "Queues the video the link is for", args = {Arguments.LINK}),
+            @Syntax(helpText = "Queues the first video in a search the phrase", args = {Arguments.LONGTEXT})
+    })
+    public void execute(CommContext cont) throws BotException {
+        String link;
+        try {
+            link = new URL(cont.getArgs().get(1)).toString();
+        } catch (MalformedURLException e) {
+            link = searchYoutube(cont.getConcatArgs(1), cont.getActions().getConfig().googleKey);
+        }
+        LOG.info(link);
         BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(new MessageOutputStream(cont.getMessage().getChannel())));
-        writeChars(writer, "Processing Queue [");
+        writeChars(writer, "Processing Queue |");
         AudioPlayer aPlayer = getAudioPlayerForGuild(cont.getMessage().getGuild());
         MusicPlayer player = new MusicPlayer();
         player.setVolume(1);
         aPlayer.queue(player);
         try {
-            Playlist playlist = Playlist.getPlaylist(cont.getArgs().get(1));
+            Playlist playlist = Playlist.getPlaylist(link);
             ConcurrentLinkedQueue<AudioSource> sources = new ConcurrentLinkedQueue<>(playlist.getSources());
             for (AudioSource source : sources) {
                 AudioInfo info = source.getInfo();
                 List<AudioSource> queue = player.getAudioQueue();
                 if (info.getError() == null) {
-                    writeChars(writer, "][");
+                    writeChars(writer, "[]");
                     queue.add(source);
                     if (player.isStopped()) {
                         player.play();
@@ -127,7 +148,7 @@ public class Music implements Command {
                     sources.remove(source);
                 }
             }
-            writeChars(writer, "] Done!");
+            writeChars(writer, "| Done!");
         } catch (NullPointerException ex) {
             LOG.warn("The YT-DL playlist process resulted in a null or zero-length INFO!");
             writeChars(writer, "The Link resulted in no content]");
@@ -138,9 +159,27 @@ public class Music implements Command {
     private void writeChars(BufferedWriter writer, String chars) {
         try {
             writer.write(chars);
-            writer.close();
+            writer.flush();
         } catch (IOException ex2) {
             LOG.warn("Error with Message Output Stream", ex2);
         }
+    }
+
+    private String searchYoutube(String params, String apiKey) throws BotException {
+        try {
+            HttpResponse<String> response = Unirest.get("https://www.googleapis.com/youtube/v3/search").queryString("key", apiKey).queryString("part", "id")
+                    .queryString("maxResults", 1).queryString("type", "video").queryString("q", URLEncoder.encode(params, "UTF-8")).asString();
+            YoutubeSearch link = gson.fromJson(response.getBody(), YoutubeSearch.class);
+            if (link.items.size() != 0) {
+                return "https://www.youtube.com/watch?v=" + link.items.get(0).id.videoId;
+            } else {
+                throw new IncorrectArgumentsException("No youtube video found from search terms: " + params);
+            }
+        } catch (UnsupportedEncodingException ex) {
+            throw new InternalError("Unsupported Encoding hardcoded in Youtube Search", ex);
+        } catch (UnirestException ex) {
+            BotException.translateException(ex);
+        }
+        throw new InternalError("Unknown error in searchYoutube method");
     }
 }

@@ -4,7 +4,7 @@ import com.mashape.unirest.http.HttpResponse;
 import com.mashape.unirest.http.Unirest;
 import com.mashape.unirest.http.exceptions.UnirestException;
 import rr.industries.exceptions.BotException;
-import rr.industries.pojos.DictionaryResponse;
+import rr.industries.pojos.dictionary.DictionaryResponse;
 import rr.industries.util.*;
 import sx.blah.discord.util.MessageBuilder;
 

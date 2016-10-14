@@ -5,11 +5,9 @@ import org.apache.http.HttpResponse;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.impl.client.HttpClients;
+import rr.industries.exceptions.BotException;
 import rr.industries.util.*;
-import sx.blah.discord.util.DiscordException;
 import sx.blah.discord.util.MessageBuilder;
-import sx.blah.discord.util.MissingPermissionsException;
-import sx.blah.discord.util.RateLimitException;
 
 import java.io.IOException;
 import java.util.List;
@@ -22,15 +20,15 @@ import java.util.function.Predicate;
         permLevel = Permissions.BOTOPERATOR
 )
 public class Test implements Command {
+
+    @SubCommand(name = "", Syntax = {@Syntax(helpText = "searches for the youtube video", args = {Arguments.LONGTEXT})})
+    public void execute(CommContext cont) throws BotException {
+
+    }
+
     @SubCommand(name = "tester", Syntax = {@Syntax(helpText = "Test the tester test", args = {})})
     public void testSub(CommContext cont) {
-        try {
-            cont.getMessage().reply("The test worked");
-        } catch (MissingPermissionsException | RateLimitException e) {
-            e.printStackTrace();
-        } catch (DiscordException e) {
-            e.printStackTrace();
-        }
+
     }
 
     @SubCommand(name = "repeat", Syntax = {})
