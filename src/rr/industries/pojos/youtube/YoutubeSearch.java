@@ -1,5 +1,5 @@
 
-package youtube;
+package rr.industries.pojos.youtube;
 
 import com.google.gson.annotations.Expose;
 import com.google.gson.annotations.SerializedName;

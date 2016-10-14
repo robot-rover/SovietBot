@@ -10,13 +10,14 @@ import net.dv8tion.jda.player.source.AudioSource;
 import rr.industries.exceptions.BotException;
 import rr.industries.exceptions.IncorrectArgumentsException;
 import rr.industries.exceptions.InternalError;
+import rr.industries.pojos.youtube.YoutubeResponse;
+import rr.industries.pojos.youtube.YoutubeSearch;
 import rr.industries.util.*;
 import sx.blah.discord.handle.audio.IAudioProvider;
 import sx.blah.discord.handle.obj.IMessage;
 import sx.blah.discord.util.MessageBuilder;
 import sx.blah.discord.util.MessageOutputStream;
 import sx.blah.discord.util.audio.AudioPlayer;
-import youtube.YoutubeSearch;
 
 import java.io.BufferedWriter;
 import java.io.IOException;
@@ -48,10 +49,12 @@ public class Music implements Command {
             if (track.getProvider() instanceof MusicPlayer) {
                 MusicPlayer player = (MusicPlayer) track.getProvider();
                 AudioSource currentSource = player.getCurrentAudioSource();
-                messageLines.add("```Now Playing - [" + currentSource.getInfo().getDuration().getTimestamp() + "] - " + currentSource.getInfo().getTitle() + " - Now Playing");
-                for (AudioSource source : player.getAudioQueue()) {
-                    messageLines.add(String.format("%1$" + 12 + "s.", i) + " [" + source.getInfo().getDuration().getTimestamp() + "] - " + source.getInfo().getTitle());
-                    i++;
+                if (currentSource != null) {
+                    messageLines.add("```Now Playing - [" + currentSource.getInfo().getDuration().getTimestamp() + "] - " + currentSource.getInfo().getTitle() + " - Now Playing");
+                    for (AudioSource source : player.getAudioQueue()) {
+                        messageLines.add(String.format("%1$" + 12 + "s.", i) + " [" + source.getInfo().getDuration().getTimestamp() + "] - " + source.getInfo().getTitle());
+                        i++;
+                    }
                 }
             }
         }
@@ -120,12 +123,18 @@ public class Music implements Command {
     })
     public void execute(CommContext cont) throws BotException {
         String link;
+        String id = null;
         try {
             link = new URL(cont.getArgs().get(1)).toString();
         } catch (MalformedURLException e) {
-            link = searchYoutube(cont.getConcatArgs(1), cont.getActions().getConfig().googleKey);
+            id = searchYoutube(cont.getConcatArgs(1), cont.getActions().getConfig().googleKey);
+            link = "https://www.youtube.com/watch?v=" + id;
         }
-        LOG.info(link);
+        if (id != null) {
+            Entry<String, String> data = getYoutubeData(id, cont.getActions().getConfig().googleKey);
+            cont.getActions().channels().sendMessage(cont.builder().appendContent(data.first())
+                    .appendContent(" - `").appendContent(data.second()).appendContent("`"));
+        }
         BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(new MessageOutputStream(cont.getMessage().getChannel())));
         writeChars(writer, "Processing Queue |");
         AudioPlayer aPlayer = getAudioPlayerForGuild(cont.getMessage().getGuild());
@@ -151,7 +160,7 @@ public class Music implements Command {
             writeChars(writer, "| Done!");
         } catch (NullPointerException ex) {
             LOG.warn("The YT-DL playlist process resulted in a null or zero-length INFO!");
-            writeChars(writer, "The Link resulted in no content]");
+            writeChars(writer, "The Link resulted in no content|");
             aPlayer.skip();
         }
     }
@@ -170,16 +179,30 @@ public class Music implements Command {
             HttpResponse<String> response = Unirest.get("https://www.googleapis.com/youtube/v3/search").queryString("key", apiKey).queryString("part", "id")
                     .queryString("maxResults", 1).queryString("type", "video").queryString("q", URLEncoder.encode(params, "UTF-8")).asString();
             YoutubeSearch link = gson.fromJson(response.getBody(), YoutubeSearch.class);
-            if (link.items.size() != 0) {
-                return "https://www.youtube.com/watch?v=" + link.items.get(0).id.videoId;
-            } else {
+            if (link.items.size() == 0) {
                 throw new IncorrectArgumentsException("No youtube video found from search terms: " + params);
             }
+            return link.items.get(0).id.videoId;
         } catch (UnsupportedEncodingException ex) {
             throw new InternalError("Unsupported Encoding hardcoded in Youtube Search", ex);
         } catch (UnirestException ex) {
             BotException.translateException(ex);
         }
-        throw new InternalError("Unknown error in searchYoutube method");
+        throw new InternalError("Unknown error in searchYoutube");
+    }
+
+    private Entry<String, String> getYoutubeData(String videoID, String apiKey) throws BotException {
+        try {
+            HttpResponse<java.lang.String> response = Unirest.get("https://www.googleapis.com/youtube/v3/videos").queryString("key", apiKey).queryString("part", "snippet")
+                    .queryString("maxResults", 1).queryString("id", videoID).asString();
+            YoutubeResponse video = gson.fromJson(response.getBody(), YoutubeResponse.class);
+            if (video.items.size() == 0)
+                throw new InternalError("Youtube API couldn't find Video" + videoID);
+            return new Entry<>(video.items.get(0).snippet.title, video.items.get(0).snippet.channelTitle);
+        } catch (UnirestException ex) {
+            BotException.translateException(ex);
+        }
+        throw new InternalError("Unknown error in getYoutubeData");
     }
 }
+
