@@ -6,4 +6,6 @@ package rr.industries.pojos;
 public class RestartPost {
     public String command;
     public String secret;
+    public String[] linesOfLog;
+    public String name;
 }

@@ -9,8 +9,12 @@ import rr.industries.util.ChannelActions;
 import spark.Request;
 import spark.Response;
 import spark.Spark;
+import sx.blah.discord.handle.obj.IGuild;
 import sx.blah.discord.util.MessageBuilder;
 
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileWriter;
 import java.net.URLDecoder;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
@@ -59,6 +63,23 @@ public class Webhooks implements Module {
                     }
                 };
                 thread.start();
+                response.status(200);
+                return "Looks good: Restarting...";
+            }
+            if (restart.command.equals("profile")) {
+                String channelID = "236640204222496768";
+                IGuild guild = actions.getClient().getChannelByID(channelID).getGuild();
+                LOG.info("Developer Profile Found, Uploading to " + guild.getName() + " (" + guild.getID()
+                        + ") @ " + actions.getClient().getChannelByID(channelID).getName() + " (" + channelID + ")");
+                File profile = new File(restart.name + "_" + System.currentTimeMillis() + ".txt");
+                BufferedWriter writer = new BufferedWriter(new FileWriter(profile));
+                for (String line : restart.linesOfLog) {
+                    writer.write(line);
+                    writer.write("\n");
+                }
+                writer.close();
+                actions.getClient().getChannelByID(channelID).sendFile(profile);
+
             }
             response.status(200);
             return "\uD83D\uDC4C OK";
