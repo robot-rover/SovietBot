@@ -23,11 +23,11 @@ public class Purge implements Command {
         if (number > 100 || number < 2) {
             throw new IncorrectArgumentsException("Your number must be between 1 and 99");
         }
-        LOG.info("Deleting " + number + " Messages");
-        clear = new MessageList(cont.getClient(), cont.getMessage().getChannel(), 0);
+        clear = new MessageList(cont.getClient(), cont.getMessage().getChannel(), number);
         BotUtils.bufferRequest(() -> {
             try {
-                clear.load(number);
+                if (clear.size() < number)
+                    clear.load(number - clear.size());
                 clear.bulkDelete(clear);
             } catch (DiscordException | MissingPermissionsException ex) {
                 BotException.translateException(ex);
