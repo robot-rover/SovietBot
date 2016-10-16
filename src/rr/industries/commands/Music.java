@@ -13,11 +13,11 @@ import rr.industries.exceptions.InternalError;
 import rr.industries.pojos.youtube.YoutubeResponse;
 import rr.industries.pojos.youtube.YoutubeSearch;
 import rr.industries.util.*;
+import sx.blah.discord.handle.audio.IAudioManager;
 import sx.blah.discord.handle.audio.IAudioProvider;
 import sx.blah.discord.handle.obj.IMessage;
 import sx.blah.discord.util.MessageBuilder;
 import sx.blah.discord.util.MessageOutputStream;
-import sx.blah.discord.util.audio.AudioPlayer;
 
 import java.io.BufferedWriter;
 import java.io.IOException;
@@ -26,12 +26,7 @@ import java.io.UnsupportedEncodingException;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLEncoder;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
-import java.util.concurrent.ConcurrentLinkedQueue;
-
-import static sx.blah.discord.util.audio.AudioPlayer.getAudioPlayerForGuild;
+import java.util.*;
 
 @CommandInfo(
         commandName = "music",
@@ -39,22 +34,23 @@ import static sx.blah.discord.util.audio.AudioPlayer.getAudioPlayerForGuild;
 )
 //todo: Music Loading Progress Bar
 public class Music implements Command {
+    private static float DEFAULT_VOLUME = 0.4f;
+
+    //todo: save volume
+
     @SubCommand(name = "list", Syntax = {@Syntax(helpText = "Shows you what tracks are queued up", args = {})})
     public void playlist(CommContext cont) throws BotException {
-        AudioPlayer aPlayer = getAudioPlayerForGuild(cont.getMessage().getGuild());
-        List<AudioPlayer.Track> playlist = aPlayer.getPlaylist();
+        IAudioManager manager = cont.getMessage().getGuild().getAudioManager();
         ArrayList<String> messageLines = new ArrayList<>();
         int i = 1;
-        for (AudioPlayer.Track track : playlist) {
-            if (track.getProvider() instanceof MusicPlayer) {
-                MusicPlayer player = (MusicPlayer) track.getProvider();
-                AudioSource currentSource = player.getCurrentAudioSource();
-                if (currentSource != null) {
-                    messageLines.add("```Now Playing - [" + currentSource.getInfo().getDuration().getTimestamp() + "] - " + currentSource.getInfo().getTitle() + " - Now Playing");
-                    for (AudioSource source : player.getAudioQueue()) {
-                        messageLines.add(String.format("%1$" + 12 + "s.", i) + " [" + source.getInfo().getDuration().getTimestamp() + "] - " + source.getInfo().getTitle());
-                        i++;
-                    }
+        if (manager.getAudioProvider() instanceof MusicPlayer) {
+            MusicPlayer player = (MusicPlayer) manager.getAudioProvider();
+            AudioSource currentSource = player.getCurrentAudioSource();
+            if (currentSource != null) {
+                messageLines.add(":speaker: `[" + currentSource.getInfo().getDuration().getTimestamp() + "]` - " + currentSource.getInfo().getTitle());
+                for (AudioSource source : player.getAudioQueue()) {
+                    messageLines.add(String.format("%3s", i) + " -  `[" + source.getInfo().getDuration().getTimestamp() + "]` - " + source.getInfo().getTitle());
+                    i++;
                 }
             }
         }
@@ -73,48 +69,44 @@ public class Music implements Command {
 
         }
         if (message.equals("")) {
-            message = "```Queue is Empty";
+            message = "Queue is Empty";
         }
-        message = message + "```";
         Optional<IMessage> delete = cont.getActions().channels().sendMessage(new MessageBuilder(cont.getClient()).withContent(message).withChannel(cont.getMessage().getChannel()));
         if (delete.isPresent())
-            cont.getActions().channels().delayDelete(delete.get(), 15000);
+            cont.getActions().channels().delayDelete(delete.get(), 45000);
     }
 
-    //todo: save volume
-
-    @SubCommand(name = "volume", Syntax = {@Syntax(helpText = "Sets the Volume for the bot", args = {Arguments.NUMBER})})
-    public void volume(CommContext cont) {
-        IAudioProvider provider = getAudioPlayerForGuild(cont.getMessage().getGuild()).getCurrentTrack().getProvider();
+    @SubCommand(name = "volume", Syntax = {@Syntax(helpText = "Sets the Volume for the bot (0-100)", args = {Arguments.NUMBER})}, permLevel = Permissions.REGULAR)
+    public void volume(CommContext cont) throws BotException {
+        Float volume = Float.parseFloat(cont.getArgs().get(2));
+        if (volume > 100 || volume < 0)
+            throw new IncorrectArgumentsException("Volume must be between 100 and 0");
+        IAudioProvider provider = cont.getMessage().getGuild().getAudioManager().getAudioProvider();
         if (provider instanceof MusicPlayer) {
-            ((MusicPlayer) provider).setVolume(Float.parseFloat(cont.getArgs().get(2)));
-        } else {
-            cont.getActions().channels().sendMessage(new MessageBuilder(cont.getClient()).withChannel(cont.getMessage().getChannel())
-                    .withContent("Unsupported with Rekt command..."));
-
+            ((MusicPlayer) provider).setVolume(volume / 100F);
         }
+        cont.getActions().channels().sendMessage(cont.builder().withContent("Setting volume to " + volume + "%"));
     }
 
     @SubCommand(name = "skip", Syntax = {
-            @Syntax(helpText = "Skips the currently playing track", args = {})}, permLevel = Permissions.REGULAR)
+            @Syntax(helpText = "Skips the currently playing track", args = {})}, permLevel = Permissions.MOD)
     public void skip(CommContext cont) {
-        AudioPlayer aPlayer = getAudioPlayerForGuild(cont.getMessage().getGuild());
-        if (aPlayer.getCurrentTrack() != null) {
-            IAudioProvider provider = aPlayer.getCurrentTrack().getProvider();
-            if (provider instanceof MusicPlayer) {
-                ((MusicPlayer) provider).pause();
-                ((MusicPlayer) provider).skipToNext();
-                if (provider.isReady())
-                ((MusicPlayer) provider).play();
-            } else {
-                aPlayer.skip();
-            }
+        IAudioManager manager = cont.getMessage().getGuild().getAudioManager();
+        MusicPlayer player = ((MusicPlayer) manager.getAudioProvider());
+        cont.getActions().channels().sendMessage(cont.builder().withContent("Skipping " + player.getCurrentAudioSource().getInfo().getTitle()));
+        if (manager.getAudioProvider() instanceof MusicPlayer) {
+            player.skipToNext();
         }
     }
 
-    @SubCommand(name = "stop", Syntax = {@Syntax(helpText = "Stops the bot playing music and clears the queue", args = {})})
+    @SubCommand(name = "stop", Syntax = {@Syntax(helpText = "Stops the bot playing music and clears the queue", args = {})}, permLevel = Permissions.MOD)
     public void stop(CommContext cont) {
-        getAudioPlayerForGuild(cont.getMessage().getGuild()).clear();
+        MusicPlayer player = new MusicPlayer();
+        IAudioManager manager = cont.getMessage().getGuild().getAudioManager();
+        player.setVolume(DEFAULT_VOLUME);
+        manager.setAudioProvider(player);
+        manager.setAudioProvider(player);
+        cont.getActions().channels().sendMessage(cont.builder().withContent("Music Player Successfully Stopped"));
     }
 
     @SubCommand(name = "", Syntax = {
@@ -130,38 +122,48 @@ public class Music implements Command {
             id = searchYoutube(cont.getConcatArgs(1), cont.getActions().getConfig().googleKey);
             link = "https://www.youtube.com/watch?v=" + id;
         }
+        cont.getActions().channels().delayDelete(cont.getMessage(), 2000);
+        BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(new MessageOutputStream(cont.getMessage().getChannel())));
         if (id != null) {
             Entry<String, String> data = getYoutubeData(id, cont.getActions().getConfig().googleKey);
-            cont.getActions().channels().sendMessage(cont.builder().appendContent(data.first())
-                    .appendContent(" - `").appendContent(data.second()).appendContent("`"));
+            writeChars(writer, data.first() + " - `" + data.second() + "`");
         }
-        BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(new MessageOutputStream(cont.getMessage().getChannel())));
-        writeChars(writer, "Processing Queue |");
-        AudioPlayer aPlayer = getAudioPlayerForGuild(cont.getMessage().getGuild());
-        MusicPlayer player = new MusicPlayer();
-        player.setVolume(1);
-        aPlayer.queue(player);
+        writeChars(writer, (id != null ? "\n" : "") + "Processing Queue |");
+        IAudioManager manager = cont.getMessage().getGuild().getAudioManager();
+        MusicPlayer player;
+        if (manager.getAudioProvider() instanceof MusicPlayer) {
+            player = (MusicPlayer) manager.getAudioProvider();
+        } else {
+            player = new MusicPlayer();
+            player.setVolume(DEFAULT_VOLUME);
+            manager.setAudioProvider(player);
+        }
         try {
             Playlist playlist = Playlist.getPlaylist(link);
-            ConcurrentLinkedQueue<AudioSource> sources = new ConcurrentLinkedQueue<>(playlist.getSources());
-            for (AudioSource source : sources) {
+            List<AudioSource> sources = new LinkedList<>(playlist.getSources());
+            final MusicPlayer fPlayer = player;
+            for (Iterator<AudioSource> it = sources.iterator(); it.hasNext(); ) {
+                AudioSource source = it.next();
                 AudioInfo info = source.getInfo();
-                List<AudioSource> queue = player.getAudioQueue();
+                List<AudioSource> queue = fPlayer.getAudioQueue();
                 if (info.getError() == null) {
-                    writeChars(writer, "[]");
                     queue.add(source);
-                    if (player.isStopped()) {
-                        player.play();
-                    }
+                    writeChars(writer, " :musical_note:");
+                    if (fPlayer.isStopped())
+                        fPlayer.play();
                 } else {
-                    sources.remove(source);
+                    writeChars(writer, " :warning:");
+                    it.remove();
                 }
             }
             writeChars(writer, "| Done!");
         } catch (NullPointerException ex) {
-            LOG.warn("The YT-DL playlist process resulted in a null or zero-length INFO!");
-            writeChars(writer, "The Link resulted in no content|");
-            aPlayer.skip();
+            writeChars(writer, " - `Invalid Link!` - |");
+        }
+        try {
+            writer.close();
+        } catch (IOException e) {
+            LOG.error(IOException.class.getName(), e);
         }
     }
 

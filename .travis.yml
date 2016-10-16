@@ -4,4 +4,3 @@ jdk:
 notifications:
   webhooks:
    - http://sovietbot.ddns.net:1000/travis
-   - https://canary.discordapp.com/api/webhooks/234115717404819457/O5FRhxqRKlmdJXn_SN6rZZEA_FeoeD0qHbJ2IHC41BmdrlZibCKo8OSKeRCswmXO_qGA/travis-ci

@@ -1,18 +1,7 @@
 package rr.industries.commands;
 
-import rr.industries.exceptions.BotException;
-import rr.industries.exceptions.IncorrectArgumentsException;
-import rr.industries.util.*;
-
-import javax.sound.sampled.AudioInputStream;
-import javax.sound.sampled.UnsupportedAudioFileException;
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
-
-import static javax.sound.sampled.AudioSystem.getAudioInputStream;
-import static sx.blah.discord.util.audio.AudioPlayer.getAudioPlayerForGuild;
+import rr.industries.util.CommandInfo;
+import rr.industries.util.Permissions;
 
 @CommandInfo(
         commandName = "rekt",
@@ -20,7 +9,7 @@ import static sx.blah.discord.util.audio.AudioPlayer.getAudioPlayerForGuild;
         permLevel = Permissions.REGULAR
 )
 public class Rekt implements Command {
-    private List<Entry<String, AudioInputStream>> sfx;
+    /*private List<Entry<String, AudioInputStream>> sfx;
 
     public Rekt() {
         sfx = new ArrayList<>();
@@ -55,5 +44,5 @@ public class Rekt implements Command {
         } catch (IOException ex) {
             throw new InternalError("IOException on Rekt Command", ex);
         }
-    }
+    }*/
 }
