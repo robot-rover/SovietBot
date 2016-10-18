@@ -17,7 +17,7 @@ import java.util.function.Predicate;
  */
 
 @CommandInfo(
-        commandName = "perms",
+        commandName = "perm",
         helpText = "Gets and Sets permissions for users of a server")
 public class Perms implements Command {
     @SubCommand(name = "", Syntax = {@Syntax(helpText = "Shows your permission level", args = {})})

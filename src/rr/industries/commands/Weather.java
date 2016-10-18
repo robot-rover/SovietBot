@@ -104,8 +104,7 @@ public class Weather implements Command {
             throw new InternalError("Google returned the status: " + response.status);
         return response.results.get(0);
         } catch (UnirestException ex) {
-            BotException.translateException(ex);
+            throw BotException.returnException(ex);
         }
-        return new Result();
     }
 }

@@ -2,6 +2,8 @@ package rr.industries.util.sql;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import rr.industries.exceptions.BotException;
+import rr.industries.exceptions.InternalError;
 import rr.industries.util.Entry;
 
 import java.sql.ResultSet;
@@ -19,11 +21,11 @@ import java.util.stream.Collectors;
  */
 public class Table {
     static Logger LOG = LoggerFactory.getLogger(Table.class);
-    private Column[] columns;
-    private String tableName;
+    protected Column[] columns;
+    protected String tableName;
     Statement executor;
 
-    protected Table(String tableName, Statement executor, Column... columns) {
+    protected Table(String tableName, Statement executor, Column... columns) throws BotException {
         this.columns = columns;
         this.executor = executor;
         this.tableName = tableName;
@@ -50,44 +52,48 @@ public class Table {
                 }
             }
         } catch (SQLException ex) {
-            LOG.warn("SQL Error", ex);
+            throw new InternalError("Could not create table " + tableName, ex);
         }
     }
 
-    protected Table createIndex(String indexName, String columns, boolean unique) {
+    protected Table createIndex(String indexName, String columns, boolean unique) throws BotException {
         try {
             executor.execute("DROP INDEX IF EXISTS " + indexName);
             LOG.info("Creating Index: " + indexName);
             executor.execute("CREATE " + (unique ? "UNIQUE " : "") + "INDEX " + indexName + " on " + tableName + " (" + columns + ");");
         } catch (SQLException ex) {
-            LOG.error("SQL Exception creating index: " + indexName, ex);
+            throw new InternalError("SQL Exception creating index: " + indexName, ex);
         }
         return this;
     }
 
-    protected ResultSet queryValue(Value... vals) throws SQLException {
+    protected ResultSet queryValue(Value... vals) throws BotException {
         List<Entry<Column, Value>> values = toEntryList(vals);
-        return executor.executeQuery("Select " + values.stream().map(v -> v.first().name).collect(Collectors.joining(", ")) + " from " + tableName +
-                getConditions(vals));
+        try {
+            return executor.executeQuery("Select " + values.stream().map(v -> v.first().name).collect(Collectors.joining(", ")) + " from " + tableName +
+                    getConditions(vals));
+        } catch (SQLException ex) {
+            throw BotException.returnException(ex);
+        }
     }
 
     /**
      * @return true if overwritten, false if created
      */
-    protected boolean insertValue(Value... vals) {
+    protected boolean insertValue(Value... vals) throws BotException {
         boolean found;
         try {
             found = queryValue(vals).next();
-        } catch (SQLException e) {
+        } catch (SQLException ex) {
             found = false;
-            LOG.error(SQLException.class.getName(), e);
+            throw BotException.returnException(ex);
         }
         try {
             executor.execute("DELETE FROM " + tableName + getConditions(vals));
             executor.execute("INSERT INTO " + tableName + " VALUES (" +
                     Arrays.stream(vals).map(v -> "'" + v + "'").collect(Collectors.joining(", ")) + ")");
         } catch (SQLException ex) {
-            LOG.error("SQL Error", ex);
+            throw BotException.returnException(ex);
         }
         return found;
 
@@ -99,13 +105,13 @@ public class Table {
         return " where " + toEntryList(vals).stream().filter(v -> v.second().shouldQuery()).map(v -> v.first().name + "='" + v.second() + "'").collect(Collectors.joining(" AND "));
     }
 
-    protected void removeEntry(Value... vals) {
+    protected void removeEntry(Value... vals) throws BotException {
         try {
             executor.execute("DELETE FROM " + tableName + " Where " +
                     toEntryList(vals).stream().filter(v -> v.second().shouldQuery()).map(v -> v.first().name + "='" + v.second() + "'")
                             .collect(Collectors.joining(" AND ")));
         } catch (SQLException ex) {
-            LOG.error("SQL Error", ex);
+            throw BotException.returnException(ex);
         }
     }
 

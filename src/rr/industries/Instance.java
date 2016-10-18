@@ -6,6 +6,7 @@ import com.mashape.unirest.http.Unirest;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import rr.industries.commands.Command;
+import rr.industries.commands.Info;
 import rr.industries.exceptions.BotException;
 import rr.industries.exceptions.IncorrectArgumentsException;
 import rr.industries.exceptions.InternalError;
@@ -15,10 +16,7 @@ import rr.industries.modules.Module;
 import rr.industries.modules.UTCStatus;
 import rr.industries.modules.Webhooks;
 import rr.industries.util.*;
-import rr.industries.util.sql.ITable;
-import rr.industries.util.sql.PermTable;
-import rr.industries.util.sql.TagTable;
-import rr.industries.util.sql.TimeTable;
+import rr.industries.util.sql.*;
 import sx.blah.discord.Discord4J;
 import sx.blah.discord.api.ClientBuilder;
 import sx.blah.discord.api.IDiscordClient;
@@ -54,7 +52,6 @@ import static rr.industries.SovietBot.defaultConfig;
  * todo: [Long Term] Write unit tests
  * todo: add help options
  * todo: per guild prefix
- * todo: add volumeprovider to music and rekt command
  * Commands -
  * Command: twitch stream / video on interweb
  * Command: Triggered Text Command: http://eeemo.net/
@@ -97,8 +94,8 @@ public class Instance {
             Connection connection = DriverManager.getConnection("jdbc:sqlite:sovietBot.db");
             Statement statement = connection.createStatement();
             statement.setQueryTimeout(20);  // set timeout to 20 sec.
-            tables = new ITable[]{new PermTable(statement), new TimeTable(statement), new TagTable(statement)};
-        } catch (SQLException ex) {
+            tables = new ITable[]{new PermTable(statement), new TimeTable(statement), new TagTable(statement), new PrefixTable(statement, config)};
+        } catch (SQLException | BotException ex) {
             LOG.error("Unable to Initialize Database", ex);
             System.exit(1);
         }
@@ -116,10 +113,14 @@ public class Instance {
 
     @EventSubscriber
     public void onGuildCreate(GuildCreateEvent e) {
-        actions.getTable(PermTable.class).setPerms(e.getGuild(), e.getGuild().getOwner(), Permissions.ADMIN);
-        for (String op : config.operators)
-            actions.getTable(PermTable.class).setPerms(e.getGuild(), client.getUserByID(op), Permissions.BOTOPERATOR);
-        LOG.info("Connected to Guild: " + e.getGuild().getName() + " (" + e.getGuild().getID() + ")");
+        try {
+            actions.getTable(PermTable.class).setPerms(e.getGuild(), e.getGuild().getOwner(), Permissions.ADMIN);
+            for (String op : config.operators)
+                actions.getTable(PermTable.class).setPerms(e.getGuild(), client.getUserByID(op), Permissions.BOTOPERATOR);
+            LOG.info("Connected to Guild: " + e.getGuild().getName() + " (" + e.getGuild().getID() + ")");
+        } catch (BotException ex) {
+            actions.channels().exception(ex);
+        }
     }
 
     @EventSubscriber
@@ -134,10 +135,14 @@ public class Instance {
         String[] filename = config.botAvatar.split("[.]");
         client.changeAvatar(Image.forStream(filename[filename.length - 1], SovietBot.resourceLoader.getResourceAsStream(config.botAvatar)));
         for (IGuild guild : client.getGuilds()) {
+            try {
             actions.getTable(PermTable.class).setPerms(guild, guild.getOwner(), Permissions.ADMIN);
             for (String op : config.operators)
                 actions.getTable(PermTable.class).setPerms(guild, client.getUserByID(op), Permissions.BOTOPERATOR);
             LOG.info("Connected to Guild: " + guild.getName() + " (" + guild.getID() + ")");
+            } catch (BotException ex) {
+                actions.channels().exception(ex);
+            }
         }
         LOG.info("\n------------------------------------------------------------------------\n"
                 + "*** " + botName + " Ready ***\n"
@@ -156,10 +161,17 @@ public class Instance {
             return;
         }
         String message = e.getMessage().getContent();
-        if (message.startsWith(config.commChar)) {
+        if (message.startsWith(config.commChar) || e.getMessage().getMentions().contains(actions.getClient().getOurUser())) {
             CommContext cont = new CommContext(e, actions);
             try {
                 Entry<Command, Method> commandSet = commandList.getSubCommand(cont.getArgs());
+                if (cont.mentionsMe()) {
+                    try {
+                        invokeCommand(commandList.getCommand("info"), Info.class.getMethod("execute", CommContext.class), cont);
+                    } catch (NoSuchMethodException ex) {
+                        throw new InternalError("Could not execute Info command for mention", ex);
+                    }
+                }
                 if (commandSet.second() != null) {
                     SubCommand subComm = commandSet.second().getAnnotation(SubCommand.class);
                     CommandInfo commandInfo = commandSet.first().getClass().getAnnotation(CommandInfo.class);
@@ -198,23 +210,27 @@ public class Instance {
                         } else {
                             throw new IncorrectArgumentsException();
                         }
-                        try {
-                            commandSet.second().invoke(commandSet.first(), cont);
-                        } catch (IllegalAccessException ex) {
-                            throw new InternalError("Could not access subcommand", ex);
-                        } catch (InvocationTargetException ex) {
-                            if (ex.getCause() instanceof Exception) {
-                                Exception cause = (Exception) ex.getCause();
-                                if (cause instanceof BotException) {
-                                    throw (BotException) cause;
-                                } else
-                                    throw new InternalError("The subcommand threw an uncaught " + cause.getClass().getName(), cause);
-                            }
-                        }
+                        invokeCommand(commandSet.first(), commandSet.second(), cont);
                     }
                 }
             } catch (BotException ex) {
                 cont.getActions().channels().exception(ex, cont.builder());
+            }
+        }
+    }
+
+    private void invokeCommand(Command c, Method m, CommContext cont) throws BotException {
+        try {
+            m.invoke(c, cont);
+        } catch (IllegalAccessException ex) {
+            throw new InternalError("Could not access subcommand", ex);
+        } catch (InvocationTargetException ex) {
+            if (ex.getCause() instanceof Exception) {
+                Exception cause = (Exception) ex.getCause();
+                if (cause instanceof BotException) {
+                    throw (BotException) cause;
+                } else
+                    throw new InternalError("The subcommand threw an uncaught " + cause.getClass().getName(), cause);
             }
         }
     }

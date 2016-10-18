@@ -34,7 +34,7 @@ import java.util.*;
 )
 //todo: Music Loading Progress Bar
 public class Music implements Command {
-    private static float DEFAULT_VOLUME = 0.4f;
+    static float DEFAULT_VOLUME = 0.4f;
 
     //todo: save volume
 
@@ -93,7 +93,7 @@ public class Music implements Command {
     public void skip(CommContext cont) {
         IAudioManager manager = cont.getMessage().getGuild().getAudioManager();
         MusicPlayer player = ((MusicPlayer) manager.getAudioProvider());
-        cont.getActions().channels().sendMessage(cont.builder().withContent("Skipping " + player.getCurrentAudioSource().getInfo().getTitle()));
+        cont.getActions().channels().sendMessage(cont.builder().withContent("Skipping " + (player.getCurrentAudioSource().getInfo() != null ? player.getCurrentAudioSource().getInfo().getTitle() : "Current Source")));
         if (manager.getAudioProvider() instanceof MusicPlayer) {
             player.skipToNext();
         }
@@ -153,6 +153,7 @@ public class Music implements Command {
                         fPlayer.play();
                 } else {
                     writeChars(writer, " :warning:");
+                    LOG.info(info.getError());
                     it.remove();
                 }
             }
@@ -181,16 +182,15 @@ public class Music implements Command {
             HttpResponse<String> response = Unirest.get("https://www.googleapis.com/youtube/v3/search").queryString("key", apiKey).queryString("part", "id")
                     .queryString("maxResults", 1).queryString("type", "video").queryString("q", URLEncoder.encode(params, "UTF-8")).asString();
             YoutubeSearch link = gson.fromJson(response.getBody(), YoutubeSearch.class);
-            if (link.items.size() == 0) {
+            if (link == null || link.items.size() == 0) {
                 throw new IncorrectArgumentsException("No youtube video found from search terms: " + params);
             }
             return link.items.get(0).id.videoId;
         } catch (UnsupportedEncodingException ex) {
             throw new InternalError("Unsupported Encoding hardcoded in Youtube Search", ex);
         } catch (UnirestException ex) {
-            BotException.translateException(ex);
+            throw BotException.returnException(ex);
         }
-        throw new InternalError("Unknown error in searchYoutube");
     }
 
     private Entry<String, String> getYoutubeData(String videoID, String apiKey) throws BotException {
@@ -202,9 +202,8 @@ public class Music implements Command {
                 throw new InternalError("Youtube API couldn't find Video" + videoID);
             return new Entry<>(video.items.get(0).snippet.title, video.items.get(0).snippet.channelTitle);
         } catch (UnirestException ex) {
-            BotException.translateException(ex);
+            throw BotException.returnException(ex);
         }
-        throw new InternalError("Unknown error in getYoutubeData");
     }
 }
 

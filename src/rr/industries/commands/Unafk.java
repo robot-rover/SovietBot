@@ -31,7 +31,7 @@ public class Unafk implements Command {
                     try {
                         user.moveToVoiceChannel(bringToo);
                     } catch (DiscordException | MissingPermissionsException ex) {
-                        BotException.translateException(ex);
+                        throw BotException.returnException(ex);
                     }
                 });
             }

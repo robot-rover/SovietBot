@@ -44,7 +44,7 @@ public class Bring implements Command {
                     try {
                         user.moveToVoiceChannel(back);
                     } catch (DiscordException | MissingPermissionsException ex) {
-                        BotException.translateException(ex);
+                        throw BotException.returnException(ex);
                     }
                 });
             }

@@ -49,11 +49,12 @@ public class Help implements Command {
                         }
                     }
                 }
-                subCommands.add(0, mainSubCommand);
+                if (mainSubCommand != null)
+                    subCommands.add(0, mainSubCommand);
                 for (SubCommand subCom : subCommands) {
                     for (Syntax syntax : subCom.Syntax()) {
-                        message.appendContent("[" + cont.getActions().getConfig().commChar + commandInfo.commandName() + " " + subCom.name()
-                                + Arrays.stream(syntax.args()).map(v -> v.text).collect(Collectors.joining(" ")) + "]: ");
+                        message.appendContent("[" + cont.getActions().getConfig().commChar + commandInfo.commandName() + (subCom.name().equals("") ? "" : " ") + subCom.name() +
+                                Arrays.stream(syntax.args()).map(v -> v.text).collect(Collectors.joining(" ", " ", " ")) + "]: ");
                         if (subCom.permLevel().level > commandInfo.permLevel().level) {
                             message.appendContent("<*" + subCom.permLevel().title + "*> ");
                         }
@@ -87,7 +88,7 @@ public class Help implements Command {
                     cont.getActions().channels().sendMessage(message2.appendContent("```"));
                     cont.getActions().channels().sendMessage(message.withContent(cont.getMessage().getAuthor().mention() + ", Check your PMs!"));
                 } catch (DiscordException ex) {
-                    BotException.translateException(ex);
+                    throw BotException.returnException(ex);
                 }
             });
         }

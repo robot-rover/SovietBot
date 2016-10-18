@@ -43,7 +43,7 @@ public class Log implements Command {
             LOG.warn("Hastebin is Down!");
             cont.getActions().channels().sendMessage(message.withContent("Hastebin appears to be down..."));
         } catch (UnirestException ex) {
-            BotException.translateException(ex);
+            throw BotException.returnException(ex);
         }
     }
 

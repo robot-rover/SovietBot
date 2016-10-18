@@ -24,10 +24,12 @@ public class CommContext {
     private final Permissions callerPerms;
     private final BotActions actions;
     private final IMessage message;
+    private final boolean mentionsMe;
 
     public CommContext(MessageReceivedEvent e, BotActions actions) {
         this.actions = actions;
         this.message = e.getMessage();
+        mentionsMe = e.getMessage().getMentions().contains(getClient().getOurUser());
         if (e.getMessage().getChannel().isPrivate()) {
             callerPerms = Permissions.NORMAL;
         } else {
@@ -78,5 +80,9 @@ public class CommContext {
 
     public String getCommChar() {
         return actions.getConfig().commChar;
+    }
+
+    public boolean mentionsMe() {
+        return mentionsMe;
     }
 }

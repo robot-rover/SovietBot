@@ -17,7 +17,7 @@ import java.util.List;
  * @author robot_rover
  */
 public class PermTable extends Table implements ITable {
-    public PermTable(Statement executor) {
+    public PermTable(Statement executor) throws BotException {
         super("perms", executor,
                 new Column("guildid", "text", false),
                 new Column("userid", "text", false),
@@ -41,7 +41,7 @@ public class PermTable extends Table implements ITable {
         return Permissions.NORMAL;
     }
 
-    public void setPerms(IGuild guild, IUser user, Permissions permissions) {
+    public void setPerms(IGuild guild, IUser user, Permissions permissions) throws BotException {
         if (permissions == Permissions.NORMAL)
             removeEntry(Value.of(guild.getID(), true), Value.of(user.getID(), true), Value.empty());
         else

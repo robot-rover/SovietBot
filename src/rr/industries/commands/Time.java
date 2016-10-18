@@ -1,5 +1,6 @@
 package rr.industries.commands;
 
+import rr.industries.exceptions.BotException;
 import rr.industries.util.*;
 import rr.industries.util.sql.TimeTable;
 import sx.blah.discord.handle.obj.IUser;
@@ -22,7 +23,7 @@ import java.util.Optional;
 )
 public class Time implements Command {
     @SubCommand(name = "all", Syntax = {@Syntax(helpText = "Sends you all of the time information for the Guild", args = {})})
-    public void all(CommContext cont) {
+    public void all(CommContext cont) throws BotException {
         MessageBuilder message = cont.builder().withContent("**Times:**");
         for (IUser user : cont.getMessage().getGuild().getUsers()) {
             Optional<String> zone = cont.getActions().getTable(TimeTable.class).getTimeZone(user);
@@ -34,7 +35,7 @@ public class Time implements Command {
     }
 
     @SubCommand(name = "set", Syntax = {@Syntax(helpText = "Set your own timezone", args = {Arguments.TIMEZONE})})
-    public void set(CommContext cont) {
+    public void set(CommContext cont) throws BotException {
             MessageBuilder message = new MessageBuilder(cont.getClient()).withChannel(cont.getMessage().getChannel());
         cont.getActions().getTable(TimeTable.class).setTimeZone(cont.getMessage().getAuthor(), ZoneId.of(cont.getArgs().get(2)).normalized().getId());
         message.withContent("Setting your timezone to: \n**" + ZoneId.of(cont.getArgs().get(2)).normalized().getDisplayName(TextStyle.FULL_STANDALONE, Locale.US) + "**");
@@ -45,7 +46,7 @@ public class Time implements Command {
             @Syntax(helpText = "Show your own time and timezone", args = {}),
             @Syntax(helpText = "Show the mentioned person's current time and timezone", args = {Arguments.MENTION})
     })
-    public void execute(CommContext cont) {
+    public void execute(CommContext cont) throws BotException {
         MessageBuilder message = new MessageBuilder(cont.getClient()).withChannel(cont.getMessage().getChannel());
         if (cont.getArgs().size() >= 2 && cont.getMessage().getMentions().size() >= 1) {
             Optional<String> timezone = cont.getActions().getTable(TimeTable.class).getTimeZone(cont.getMessage().getMentions().get(0));

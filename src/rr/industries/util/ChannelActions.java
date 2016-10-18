@@ -52,10 +52,14 @@ public class ChannelActions {
      * @param builder   MessageBuilder with channel and client already set
      */
     public <T extends BotException> void exception(T exception, MessageBuilder builder) {
+        exception(exception);
+        sendMessage(builder.withContent(exception.getMessage()));
+    }
+
+    public <T extends BotException> void exception(T exception) {
         if (exception.criticalMessage().isPresent()) {
             messageOwner("[Critical Error] - " + exception.criticalMessage().get(), true);
         }
-        sendMessage(builder.withContent(exception.getMessage()));
     }
 
     @Deprecated
@@ -114,7 +118,7 @@ public class ChannelActions {
             try {
                 channel.join();
             } catch (MissingPermissionsException ex) {
-                BotException.translateException(ex);
+                throw BotException.returnException(ex);
             }
         }
     }
@@ -135,7 +139,7 @@ public class ChannelActions {
                 //fail silently
                 LOG.debug("Did not delete message, missing permissions");
             } catch (DiscordException ex) {
-                BotException.translateException(ex);
+                throw BotException.returnException(ex);
             }
         });
     }

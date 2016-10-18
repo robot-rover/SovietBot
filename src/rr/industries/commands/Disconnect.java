@@ -28,7 +28,7 @@ public class Disconnect implements Command {
                 user.moveToVoiceChannel(channel);
                 channel.delete();
             } catch (DiscordException | MissingPermissionsException ex) {
-                BotException.translateException(ex);
+                throw BotException.returnException(ex);
             }
         });
     }

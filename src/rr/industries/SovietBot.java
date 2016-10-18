@@ -21,6 +21,8 @@ import gigadot.rebound.Rebound;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import rr.industries.commands.Command;
+import rr.industries.commands.Help;
+import rr.industries.util.CommandInfo;
 import rr.industries.util.GenHelpDocs;
 import sx.blah.discord.util.DiscordException;
 
@@ -32,7 +34,7 @@ public class SovietBot {
     public static final String botName = "SovietBot";
     public static final String frameName = sx.blah.discord.Discord4J.NAME;
     public static final String frameVersion = sx.blah.discord.Discord4J.VERSION;
-    public static final String helpCommand = "help";
+    public static final String helpCommand = Help.class.getAnnotation(CommandInfo.class).commandName();
     public static final String author = "robot_rover";
     public static final String invite = "https://discordapp.com/oauth2/authorize?&client_id=184445488093724672&scope=bot&permissions=87354385";
     public static final String website = "https://robot-rover.github.io/SovietBot/";

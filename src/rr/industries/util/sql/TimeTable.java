@@ -1,5 +1,6 @@
 package rr.industries.util.sql;
 
+import rr.industries.exceptions.BotException;
 import sx.blah.discord.handle.obj.IUser;
 
 import java.sql.ResultSet;
@@ -11,7 +12,7 @@ import java.util.Optional;
  * @author robot_rover
  */
 public class TimeTable extends Table implements ITable {
-    public TimeTable(Statement executor) {
+    public TimeTable(Statement executor) throws BotException {
         super("users", executor,
                 new Column("userid", "text", false),
                 new Column("timezone", "text", true)
@@ -19,7 +20,7 @@ public class TimeTable extends Table implements ITable {
         this.createIndex("userindex", "userid", true);
     }
 
-    public Optional<String> getTimeZone(IUser user) {
+    public Optional<String> getTimeZone(IUser user) throws BotException {
         try {
             ResultSet rs = queryValue(Value.of(user.getID(), true), Value.empty());
             if (rs.next()) {
@@ -33,7 +34,7 @@ public class TimeTable extends Table implements ITable {
         }
     }
 
-    public void setTimeZone(IUser user, String timeZone) {
+    public void setTimeZone(IUser user, String timeZone) throws BotException {
         insertValue(Value.of(user.getID(), true), Value.of(timeZone, false));
     }
 }

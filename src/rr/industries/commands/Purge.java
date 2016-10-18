@@ -2,6 +2,7 @@ package rr.industries.commands;
 
 import rr.industries.exceptions.BotException;
 import rr.industries.exceptions.IncorrectArgumentsException;
+import rr.industries.exceptions.InternalError;
 import rr.industries.util.*;
 import sx.blah.discord.util.DiscordException;
 import sx.blah.discord.util.MessageList;
@@ -26,11 +27,16 @@ public class Purge implements Command {
         clear = new MessageList(cont.getClient(), cont.getMessage().getChannel(), number);
         BotUtils.bufferRequest(() -> {
             try {
+                for (int i = 0; i < 5 && clear.size() < number; i++) {
+                    int loading = number - clear.size();
+                    clear.load(loading);
+                    LOG.info("Attempted to load {} messages. MessageList now has {} messages.", loading, clear.size());
+                }
                 if (clear.size() < number)
-                    clear.load(number - clear.size());
+                    throw new InternalError("Could not load required messages after trying 5 times (" + number + " required, " + clear.size() + " loaded)");
                 clear.bulkDelete(clear);
             } catch (DiscordException | MissingPermissionsException ex) {
-                BotException.translateException(ex);
+                throw BotException.returnException(ex);
             }
         });
     }

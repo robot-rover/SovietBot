@@ -1,7 +1,21 @@
 package rr.industries.commands;
 
-import rr.industries.util.CommandInfo;
-import rr.industries.util.Permissions;
+import net.dv8tion.d4j.player.MusicPlayer;
+import net.dv8tion.jda.player.Playlist;
+import net.dv8tion.jda.player.source.AudioInfo;
+import net.dv8tion.jda.player.source.AudioSource;
+import rr.industries.exceptions.BotException;
+import rr.industries.exceptions.IncorrectArgumentsException;
+import rr.industries.exceptions.InternalError;
+import rr.industries.util.*;
+import sx.blah.discord.handle.audio.IAudioManager;
+
+import java.util.ArrayList;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.stream.Collectors;
+
+import static rr.industries.commands.Music.DEFAULT_VOLUME;
 
 @CommandInfo(
         commandName = "rekt",
@@ -9,20 +23,16 @@ import rr.industries.util.Permissions;
         permLevel = Permissions.REGULAR
 )
 public class Rekt implements Command {
-    /*private List<Entry<String, AudioInputStream>> sfx;
+    private List<String[]> sfx;
 
     public Rekt() {
         sfx = new ArrayList<>();
-        try {
-            sfx.add(new Entry<>("wombo", getAudioInputStream(resourceLoader.getResource("ohs/womboCombo.mp3"))));
-            sfx.add(new Entry<>("wrong", getAudioInputStream(resourceLoader.getResource("ohs/wrongNumber.mp3"))));
-            sfx.add(new Entry<>("airhorn", getAudioInputStream(resourceLoader.getResource("ohs/violinAirhorn.mp3"))));
-            sfx.add(new Entry<>("never", getAudioInputStream(resourceLoader.getResource("ohs/noOneHasEver.mp3"))));
-            sfx.add(new Entry<>("scope", getAudioInputStream(resourceLoader.getResource("ohs/noscoped.mp3"))));
-            sfx.add(new Entry<>("nope", getAudioInputStream(resourceLoader.getResource("ohs/nopeSong.mp3"))));
-        } catch (IOException | UnsupportedAudioFileException ex) {
-            LOG.warn("Error initializing audio streams", ex);
-        }
+        sfx.add(new String[]{"wombo", "happy feet, **WOMBO COMBO**", "https://youtu.be/ZrR2fGqCId8"});
+        sfx.add(new String[]{"wrong", "SIIIIIKKE, thats the **WRONG NUMBER!!!**", "https://youtu.be/0WBGONGLOpA"});
+        sfx.add(new String[]{"airhorn", ":postal_horn: *Eeeeeeeeeeeeeh*", "https://youtu.be/RJ7UPM4L2_g"});
+        sfx.add(new String[]{"never", "get **REEEEKT**", "https://youtu.be/YxCiFXXVqSw"});
+        sfx.add(new String[]{"scope", "**NOSCOOOOOOPED!!!**", "https://youtu.be/RP5P7zuKkpM"});
+        sfx.add(new String[]{"nope", "**NOPE!**", "https://youtu.be/C-eqQqZICiM"});
     }
 
     @SubCommand(name = "", Syntax = {
@@ -30,19 +40,43 @@ public class Rekt implements Command {
             @Syntax(helpText = "Plays the specified rekt clip", args = {Arguments.TEXT}, options = {"wombo", "wrong", "airhorn", "never", "scope", "nope"})
     })
     public void execute(CommContext cont) throws BotException {
-        try {
-            if (cont.getArgs().size() > 1) {
-                Optional<Entry<String, AudioInputStream>> entry = sfx.stream().filter(v -> v.first().equals(cont.getArgs().get(1))).findAny();
-                if (entry.isPresent())
-                    getAudioPlayerForGuild(cont.getMessage().getGuild()).queue(entry.get().second());
-                else
-                    throw new IncorrectArgumentsException("`" + cont.getArgs().get(1) + "` is not the name of a clip");
-            } else {
-
-                getAudioPlayerForGuild(cont.getMessage().getGuild()).queue(sfx.get(rn.nextInt(sfx.size())).second());
-            }
-        } catch (IOException ex) {
-            throw new InternalError("IOException on Rekt Command", ex);
+        String[] link;
+        if (cont.getArgs().size() > 1) {
+            link = sfx.stream().filter(v -> v[0].equals(cont.getArgs().get(1))).findAny()
+                    .orElseThrow(() -> new IncorrectArgumentsException("You must chose one of " + sfx.stream().map(v -> v[0]).collect(Collectors.joining("|"))));
+        } else {
+            link = sfx.get(rn.nextInt(sfx.size()));
         }
-    }*/
+        LOG.info("Chosen {} \"{}\" {}", link[0], link[1], link[2]);
+        IAudioManager manager = cont.getMessage().getGuild().getAudioManager();
+        MusicPlayer player;
+        if (manager.getAudioProvider() instanceof MusicPlayer) {
+            player = (MusicPlayer) manager.getAudioProvider();
+        } else {
+            player = new MusicPlayer();
+            player.setVolume(DEFAULT_VOLUME);
+            manager.setAudioProvider(player);
+        }
+        try {
+            LOG.info(link[2]);
+            Playlist playlist = Playlist.getPlaylist(link[2]);
+            List<AudioSource> sources = new LinkedList<>(playlist.getSources());
+            final MusicPlayer fPlayer = player;
+            if (sources.size() == 1) {
+                AudioSource source = sources.get(0);
+                AudioInfo info = source.getInfo();
+                List<AudioSource> queue = fPlayer.getAudioQueue();
+                if (info.getError() == null) {
+                    queue.add(source);
+                    if (fPlayer.isStopped())
+                        fPlayer.play();
+                } else {
+                    LOG.info(info.getError());
+                }
+            }
+        } catch (NullPointerException ex) {
+            throw new InternalError("Error finding Rekt Video", ex);
+        }
+        cont.getActions().channels().sendMessage(cont.builder().withContent(link[1]));
+    }
 }

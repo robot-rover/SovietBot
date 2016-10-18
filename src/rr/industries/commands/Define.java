@@ -40,7 +40,7 @@ public class Define implements Command {
             }
             cont.getActions().channels().sendMessage(message);
         } catch (UnirestException ex) {
-            BotException.translateException(ex);
+            throw BotException.returnException(ex);
         }
     }
 }

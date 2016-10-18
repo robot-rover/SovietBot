@@ -7,6 +7,7 @@ import sx.blah.discord.util.DiscordException;
 import sx.blah.discord.util.MissingPermissionsException;
 import sx.blah.discord.util.RateLimitException;
 
+import java.sql.SQLException;
 import java.util.Optional;
 
 
@@ -26,6 +27,7 @@ public abstract class BotException extends Exception {
         return getMessage();
     }
 
+    @Deprecated
     public static void translateException(Exception ex) throws BotException {
         throw returnException(ex);
     }
@@ -39,6 +41,8 @@ public abstract class BotException extends Exception {
             return new BotMissingPermsException(((MissingPermissionsException) ex).getErrorMessage());
         } else if (ex instanceof UnirestException) {
             return new InternalError("Unirest Exception", ex);
+        } else if (ex instanceof SQLException) {
+            return new InternalError("SQLError", ex);
         } else {
             throw new UnsupportedOperationException(ex.getClass().getName() + " is not a supported exception", ex);
         }

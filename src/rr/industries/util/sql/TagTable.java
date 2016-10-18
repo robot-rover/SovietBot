@@ -3,6 +3,7 @@ package rr.industries.util.sql;
 import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import rr.industries.exceptions.BotException;
 import rr.industries.exceptions.MissingPermsException;
 import rr.industries.util.Permissions;
 import rr.industries.util.TagData;
@@ -28,7 +29,8 @@ public class TagTable implements ITable {
     private static Logger LOG = LoggerFactory.getLogger(TagTable.class);
     Table localTags;
     Table globalTags;
-    public TagTable(Statement executor) {
+
+    public TagTable(Statement executor) throws BotException {
         localTags = new Table("tags", executor,
                 new Column("guildid", "text", false),
                 new Column("tagname", "text", false),
@@ -44,7 +46,7 @@ public class TagTable implements ITable {
     /**
      * @return the old tag, if it could be found
      */
-    public Optional<TagData> setGlobal(IGuild guild, String name, boolean global, Permissions perm) throws MissingPermsException {
+    public Optional<TagData> setGlobal(IGuild guild, String name, boolean global, Permissions perm) throws BotException {
         Optional<TagData> tag = getTag(guild, name);
         if (tag.isPresent()) {
             deleteTag(guild, name, perm);
@@ -56,7 +58,7 @@ public class TagTable implements ITable {
     /**
      * @return the tag changed, if it was found
      */
-    public Optional<TagData> setPermanent(@Nullable IGuild guild, String name, boolean permanent, Permissions perm) throws MissingPermsException {
+    public Optional<TagData> setPermanent(@Nullable IGuild guild, String name, boolean permanent, Permissions perm) throws BotException {
         Optional<TagData> tag = getTag(guild, name);
         if (tag.isPresent()) {
             deleteTag(guild, name, perm);
@@ -69,7 +71,7 @@ public class TagTable implements ITable {
     /**
      * @return the previous tag, if it existed
      */
-    public Optional<TagData> makeTag(@Nullable IGuild guild, String name, String content, boolean permanent, Permissions perm) throws MissingPermsException {
+    public Optional<TagData> makeTag(@Nullable IGuild guild, String name, String content, boolean permanent, Permissions perm) throws BotException {
         Optional<TagData> previous = getTag(guild, name);
         if (previous.isPresent()) {
             checkTag(previous.get(), perm);
@@ -84,7 +86,7 @@ public class TagTable implements ITable {
         return previous;
     }
 
-    public Optional<TagData> deleteTag(@Nullable IGuild guild, String name, Permissions perm) throws MissingPermsException {
+    public Optional<TagData> deleteTag(@Nullable IGuild guild, String name, Permissions perm) throws BotException {
         Optional<TagData> tag = getTag(guild, name);
         if (tag.isPresent()) {
             checkTag(tag.get(), perm);
@@ -107,7 +109,7 @@ public class TagTable implements ITable {
     }
 
 
-    public Optional<TagData> getTag(@Nullable IGuild guild, String name) {
+    public Optional<TagData> getTag(@Nullable IGuild guild, String name) throws BotException {
         try {
             if (guild != null) {
                 ResultSet result = localTags.queryValue(Value.of(guild.getID(), true), Value.of(name, true), Value.empty(), Value.empty());
@@ -141,7 +143,7 @@ public class TagTable implements ITable {
         }
     }
 
-    public List<TagData> getGlobalTags() {
+    public List<TagData> getGlobalTags() throws BotException {
         try {
             ResultSet result = globalTags.queryValue(Value.empty(), Value.empty());
             List<TagData> tags = new ArrayList<>();
@@ -155,7 +157,7 @@ public class TagTable implements ITable {
         return new ArrayList<>();
     }
 
-    public List<TagData> getAllTags(IGuild guild) {
+    public List<TagData> getAllTags(IGuild guild) throws BotException {
         try {
             ResultSet result = localTags.queryValue(Value.of(guild.getID(), true), Value.empty(), Value.empty(), Value.empty());
             List<TagData> tags = new ArrayList<>();

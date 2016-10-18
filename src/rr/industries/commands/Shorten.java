@@ -25,7 +25,7 @@ public class Shorten implements Command {
             cont.getActions().channels().sendMessage(cont.builder().appendContent(cont.getMessage().getAuthor().mention())
                     .appendContent(": ").appendContent(shorten.id));
         } catch (UnirestException ex) {
-            BotException.translateException(ex);
+            throw BotException.returnException(ex);
         }
     }
 }

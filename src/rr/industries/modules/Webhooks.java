@@ -69,7 +69,7 @@ public class Webhooks implements Module {
             if (restart.command.equals("profile")) {
                 String channelID = "236640204222496768";
                 IGuild guild = actions.getClient().getChannelByID(channelID).getGuild();
-                LOG.info("Developer Profile Found, Uploading to " + guild.getName() + " (" + guild.getID()
+                LOG.info("Developer Profile Recieved, Uploading to " + guild.getName() + " (" + guild.getID()
                         + ") @ " + actions.getClient().getChannelByID(channelID).getName() + " (" + channelID + ")");
                 File profile = new File(restart.name + "_" + System.currentTimeMillis() + ".txt");
                 BufferedWriter writer = new BufferedWriter(new FileWriter(profile));
