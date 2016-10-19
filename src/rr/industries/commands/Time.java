@@ -63,7 +63,7 @@ public class Time implements Command {
                 ZonedDateTime time = ZonedDateTime.now(ZoneId.of(timezone.get()));
                 message.withContent("Your timezone: " + ZoneId.of(timezone.get()).getDisplayName(TextStyle.FULL_STANDALONE, Locale.US) + "\n" + DateTimeFormatter.ofLocalizedTime(FormatStyle.SHORT).format(time));
             } else {
-                message.withContent("You have not set your timezone yet. Use " + cont.getActions().getConfig().commChar + "time set GMT+(Your Timezone)");
+                message.withContent("You have not set your timezone yet. Use " + cont.getCommChar() + "time set GMT+(Your Timezone)");
             }
         }
         cont.getActions().channels().sendMessage(message);

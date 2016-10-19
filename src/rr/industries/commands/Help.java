@@ -32,7 +32,7 @@ public class Help implements Command {
             Command command = cont.getActions().getCommands().getCommandList().stream().filter(v -> v.getClass().getAnnotation(CommandInfo.class).commandName().equals(name)).findAny().orElse(null);
             if (command != null) {
                 CommandInfo commandInfo = command.getClass().getDeclaredAnnotation(CommandInfo.class);
-                message.appendContent("**" + cont.getActions().getConfig().commChar + commandInfo.commandName() + " - " + commandInfo.helpText() + "**\n");
+                message.appendContent("**" + cont.getCommChar() + commandInfo.commandName() + " - " + commandInfo.helpText() + "**\n");
                 message.appendContent("`<>` means replace with your own value. `[]` means you can give more than one value.\n");
                 message.appendContent("For more help, visit <**" + SovietBot.website + "commands/" + commandInfo.commandName() + ".html**>\n");
                 SubCommand mainSubCommand = null;
@@ -53,7 +53,7 @@ public class Help implements Command {
                     subCommands.add(0, mainSubCommand);
                 for (SubCommand subCom : subCommands) {
                     for (Syntax syntax : subCom.Syntax()) {
-                        message.appendContent("[" + cont.getActions().getConfig().commChar + commandInfo.commandName() + (subCom.name().equals("") ? "" : " ") + subCom.name() +
+                        message.appendContent("[" + cont.getCommChar() + commandInfo.commandName() + (subCom.name().equals("") ? "" : " ") + subCom.name() +
                                 Arrays.stream(syntax.args()).map(v -> v.text).collect(Collectors.joining(" ", " ", " ")) + "]: ");
                         if (subCom.permLevel().level > commandInfo.permLevel().level) {
                             message.appendContent("<*" + subCom.permLevel().title + "*> ");

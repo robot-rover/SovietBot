@@ -30,16 +30,17 @@ public class PrefixTable extends Table implements ITable {
             insertValue(Value.of(guild.getID(), true), Value.of(prefix, false));
     }
 
-    public String getPrefix(IGuild guild) throws BotException {
-        ResultSet set = queryValue(Value.of(guild.getID(), true), Value.empty());
+    public String getPrefix(IGuild guild) {
         try {
+            ResultSet set = queryValue(Value.of(guild.getID(), true), Value.empty());
             if (set.next()) {
                 return set.getString("prefix");
             } else {
                 return config.commChar;
             }
-        } catch (SQLException ex) {
-            throw BotException.returnException(ex);
+        } catch (SQLException | BotException ex) {
+            LOG.error("Silenced " + ex.getClass().getName(), ex);
+            return config.commChar;
         }
     }
 

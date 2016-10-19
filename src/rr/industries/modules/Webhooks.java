@@ -61,6 +61,11 @@ public class Webhooks implements Module {
                     response.status(400);
                     return "Missing MD5 hash in field Name";
                 }
+                File updated = new File("sovietBot-update.jar");
+                if (!updated.exists()) {
+                    response.status(400);
+                    return "Missing Uploaded Jar";
+                }
                 String fileHash = DigestUtils.md5Hex(new FileInputStream(new File("sovietBot-update.jar")));
                 if (!restart.name.equals(fileHash)) {
                     response.status(400);

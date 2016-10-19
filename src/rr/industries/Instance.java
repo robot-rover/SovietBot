@@ -51,8 +51,6 @@ import static rr.industries.SovietBot.defaultConfig;
  * todo: RSS feeds module
  * todo: refractor to modules to allow hotswap
  * todo: [Long Term] Write unit tests
- * todo: add help options
- * todo: per guild prefix
  * Commands -
  * Command: twitch stream / video on interweb
  * Command: Triggered Text Command: http://eeemo.net/
@@ -167,7 +165,7 @@ public class Instance {
             return;
         }
         String message = e.getMessage().getContent();
-        if (message.startsWith(config.commChar) || e.getMessage().getMentions().contains(actions.getClient().getOurUser())) {
+        if (message.startsWith(actions.getTable(PrefixTable.class).getPrefix(e.getMessage().getGuild())) || e.getMessage().getMentions().contains(actions.getClient().getOurUser())) {
             CommContext cont = new CommContext(e, actions);
             try {
                 Entry<Command, Method> commandSet = commandList.getSubCommand(cont.getArgs());

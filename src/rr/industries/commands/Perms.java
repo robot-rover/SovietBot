@@ -38,8 +38,8 @@ public class Perms implements Command {
     }
 
     @SubCommand(name = "set", Syntax = {
-            @Syntax(helpText = "Sets the Permissions of the user(s) @\u200Bmentioned", args = {Arguments.MENTION, Arguments.NUMBER}),
-            @Syntax(helpText = "Sets the Permissions of all users with the Role(s) @\u200Bmentioned", args = {Arguments.MENTIONROLE, Arguments.NUMBER})
+            @Syntax(helpText = "Sets the Permissions of the user(s) @\u200Bmentioned", args = {Arguments.MENTION, Arguments.NUMBER}, options = {"0 - Normal", "1 - Regular", "2 - Moderator", "3 - Admin"}),
+            @Syntax(helpText = "Sets the Permissions of all users with the Role(s) @\u200Bmentioned", args = {Arguments.MENTIONROLE, Arguments.NUMBER}, options = {"0 - Normal", "1 - Regular", "2 - Moderator", "3 - Admin"})
     })
     public void set(CommContext cont) throws BotException {
         MessageBuilder message = cont.builder();
