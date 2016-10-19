@@ -1,6 +1,7 @@
 package rr.industries.modules;
 
 import com.google.gson.Gson;
+import org.apache.commons.codec.digest.DigestUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import rr.industries.pojos.RestartPost;
@@ -14,6 +15,7 @@ import sx.blah.discord.util.MessageBuilder;
 
 import java.io.BufferedWriter;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileWriter;
 import java.net.URLDecoder;
 import java.time.ZoneId;
@@ -50,11 +52,20 @@ public class Webhooks implements Module {
         Spark.post("/command", (Request request, Response response) -> {
             RestartPost restart = gson.fromJson(request.body(), RestartPost.class);
             LOG.info("Command POST received - " + restart.command);
-            if (!restart.secret.equals(actions.getConfig().secret)) {
+            if (restart.secret == null || !restart.secret.equals(actions.getConfig().secret)) {
                 response.status(418);
                 return "I'm a teapot";
             }
             if (restart.command.equals("restart")) {
+                if (restart.name == null) {
+                    response.status(400);
+                    return "Missing MD5 hash in field Name";
+                }
+                String fileHash = DigestUtils.md5Hex(new FileInputStream(new File("sovietBot-update.jar")));
+                if (!restart.name.equals(fileHash)) {
+                    response.status(400);
+                    return "MD5 hashes do not match Post:(" + restart.name + "), File:(" + fileHash + ")";
+                }
                 LOG.info("Everything Looks good, Restarting...");
                 Thread thread = new Thread() {
                     @Override

@@ -89,7 +89,7 @@ public class Weather implements Command {
     }
 
     private Result queryGoogle(List<String> args) throws BotException {
-        GeoCoding response = null;
+        GeoCoding response;
         try {
             response = gson.fromJson(
                     Unirest.post("https://maps.googleapis.com/maps/api/geocode/json")

@@ -7,6 +7,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import rr.industries.commands.Command;
 import rr.industries.commands.Info;
+import rr.industries.commands.PermWarning;
 import rr.industries.exceptions.BotException;
 import rr.industries.exceptions.IncorrectArgumentsException;
 import rr.industries.exceptions.InternalError;
@@ -134,12 +135,17 @@ public class Instance {
         }
         String[] filename = config.botAvatar.split("[.]");
         client.changeAvatar(Image.forStream(filename[filename.length - 1], SovietBot.resourceLoader.getResourceAsStream(config.botAvatar)));
+        List<sx.blah.discord.handle.obj.Permissions> neededPerms = SovietBot.neededPerms.stream().map(Entry::first).collect(Collectors.toList());
         for (IGuild guild : client.getGuilds()) {
+            PermWarning permTool = commandList.getCommand(PermWarning.class);
+            List<sx.blah.discord.handle.obj.Permissions> missingPerms = permTool.checkPerms(guild, client.getOurUser(), neededPerms);
             try {
-            actions.getTable(PermTable.class).setPerms(guild, guild.getOwner(), Permissions.ADMIN);
-            for (String op : config.operators)
-                actions.getTable(PermTable.class).setPerms(guild, client.getUserByID(op), Permissions.BOTOPERATOR);
-            LOG.info("Connected to Guild: " + guild.getName() + " (" + guild.getID() + ")");
+                actions.getTable(PermTable.class).setPerms(guild, guild.getOwner(), Permissions.ADMIN);
+                for (String op : config.operators)
+                    actions.getTable(PermTable.class).setPerms(guild, client.getUserByID(op), Permissions.BOTOPERATOR);
+                LOG.info("Connected to Guild: " + guild.getName() + " (" + guild.getID() + ")");
+                if (!missingPerms.isEmpty())
+                    LOG.info("Missing Perms in guild {} ({}): {}", guild.getName(), guild.getID(), permTool.formatPerms(missingPerms));
             } catch (BotException ex) {
                 actions.channels().exception(ex);
             }

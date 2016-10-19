@@ -85,7 +85,6 @@ public class Table {
         try {
             found = queryValue(vals).next();
         } catch (SQLException ex) {
-            found = false;
             throw BotException.returnException(ex);
         }
         try {

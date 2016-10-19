@@ -52,6 +52,16 @@ public class CommandList {
         }
     }
 
+    @SuppressWarnings("unchecked")
+    public <T extends Command> T getCommand(Class<T> c) {
+        try {
+            return (T) commandList.stream().filter((Command v) -> v.getClass().equals(c))
+                    .findAny().orElseThrow(() -> new NullPointerException("No Command from Class" + c.getName()));
+        } catch (NullPointerException ex) {
+            throw new ProviderException("CommandInfo annotation is misconfigured", ex);
+        }
+    }
+
     public static void addCommand(Class<? extends Command> comm) {
         defaultCommandList.add(comm);
     }

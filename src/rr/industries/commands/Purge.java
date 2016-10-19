@@ -15,25 +15,26 @@ import sx.blah.discord.util.MissingPermissionsException;
         deleteMessage = false
 )
 public class Purge implements Command {
+    final static int tries = 2;
     //    @SuppressWarnings("CollectionAddedToSelf")
     @SubCommand(name = "", Syntax = {@Syntax(helpText = "Deletes the number off messages you specify", args = {Arguments.NUMBER})})
     public void execute(CommContext cont) throws BotException {
-
-        MessageList clear;
         int number = Integer.parseInt(cont.getArgs().get(1)) + 1;
         if (number > 100 || number < 2) {
             throw new IncorrectArgumentsException("Your number must be between 1 and 99");
         }
-        clear = new MessageList(cont.getClient(), cont.getMessage().getChannel(), number);
+        MessageList clear = cont.getMessage().getChannel().getMessages();
+        clear.setCacheCapacity(number);
         BotUtils.bufferRequest(() -> {
             try {
-                for (int i = 0; i < 5 && clear.size() < number; i++) {
+                boolean successful = clear.size() == number;
+                for (int i = 0; i < tries && !successful; i++) {
                     int loading = number - clear.size();
-                    clear.load(loading);
-                    LOG.info("Attempted to load {} messages. MessageList now has {} messages.", loading, clear.size());
+                    successful = clear.load(loading);
+                    LOG.info((successful ? "Succeeded " : "Failed") + " to load/unload {} messages. MessageList now has {} messages.", loading, clear.size());
                 }
-                if (clear.size() < number)
-                    throw new InternalError("Could not load required messages after trying 5 times (" + number + " required, " + clear.size() + " loaded)");
+                if (clear.size() != number)
+                    throw new InternalError("Could not load required messages after trying " + tries + " times (" + number + " required, " + clear.size() + " loaded)");
                 clear.bulkDelete(clear);
             } catch (DiscordException | MissingPermissionsException ex) {
                 throw BotException.returnException(ex);
