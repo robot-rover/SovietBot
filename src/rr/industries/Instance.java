@@ -171,7 +171,7 @@ public class Instance {
             CommContext cont = new CommContext(e, actions);
             try {
                 Entry<Command, Method> commandSet = commandList.getSubCommand(cont.getArgs());
-                if (cont.mentionsMe()) {
+                if (cont.mentionsMe() && !cont.getMessage().mentionsEveryone()) {
                     try {
                         invokeCommand(commandList.getCommand("info"), Info.class.getMethod("execute", CommContext.class), cont);
                     } catch (NoSuchMethodException ex) {
