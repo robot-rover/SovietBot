@@ -93,7 +93,7 @@ public class Instance {
             Connection connection = DriverManager.getConnection("jdbc:sqlite:sovietBot.db");
             Statement statement = connection.createStatement();
             statement.setQueryTimeout(20);  // set timeout to 20 sec.
-            tables = new ITable[]{new PermTable(statement), new TimeTable(statement), new TagTable(statement), new PrefixTable(statement, config)};
+            tables = new ITable[]{new PermTable(statement), new TimeTable(statement), new TagTable(statement), new PrefixTable(statement, config), new GreetingTable(statement)};
         } catch (SQLException | BotException ex) {
             LOG.error("Unable to Initialize Database", ex);
             System.exit(1);
@@ -108,6 +108,35 @@ public class Instance {
         client.login(false);
         ChannelActions ca = new ChannelActions(client, config);
         actions = new BotActions(client, commandList, tables, new Module[]{new Console(ca), new UTCStatus(client), new Webhooks(ca)}, ca);
+    }
+
+    @EventSubscriber
+    public void onUserJoin(UserJoinEvent e) {
+        try {
+            Optional<String> messageContent = actions.getTable(GreetingTable.class).getJoinMessage(e.getGuild());
+            if (messageContent.isPresent()) {
+                MessageBuilder message = new MessageBuilder(client).withChannel(client.getChannelByID(e.getGuild().getID()))
+                        .withContent(messageContent.get().replace("%user", e.getUser().mention()));
+                actions.channels().sendMessage(message);
+            }
+        } catch (BotException ex) {
+            actions.channels().exception(ex, new MessageBuilder(client).withChannel(client.getChannelByID(e.getGuild().getID())));
+        }
+    }
+
+    @EventSubscriber
+    public void onUserLeave(UserLeaveEvent e) {
+        try {
+            Optional<String> messageContent = actions.getTable(GreetingTable.class).getLeaveMessage(e.getGuild());
+            if (messageContent.isPresent()) {
+                MessageBuilder message = new MessageBuilder(client).withChannel(client.getChannelByID(e.getGuild().getID()))
+                        .withContent(messageContent.get().replace("%user", e.getUser().mention()));
+                actions.channels().sendMessage(message);
+            }
+        } catch (BotException ex) {
+            actions.channels().exception(ex, new MessageBuilder(client).withChannel(client.getChannelByID(e.getGuild().getID())));
+        }
+
     }
 
     @EventSubscriber

@@ -6,6 +6,7 @@ package rr.industries.util.sql;
 public class Value {
     private String value;
     private boolean isQueried;
+    private boolean isBlank;
 
     private <T> Value(T raw, boolean isQueried) {
         if (raw instanceof Boolean)
@@ -24,11 +25,20 @@ public class Value {
     }
 
     public static Value empty() {
-        return new Value(null, false);
+        return new Value(null, false).makeBlank();
+    }
+
+    private Value makeBlank() {
+        this.isBlank = true;
+        return this;
     }
 
     @Override
     public String toString() {
         return value;
+    }
+
+    public boolean isBlank() {
+        return isBlank;
     }
 }

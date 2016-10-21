@@ -81,16 +81,31 @@ public class Table {
      * @return true if overwritten, false if created
      */
     protected boolean insertValue(Value... vals) throws BotException {
+        if (vals.length != columns.length) {
+            throw new InternalError("Not a Value object for every column");
+        }
         boolean found;
+        ResultSet result;
         try {
-            found = queryValue(vals).next();
+            result = queryValue(vals);
+            found = result.next();
         } catch (SQLException ex) {
             throw BotException.returnException(ex);
         }
+        Value[] queryVals = new Value[vals.length];
         try {
+            for (int i = 0; i < vals.length; i++) {
+                if (vals[i].isBlank()) {
+                    queryVals[i] = Value.of(result.getString(columns[i].name), false);
+                } else {
+                    queryVals[i] = vals[i];
+                }
+            }
             executor.execute("DELETE FROM " + tableName + getConditions(vals));
+            LOG.info("INSERT INTO " + tableName + " VALUES (" +
+                    Arrays.stream(queryVals).map(v -> "'" + v + "'").collect(Collectors.joining(", ")) + ")");
             executor.execute("INSERT INTO " + tableName + " VALUES (" +
-                    Arrays.stream(vals).map(v -> "'" + v + "'").collect(Collectors.joining(", ")) + ")");
+                    Arrays.stream(queryVals).map(v -> "'" + v + "'").collect(Collectors.joining(", ")) + ")");
         } catch (SQLException ex) {
             throw BotException.returnException(ex);
         }
