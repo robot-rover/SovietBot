@@ -13,15 +13,15 @@ import spark.Spark;
 import sx.blah.discord.handle.obj.IGuild;
 import sx.blah.discord.util.MessageBuilder;
 
-import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.FileWriter;
 import java.net.URLDecoder;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.time.format.FormatStyle;
+import java.util.Arrays;
+import java.util.stream.Collectors;
 
 /**
  * Credit to Chrislo for the basis and the POJOs
@@ -87,14 +87,9 @@ public class Webhooks implements Module {
                 IGuild guild = actions.getClient().getChannelByID(channelID).getGuild();
                 LOG.info("Developer Profile Recieved, Uploading to " + guild.getName() + " (" + guild.getID()
                         + ") @ " + actions.getClient().getChannelByID(channelID).getName() + " (" + channelID + ")");
-                File profile = new File(restart.name + "_" + System.currentTimeMillis() + ".txt");
-                BufferedWriter writer = new BufferedWriter(new FileWriter(profile));
-                for (String line : restart.linesOfLog) {
-                    writer.write(line);
-                    writer.write("\n");
-                }
-                writer.close();
-                actions.getClient().getChannelByID(channelID).sendFile(profile);
+
+                actions.getClient().getChannelByID(channelID)
+                        .sendFile(Arrays.stream(restart.linesOfLog).collect(Collectors.joining("\n")), restart.name + "_profile", restart.name + "'s PC Profile");
 
             }
             response.status(200);
