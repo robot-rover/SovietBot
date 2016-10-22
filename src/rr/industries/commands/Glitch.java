@@ -10,7 +10,7 @@ import java.util.regex.Pattern;
  * @author Sam
  */
 
-@CommandInfo(commandName = "glitch", helpText = "Creates Glitched out (Zalgo) text")
+@CommandInfo(commandName = "glitch", helpText = "Creates Glitched out (Zalgo) text", pmSafe = true)
 public class Glitch implements Command {
     private static String[] zalgoMiddle;
     private static String[] zalgoUp;

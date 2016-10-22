@@ -7,7 +7,8 @@ import rr.industries.util.Syntax;
 
 @CommandInfo(
         commandName = "coin",
-        helpText = "Flips a coin."
+        helpText = "Flips a coin.",
+        pmSafe = true
 )
 public class Coin implements Command {
     @SubCommand(name = "", Syntax = {@Syntax(helpText = "Says either heads or tails", args = {})})

@@ -12,7 +12,8 @@ import java.time.format.FormatStyle;
 @CommandInfo(
         commandName = "env",
         helpText = "Displays stats about the bot",
-        permLevel = Permissions.BOTOPERATOR
+        permLevel = Permissions.BOTOPERATOR,
+        pmSafe = true
 )
 public class Environment implements Command {
     private static final int byteToMegabyte = 1048576;

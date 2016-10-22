@@ -5,7 +5,8 @@ import sx.blah.discord.util.MessageBuilder;
 
 @CommandInfo(
         commandName = "echo",
-        helpText = "Echoes whatever you say."
+        helpText = "Echoes whatever you say.",
+        pmSafe = true
 )
 public class Echo implements Command {
     @SubCommand(name = "", Syntax = {@Syntax(helpText = "Sends back the text that you specify", args = {Arguments.LONGTEXT})})

@@ -17,7 +17,8 @@ import java.net.URL;
 
 @CommandInfo(
         commandName = "cat",
-        helpText = "Posts a random cat picture."
+        helpText = "Posts a random cat picture.",
+        pmSafe = true
 )
 public class Cat implements Command {
     @SubCommand(name = "", Syntax = {@Syntax(helpText = "Sends a random picture of a cat in a text channel", args = {})})

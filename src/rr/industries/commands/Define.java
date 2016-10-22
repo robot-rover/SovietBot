@@ -14,7 +14,7 @@ import java.util.stream.Collectors;
  * @author Sam
  */
 
-@CommandInfo(commandName = "define", helpText = "defines a word or phrase")
+@CommandInfo(commandName = "define", helpText = "defines a word or phrase", pmSafe = true)
 public class Define implements Command {
 
     @SubCommand(name = "", Syntax = {
