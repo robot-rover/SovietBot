@@ -17,7 +17,8 @@ import java.util.stream.Collectors;
 //todo: add options
 @CommandInfo(
         commandName = "help",
-        helpText = "Displays this help message"
+        helpText = "Displays this help message",
+        pmSafe = true
 )
 public class Help implements Command {
 
@@ -32,9 +33,10 @@ public class Help implements Command {
             Command command = cont.getActions().getCommands().getCommandList().stream().filter(v -> v.getClass().getAnnotation(CommandInfo.class).commandName().equals(name)).findAny().orElse(null);
             if (command != null) {
                 CommandInfo commandInfo = command.getClass().getDeclaredAnnotation(CommandInfo.class);
-                message.appendContent("**" + cont.getCommChar() + commandInfo.commandName() + " - " + commandInfo.helpText() + "**\n");
+                message.appendContent("**" + cont.getCommChar() + commandInfo.commandName() + " - " + commandInfo.helpText() + "**\n" + (commandInfo.pmSafe() ? "`|PM|`" : ""));
                 message.appendContent("`<>` means replace with your own value. `[]` means you can give more than one value.\n");
-                message.appendContent("For more help, visit <**" + SovietBot.website + "commands/" + commandInfo.commandName() + ".html**>\n");
+                if (commandInfo.permLevel() != Permissions.BOTOPERATOR)
+                    message.appendContent("For more help, visit <**" + SovietBot.website + "commands/" + commandInfo.commandName() + ".html**>\n");
                 SubCommand mainSubCommand = null;
                 List<SubCommand> subCommands = new ArrayList<>();
                 for (Method method : command.getClass().getDeclaredMethods()) {
@@ -58,7 +60,10 @@ public class Help implements Command {
                         if (subCom.permLevel().level > commandInfo.permLevel().level) {
                             message.appendContent("<*" + subCom.permLevel().title + "*> ");
                         }
-                        message.appendContent(syntax.helpText() + "\n");
+                        message.appendContent(syntax.helpText());
+                        if (!subCom.pmSafe())
+                            message.appendContent(" `|NO PM|`");
+                        message.appendContent("\n");
                         if (syntax.options().length > 0) {
                             message.appendContent(Arrays.stream(syntax.options()).collect(Collectors.joining(" | ", "( ", " )"))).appendContent("\n");
                         }
@@ -86,6 +91,7 @@ public class Help implements Command {
                                 .map(v -> v.getClass().getDeclaredAnnotation(CommandInfo.class)).forEach(comm -> message2.appendContent("\t" + cont.getCommChar() + comm.commandName() + " - " + comm.helpText() + "\n"));
                     }
                     cont.getActions().channels().sendMessage(message2.appendContent("```"));
+                    if (!cont.getMessage().getChannel().isPrivate())
                     cont.getActions().channels().sendMessage(message.withContent(cont.getMessage().getAuthor().mention() + ", Check your PMs!"));
                 } catch (DiscordException ex) {
                     throw BotException.returnException(ex);

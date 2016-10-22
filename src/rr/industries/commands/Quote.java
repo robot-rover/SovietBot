@@ -7,7 +7,8 @@ import rr.industries.util.Syntax;
 
 @CommandInfo(
         commandName = "quote",
-        helpText = "Tells an \"In Soviet Russia\" joke."
+        helpText = "Tells an \"In Soviet Russia\" joke.",
+        pmSafe = true
 )
 public class Quote implements Command {
     private final String[] quotes;

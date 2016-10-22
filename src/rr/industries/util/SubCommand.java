@@ -15,4 +15,6 @@ public @interface SubCommand {
 
     Syntax[] Syntax();
 
+    boolean pmSafe() default true;
+
 }

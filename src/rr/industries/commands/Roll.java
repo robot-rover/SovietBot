@@ -11,7 +11,8 @@ import java.util.stream.Collectors;
 
 @CommandInfo(
         commandName = "roll",
-        helpText = "Rolls a random number in a variety of ways"
+        helpText = "Rolls a random number in a variety of ways",
+        pmSafe = true
 )
 public class Roll implements Command {
     @SubCommand(name = "", Syntax = {

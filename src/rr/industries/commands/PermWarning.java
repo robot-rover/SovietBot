@@ -18,7 +18,7 @@ import java.util.stream.Collectors;
  * @author Sam
  */
 
-@CommandInfo(commandName = "permwarning", helpText = "sends a warning to all guilds where I don't have perms I need", permLevel = rr.industries.util.Permissions.BOTOPERATOR)
+@CommandInfo(commandName = "permwarning", helpText = "sends a warning to all guilds where I don't have perms I need", permLevel = rr.industries.util.Permissions.BOTOPERATOR, pmSafe = true)
 public class PermWarning implements Command {
 
     public static List<Permissions> BLANK_LIST = new ArrayList<>(0);

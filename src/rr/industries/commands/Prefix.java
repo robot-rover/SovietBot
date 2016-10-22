@@ -5,7 +5,8 @@ import rr.industries.util.*;
 @CommandInfo(
         commandName = "prefix",
         helpText = "Changes the character(s) of the bot",
-        permLevel = Permissions.BOTOPERATOR
+        permLevel = Permissions.BOTOPERATOR,
+        pmSafe = true
 )
 //todo: Guild specific command character
 public class Prefix implements Command {

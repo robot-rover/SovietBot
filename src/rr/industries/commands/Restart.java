@@ -7,7 +7,8 @@ import rr.industries.util.*;
         commandName = "restart",
         helpText = "Restarts the bot.",
         permLevel = Permissions.BOTOPERATOR,
-        deleteMessage = false
+        deleteMessage = false,
+        pmSafe = true
 )
 public class Restart implements Command {
     @SubCommand(name = "", Syntax = {@Syntax(helpText = "The process running the bot stops and restarts", args = {})})

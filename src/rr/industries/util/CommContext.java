@@ -26,18 +26,12 @@ public class CommContext {
     private final Permissions callerPerms;
     private final BotActions actions;
     private final IMessage message;
-    private final boolean mentionsMe;
 
     public CommContext(MessageReceivedEvent e, BotActions actions) {
         this.commChar = actions.getTable(PrefixTable.class).getPrefix(e.getMessage().getGuild());
         this.actions = actions;
         this.message = e.getMessage();
-        mentionsMe = e.getMessage().getMentions().contains(getClient().getOurUser());
-        if (e.getMessage().getChannel().isPrivate()) {
-            callerPerms = Permissions.NORMAL;
-        } else {
-            callerPerms = actions.getTable(PermTable.class).getPerms(e.getMessage().getAuthor(), e.getMessage().getGuild());
-        }
+        callerPerms = actions.getTable(PermTable.class).getPerms(e.getMessage().getAuthor(), e.getMessage().getGuild());
         Scanner parser = new Scanner(e.getMessage().getContent());
         while (parser.hasNext()) {
             args.add(parser.next());
@@ -83,9 +77,5 @@ public class CommContext {
 
     public String getCommChar() {
         return commChar;
-    }
-
-    public boolean mentionsMe() {
-        return mentionsMe;
     }
 }

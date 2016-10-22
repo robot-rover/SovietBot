@@ -8,10 +8,8 @@ import org.slf4j.LoggerFactory;
 import rr.industries.commands.Command;
 import rr.industries.commands.Info;
 import rr.industries.commands.PermWarning;
-import rr.industries.exceptions.BotException;
-import rr.industries.exceptions.IncorrectArgumentsException;
+import rr.industries.exceptions.*;
 import rr.industries.exceptions.InternalError;
-import rr.industries.exceptions.MissingPermsException;
 import rr.industries.modules.Console;
 import rr.industries.modules.Module;
 import rr.industries.modules.UTCStatus;
@@ -93,7 +91,7 @@ public class Instance {
             Connection connection = DriverManager.getConnection("jdbc:sqlite:sovietBot.db");
             Statement statement = connection.createStatement();
             statement.setQueryTimeout(20);  // set timeout to 20 sec.
-            tables = new ITable[]{new PermTable(statement), new TimeTable(statement), new TagTable(statement), new PrefixTable(statement, config), new GreetingTable(statement)};
+            tables = new ITable[]{new PermTable(statement, config), new TimeTable(statement), new TagTable(statement), new PrefixTable(statement, config), new GreetingTable(statement)};
         } catch (SQLException | BotException ex) {
             LOG.error("Unable to Initialize Database", ex);
             System.exit(1);
@@ -188,62 +186,63 @@ public class Instance {
         if (e.getMessage().getAuthor().isBot()) {
             return;
         }
-        if (e.getMessage().getChannel().isPrivate()) {
-            actions.channels().sendMessage(new MessageBuilder(client).withContent("Sorry, until PM channels are thoroughly tested, the bot cannot reply to you in them. Its really buggy XP")
-                    .withChannel(e.getMessage().getChannel()));
-            return;
-        }
         String message = e.getMessage().getContent();
-        if (message.startsWith(actions.getTable(PrefixTable.class).getPrefix(e.getMessage().getGuild())) || e.getMessage().getMentions().contains(actions.getClient().getOurUser())) {
+        boolean command = message.startsWith(actions.getTable(PrefixTable.class).getPrefix(e.getMessage().getGuild()));
+        boolean mention = e.getMessage().getMentions().contains(client.getOurUser()) && !e.getMessage().mentionsEveryone();
+        if (command || mention) {
             CommContext cont = new CommContext(e, actions);
             try {
-                Entry<Command, Method> commandSet = commandList.getSubCommand(cont.getArgs());
-                if (cont.mentionsMe() && !cont.getMessage().mentionsEveryone()) {
+                if (command) {
+                    Entry<Command, Method> commandSet = commandList.getSubCommand(cont.getArgs());
+                    if (commandSet.second() != null) {
+                        SubCommand subComm = commandSet.second().getAnnotation(SubCommand.class);
+                        CommandInfo commandInfo = commandSet.first().getClass().getAnnotation(CommandInfo.class);
+                        if (e.getMessage().getChannel().isPrivate() && !commandInfo.pmSafe() || !subComm.pmSafe()) {
+                            throw new PMNotSupportedException();
+                        }
+                        if (subComm.permLevel().level > cont.getCallerPerms().level || commandInfo.permLevel().level > cont.getCallerPerms().level) {
+                            throw new MissingPermsException("use the " + commandInfo.commandName() + " command", subComm.permLevel().level > commandInfo.permLevel().level ? subComm.permLevel() : commandInfo.permLevel());
+                        } else {
+                            final int iteratorConstant = (subComm.name().equals("") ? 1 : 2);
+                            List<Syntax> syntax = Arrays.stream(subComm.Syntax()).filter(
+                                    v -> v.args().length + iteratorConstant == cont.getArgs().size() ||
+                                            v.args().length + iteratorConstant <= cont.getArgs().size() && Arrays.asList(v.args()).contains(Arguments.LONGTEXT))
+                                    .collect(Collectors.toList());
+                            if (commandSet.first().getValiddityOverride() != null) {
+                                if (!commandSet.first().getValiddityOverride().test(cont.getArgs())) {
+                                    throw new IncorrectArgumentsException();
+                                }
+                            } else if (!syntax.isEmpty()) {
+                                boolean found = false;
+                                outerLoop:
+                                for (Syntax syntax1 : syntax) {
+                                    found = true;
+                                    for (int i = 0; i < syntax1.args().length; i++) {
+                                        if (syntax1.args()[i].equals(Arguments.LONGTEXT) && Arguments.LONGTEXT.isValid.test(cont.getArgs().get(i + iteratorConstant))) {
+                                            break outerLoop;
+                                        }
+                                        if (!syntax1.args()[i].isValid.test(cont.getArgs().get(i + iteratorConstant))) {
+                                            found = false;
+                                            break;
+                                        }
+                                    }
+                                    if (found) {
+                                        break;
+                                    }
+                                }
+                                if (!found)
+                                    throw new IncorrectArgumentsException();
+                            } else {
+                                throw new IncorrectArgumentsException();
+                            }
+                            invokeCommand(commandSet.first(), commandSet.second(), cont);
+                        }
+                    }
+                } else {
                     try {
                         invokeCommand(commandList.getCommand("info"), Info.class.getMethod("execute", CommContext.class), cont);
                     } catch (NoSuchMethodException ex) {
                         throw new InternalError("Could not execute Info command for mention", ex);
-                    }
-                }
-                if (commandSet.second() != null) {
-                    SubCommand subComm = commandSet.second().getAnnotation(SubCommand.class);
-                    CommandInfo commandInfo = commandSet.first().getClass().getAnnotation(CommandInfo.class);
-                    if (subComm.permLevel().level > cont.getCallerPerms().level || commandInfo.permLevel().level > cont.getCallerPerms().level) {
-                        throw new MissingPermsException("use the " + commandInfo.commandName() + " command", subComm.permLevel().level > commandInfo.permLevel().level ? subComm.permLevel() : commandInfo.permLevel());
-                    } else {
-                        final int iteratorConstant = (subComm.name().equals("") ? 1 : 2);
-                        List<Syntax> syntax = Arrays.stream(subComm.Syntax()).filter(
-                                v -> v.args().length + iteratorConstant == cont.getArgs().size() ||
-                                        v.args().length + iteratorConstant <= cont.getArgs().size() && Arrays.asList(v.args()).contains(Arguments.LONGTEXT))
-                                .collect(Collectors.toList());
-                        if (commandSet.first().getValiddityOverride() != null) {
-                            if (!commandSet.first().getValiddityOverride().test(cont.getArgs())) {
-                                throw new IncorrectArgumentsException();
-                            }
-                        } else if (!syntax.isEmpty()) {
-                            boolean found = false;
-                            outerLoop:
-                            for (Syntax syntax1 : syntax) {
-                                found = true;
-                                for (int i = 0; i < syntax1.args().length; i++) {
-                                    if (syntax1.args()[i].equals(Arguments.LONGTEXT) && Arguments.LONGTEXT.isValid.test(cont.getArgs().get(i + iteratorConstant))) {
-                                        break outerLoop;
-                                    }
-                                    if (!syntax1.args()[i].isValid.test(cont.getArgs().get(i + iteratorConstant))) {
-                                        found = false;
-                                        break;
-                                    }
-                                }
-                                if (found) {
-                                    break;
-                                }
-                            }
-                            if (!found)
-                                throw new IncorrectArgumentsException();
-                        } else {
-                            throw new IncorrectArgumentsException();
-                        }
-                        invokeCommand(commandSet.first(), commandSet.second(), cont);
                     }
                 }
             } catch (BotException ex) {

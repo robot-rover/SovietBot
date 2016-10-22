@@ -10,7 +10,8 @@ import java.util.regex.Pattern;
 @CommandInfo(
         commandName = "rip",
         helpText = "Gives you a link to a place where everything is Rip",
-        permLevel = Permissions.REGULAR
+        permLevel = Permissions.REGULAR,
+        pmSafe = true
 )
 public class Rip implements Command {
 

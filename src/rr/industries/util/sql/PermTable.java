@@ -1,5 +1,6 @@
 package rr.industries.util.sql;
 
+import rr.industries.Configuration;
 import rr.industries.exceptions.BotException;
 import rr.industries.util.BotUtils;
 import rr.industries.util.Entry;
@@ -11,23 +12,32 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 /**
  * @author robot_rover
  */
 public class PermTable extends Table implements ITable {
-    public PermTable(Statement executor) throws BotException {
+    private Configuration config;
+
+    public PermTable(Statement executor, Configuration config) throws BotException {
         super("perms", executor,
                 new Column("guildid", "text", false),
                 new Column("userid", "text", false),
                 new Column("perm", "int", false)
         );
+        this.config = config;
         this.createIndex("permsindex", "guildid, userid", true);
 
     }
 
     public Permissions getPerms(IUser user, IGuild guild) {
+        if (guild == null) {
+            if (Arrays.asList(config.operators).contains(user.getID()))
+                return Permissions.BOTOPERATOR;
+            return Permissions.REGULAR;
+        }
         try {
             ResultSet result = queryValue(Value.of(guild.getID(), true), Value.of(user.getID(), true), Value.empty());
             if (result.next()) {

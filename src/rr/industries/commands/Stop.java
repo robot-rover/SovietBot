@@ -7,7 +7,8 @@ import rr.industries.util.*;
         commandName = "stop",
         helpText = "Shuts down SovietBot",
         permLevel = Permissions.BOTOPERATOR,
-        deleteMessage = false
+        deleteMessage = false,
+        pmSafe = true
 )
 public class Stop implements Command {
     @SubCommand(name = "", Syntax = {@Syntax(helpText = "Stops the process running the bot", args = {})})

@@ -17,7 +17,8 @@ import java.util.stream.Collectors;
 @CommandInfo(
         commandName = "log",
         helpText = "Uploads the bots log to Chat",
-        permLevel = Permissions.BOTOPERATOR
+        permLevel = Permissions.BOTOPERATOR,
+        pmSafe = true
 )
 public class Log implements Command {
     @SubCommand(name = "full", Syntax = {@Syntax(helpText = "Uploads the log at Debug Level", args = {})})

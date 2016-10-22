@@ -17,4 +17,6 @@ public @interface CommandInfo {
     Permissions permLevel() default Permissions.NORMAL;
 
     boolean deleteMessage() default true;
+
+    boolean pmSafe() default false;
 }

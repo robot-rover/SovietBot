@@ -11,13 +11,12 @@ import rr.industries.util.*;
 /**
  * @author Sam
  */
-@CommandInfo(commandName = "shorten", helpText = "Shortens URLs")
+@CommandInfo(commandName = "shorten", helpText = "Shortens URLs", pmSafe = true)
 public class Shorten implements Command {
 
     @SubCommand(name = "", Syntax = {@Syntax(helpText = "Gives you a shortened version of the link", args = {Arguments.LINK})})
     public void execute(CommContext cont) throws BotException {
         String url = cont.getArgs().get(1);
-        LOG.info(url);
         try {
             HttpResponse<String> response = Unirest.post("https://www.googleapis.com/urlshortener/v1/url").header("Content-Type", "application/json")
                     .queryString("key", cont.getActions().getConfig().googleKey).body(gson.toJson(new URLRequest(url))).asString();

@@ -31,6 +31,9 @@ public class PrefixTable extends Table implements ITable {
     }
 
     public String getPrefix(IGuild guild) {
+        if (guild == null) {
+            return config.commChar;
+        }
         try {
             ResultSet set = queryValue(Value.of(guild.getID(), true), Value.empty());
             if (set.next()) {
