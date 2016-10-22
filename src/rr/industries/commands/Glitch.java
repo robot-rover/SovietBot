@@ -75,10 +75,13 @@ public class Glitch implements Command {
             int charMult;
             //add the normal character
             message.appendContent(txt.substring(i, i + 1));
+            if (txt.substring(i, i + 1).equals("`")) {
+                continue;
+            }
             charMult = -1 * (8 / (txt.length() / 2)) * Math.abs(i - (txt.length() / 2)) + 8;
             num_Up = (charMult > 0 ? rn.nextInt(charMult) : 0) + 1;
             numDown = (charMult > 0 ? rn.nextInt(charMult) : 0) + 1;
-            numMid = rn.nextInt(4) + 1;
+            numMid = rn.nextInt(1) + 1;
 
             for (int j = 0; j < num_Up; j++)
                 message.appendContent(zalgoUp[rn.nextInt(zalgoUp.length)]);
