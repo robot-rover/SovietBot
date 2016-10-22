@@ -9,13 +9,14 @@ import java.util.ArrayList;
 import java.util.List;
 
 @Generated("org.jsonschema2pojo")
-public class DictionaryResponse {
+public class Result {
 
-    @SerializedName("status")
+    @SerializedName("senses")
     @Expose
-    public Integer status;
-    @SerializedName("results")
+    public List<Sense> senses = new ArrayList<Sense>();
+
+    @SerializedName("headword")
     @Expose
-    public List<Result> results = new ArrayList<Result>();
+    public String headword;
 
 }

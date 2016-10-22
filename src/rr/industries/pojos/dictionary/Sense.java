@@ -9,13 +9,13 @@ import java.util.ArrayList;
 import java.util.List;
 
 @Generated("org.jsonschema2pojo")
-public class Tuc {
+public class Sense {
 
-    @SerializedName("phrase")
+    @SerializedName("definition")
     @Expose
-    public Phrase phrase;
-    @SerializedName("meanings")
+    public String definition;
+    @SerializedName("examples")
     @Expose
-    public List<Meaning> meanings = new ArrayList<Meaning>();
+    public List<Example> examples = new ArrayList<Example>();
 
 }

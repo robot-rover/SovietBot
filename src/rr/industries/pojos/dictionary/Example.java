@@ -7,7 +7,7 @@ import com.google.gson.annotations.SerializedName;
 import javax.annotation.Generated;
 
 @Generated("org.jsonschema2pojo")
-public class Meaning {
+public class Example {
 
     @SerializedName("text")
     @Expose

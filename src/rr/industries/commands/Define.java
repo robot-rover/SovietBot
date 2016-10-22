@@ -5,6 +5,7 @@ import com.mashape.unirest.http.Unirest;
 import com.mashape.unirest.http.exceptions.UnirestException;
 import rr.industries.exceptions.BotException;
 import rr.industries.pojos.dictionary.DictionaryResponse;
+import rr.industries.pojos.dictionary.Result;
 import rr.industries.util.*;
 import sx.blah.discord.util.MessageBuilder;
 
@@ -23,20 +24,21 @@ public class Define implements Command {
     })
     public void execute(CommContext cont) throws BotException {
         try {
-            HttpResponse<String> response = Unirest.get("https://glosbe.com/gapi_v0_1/translate").queryString("from", "eng")
-                    .queryString("dest", "eng").queryString("format", "json").queryString("phrase", cont.getConcatArgs(1).toLowerCase()).asString();
+            HttpResponse<String> response = Unirest.get("http://api.pearson.com/v2/dictionaries/wordwise/entries")
+                    .queryString("token", cont.getActions().getConfig().dictKey)
+                    .queryString("headword", cont.getConcatArgs(1).toLowerCase()).asString();
             DictionaryResponse dict = gson.fromJson(response.getBody(), DictionaryResponse.class);
-            if (!dict.result.equals("ok"))
-                throw new InternalError("Dictionary API returned status: " + dict.result);
+            if (dict.status != 200)
+                throw new InternalError("Dictionary API returned status: " + dict.status);
             MessageBuilder message = cont.builder();
-            message.withContent("Definitions of ").appendContent(dict.phrase).appendContent("\n");
-            String defs = dict.tuc.stream().filter(v -> v.phrase == null)
-                    .map(v -> v.meanings.stream().map(q -> "`+` ".concat(q.text)).collect(Collectors.joining("\n")))
-                    .collect(Collectors.joining("\n"));
-            if (defs.length() == 0) {
+            if (dict.results.size() == 0) {
                 message.appendContent("*No Definitions Found...*");
             } else {
-                message.appendContent(BotUtils.htmlToDiscord(defs));
+                Result result = dict.results.get(0);
+                message.withContent("Definitions of ").appendContent(result.headword).appendContent("\n");
+                message.appendContent(result.senses.stream().filter(v -> v.definition != null).map(v -> "`+` " + v.definition +
+                        (v.examples.size() != 0 ? v.examples.stream().map(j -> "\t`-` " + j.text).collect(Collectors.joining("\n", "\n", "")) : ""))
+                        .collect(Collectors.joining("\n")));
             }
             cont.getActions().channels().sendMessage(message);
         } catch (UnirestException ex) {

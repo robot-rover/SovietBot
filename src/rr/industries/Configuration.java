@@ -10,8 +10,9 @@ public class Configuration {
     public String[] operators;
     public String owmKey;
     public String googleKey;
+    public String dictKey;
 
-    public Configuration(String botName, String botAvatar, String commChar, String token, String secret, int webhooksPort, String[] operators, String owmKey, String googleKey) {
+    public Configuration(String botName, String botAvatar, String commChar, String token, String secret, int webhooksPort, String[] operators, String owmKey, String googleKey, String dictKey) {
         this.botName = botName;
         this.botAvatar = botAvatar;
         this.commChar = commChar;
@@ -21,6 +22,7 @@ public class Configuration {
         this.operators = (operators == null ? new String[0] : operators);
         this.owmKey = owmKey;
         this.googleKey = googleKey;
+        this.dictKey = dictKey;
     }
 
     @Override

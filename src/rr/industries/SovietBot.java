@@ -36,7 +36,7 @@ public class SovietBot {
     private static final Logger LOG = LoggerFactory.getLogger(SovietBot.class);
     public static volatile boolean loggedIn = false;
     public static final ClassLoader resourceLoader = Instance.class.getClassLoader();
-    public static final Configuration defaultConfig = new Configuration("SovietBot", "person.jpeg", ">", "", "", 1000, new String[0], "", "");
+    public static final Configuration defaultConfig = new Configuration("SovietBot", "person.jpeg", ">", "", "", 1000, new String[0], "", "", "");
     public static final String botName = "SovietBot";
     public static final String frameName = sx.blah.discord.Discord4J.NAME;
     public static final String frameVersion = sx.blah.discord.Discord4J.VERSION;
