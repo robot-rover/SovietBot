@@ -25,7 +25,7 @@ public class Shorten implements Command {
             if (shorten.error != null) {
                 StringBuilder error = new StringBuilder("Recieved Error from google: Code ").append(shorten.error.code).append(" - ").append(shorten.error.message);
                 for (Error e : shorten.error.errors) {
-                    error.append("\n" + e.toString());
+                    error.append("\n").append(e.toString());
                 }
                 throw new InternalError(error.toString());
             }

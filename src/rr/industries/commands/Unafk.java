@@ -24,7 +24,7 @@ public class Unafk implements Command {
         IVoiceChannel bringToo = cont.getMessage().getAuthor().getConnectedVoiceChannels().get(0);
         if (afk == null) {
             message.withContent("There is no AFK Channel.");
-        } else
+        } else {
             for (IUser user : afk.getConnectedUsers()) {
                 message.appendContent("User Found in AFK: " + user.getName() + " - Moving...");
                 BotUtils.bufferRequest(() -> {
@@ -35,8 +35,9 @@ public class Unafk implements Command {
                     }
                 });
             }
-        if (message.getContent().length() == 0)
-            message.withContent("No users found in AFK channel (" + afk.getName() + ")");
+            if (message.getContent().length() == 0)
+                message.withContent("No users found in AFK channel (" + afk.getName() + ")");
+        }
         cont.getActions().channels().sendMessage(message);
     }
 }

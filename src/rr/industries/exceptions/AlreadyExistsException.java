@@ -13,10 +13,6 @@ public class AlreadyExistsException extends BotException {
 
     /**
      * A(n) (type) named (name) already exists, and was not overwritten because (reason)
-     *
-     * @param name
-     * @param type
-     * @param reason
      */
     public AlreadyExistsException(String name, String type, String reason) {
         super("A" + BotUtils.startsWithVowel(type, "n ", " ", true) + " named `" + name + "` already exists, and was not overwritten because " + reason);
@@ -24,9 +20,6 @@ public class AlreadyExistsException extends BotException {
 
     /**
      * A(n) (type) named (name) already exists, and was not overwritten because you are not a (neededPerm).formatted
-     * @param name
-     * @param type
-     * @param neededPerm
      */
     public AlreadyExistsException(String name, String type, Permissions neededPerm) {
         super("A" + BotUtils.startsWithVowel(type, "n ", " ", true) + " named `" + name + "` already exists, and was not overwritten because you are not a " + neededPerm.formatted);
@@ -35,8 +28,6 @@ public class AlreadyExistsException extends BotException {
 
     /**
      * A(n) (type) named (name) already exists
-     * @param name
-     * @param type
      */
     public AlreadyExistsException(String name, String type) {
         super("A" + BotUtils.startsWithVowel(type, "n ", " ", true) + " named `" + name + "` already exists");

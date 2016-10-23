@@ -367,7 +367,7 @@ public class WeatherData extends AbstractWeatherData {
             if (this.measurements == null)
                 return Integer.MIN_VALUE;
             Integer value = this.measurements.get(lastHours);
-            return value != null ? value.intValue() : Integer.MIN_VALUE;
+            return value != null ? value : Integer.MIN_VALUE;
         }
 
         public Set<Integer> measurements() {

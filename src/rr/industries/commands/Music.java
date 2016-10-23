@@ -140,16 +140,15 @@ public class Music implements Command {
         try {
             Playlist playlist = Playlist.getPlaylist(link);
             List<AudioSource> sources = new LinkedList<>(playlist.getSources());
-            final MusicPlayer fPlayer = player;
             for (Iterator<AudioSource> it = sources.iterator(); it.hasNext(); ) {
                 AudioSource source = it.next();
                 AudioInfo info = source.getInfo();
-                List<AudioSource> queue = fPlayer.getAudioQueue();
+                List<AudioSource> queue = player.getAudioQueue();
                 if (info.getError() == null) {
                     queue.add(source);
                     writeChars(writer, " :musical_note:");
-                    if (fPlayer.isStopped())
-                        fPlayer.play();
+                    if (player.isStopped())
+                        player.play();
                 } else {
                     writeChars(writer, " :warning:");
                     LOG.info(info.getError());

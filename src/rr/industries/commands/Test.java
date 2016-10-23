@@ -5,7 +5,6 @@ import org.apache.http.HttpResponse;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.impl.client.HttpClients;
-import rr.industries.exceptions.BotException;
 import rr.industries.util.*;
 import sx.blah.discord.util.MessageBuilder;
 
@@ -22,7 +21,7 @@ import java.util.function.Predicate;
 public class Test implements Command {
 
     @SubCommand(name = "", Syntax = {@Syntax(helpText = "searches for the youtube video", args = {Arguments.LONGTEXT})})
-    public void execute(CommContext cont) throws BotException {
+    public void execute(CommContext cont) {
 
     }
 

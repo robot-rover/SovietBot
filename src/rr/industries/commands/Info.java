@@ -1,7 +1,6 @@
 package rr.industries.commands;
 
 import rr.industries.SovietBot;
-import rr.industries.exceptions.BotException;
 import rr.industries.util.CommContext;
 import rr.industries.util.CommandInfo;
 import rr.industries.util.SubCommand;
@@ -16,7 +15,7 @@ import static rr.industries.SovietBot.*;
 )
 public class Info implements Command {
     @SubCommand(name = "", Syntax = {@Syntax(helpText = "Shows you interesting things such as the bots author and invite link", args = {})})
-    public void execute(CommContext cont) throws BotException {
+    public void execute(CommContext cont) {
         String message =
                 "# **" + botName + "** #\n" +
                         "[Created with] " + frameName + " version `" + frameVersion + "`\n" +

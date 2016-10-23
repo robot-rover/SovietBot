@@ -11,7 +11,5 @@ target/
 configuration.json
 /token.txt
 sovietBot.db
-/sovietBot.db-journal
 /SovietBot
-/botOperators.json
 /samplePayload.txt

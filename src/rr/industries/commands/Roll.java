@@ -33,7 +33,7 @@ public class Roll implements Command {
                 for (int i = 0; i < reps; i++) {
                     rolls.add(rn.nextInt(value) + 1);
                 }
-                message.appendContent(rolls.stream().map(v -> v.toString()).collect(Collectors.joining(", ")));
+                message.appendContent(rolls.stream().map(Object::toString).collect(Collectors.joining(", ")));
                 message.appendContent("\n**Total: **" + rolls.stream().collect(Collectors.summingInt(v -> v)));
 
             } else {

@@ -61,15 +61,14 @@ public class Rekt implements Command {
             LOG.info(link[2]);
             Playlist playlist = Playlist.getPlaylist(link[2]);
             List<AudioSource> sources = new LinkedList<>(playlist.getSources());
-            final MusicPlayer fPlayer = player;
             if (sources.size() == 1) {
                 AudioSource source = sources.get(0);
                 AudioInfo info = source.getInfo();
-                List<AudioSource> queue = fPlayer.getAudioQueue();
+                List<AudioSource> queue = player.getAudioQueue();
                 if (info.getError() == null) {
                     queue.add(source);
-                    if (fPlayer.isStopped())
-                        fPlayer.play();
+                    if (player.isStopped())
+                        player.play();
                 } else {
                     LOG.info(info.getError());
                 }

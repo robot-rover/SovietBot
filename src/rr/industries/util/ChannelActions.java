@@ -96,20 +96,13 @@ public class ChannelActions {
     }
 
     @Deprecated
-    public void customException(String methodName, String message, @Nullable Exception ex, Logger log, boolean error) {
+    public void customException(String methodName, String message, @Nullable Exception ex) {
         String fullMessage = methodName + ": " + message;
-        if (error) {
-            log.error(fullMessage);
-            if (ex != null) {
-                log.error("Full Stack Trace - ", ex);
-            }
-            messageOwner("[ERROR] " + fullMessage, true);
-        } else {
-            log.info(fullMessage);
-            if (ex != null) {
-                log.debug("Full Stack Trace - ", ex);
-            }
+        LOG.error(fullMessage);
+        if (ex != null) {
+            LOG.error("Full Stack Trace - ", ex);
         }
+        messageOwner("[ERROR] " + fullMessage, true);
     }
 
     public void connectToChannel(IVoiceChannel channel) throws BotException {
