@@ -50,8 +50,7 @@ import static rr.industries.SovietBot.defaultConfig;
  * todo: refractor to modules to allow hotswap
  * todo: [Long Term] Write unit tests
  * Commands -
- * Command: twitch stream / video on interweb
- * Command: Triggered Text Command: http://eeemo.net/
+ * Command: twitch stream / video on interweb :-P
  * Command: Reminder
  * Command: voting
  * Command: search stuff

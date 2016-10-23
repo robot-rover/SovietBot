@@ -1,5 +1,5 @@
 
-package rr.industries.pojos.youtube;
+package rr.industries.pojos.geoCoding;
 
 import com.google.gson.annotations.Expose;
 import com.google.gson.annotations.SerializedName;
@@ -7,14 +7,13 @@ import com.google.gson.annotations.SerializedName;
 import javax.annotation.Generated;
 
 @Generated("org.jsonschema2pojo")
-public class ItemsResponse {
+public class Viewport {
 
-    @SerializedName("id")
+    @SerializedName("northeast")
     @Expose
-    public String id;
-
-    @SerializedName("snippet")
+    public Northeast northeast;
+    @SerializedName("southwest")
     @Expose
-    public Snippet snippet;
+    public Southwest southwest;
 
 }

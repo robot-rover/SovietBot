@@ -10,7 +10,6 @@ import net.dv8tion.jda.player.source.AudioSource;
 import rr.industries.exceptions.BotException;
 import rr.industries.exceptions.IncorrectArgumentsException;
 import rr.industries.exceptions.InternalError;
-import rr.industries.pojos.youtube.YoutubeResponse;
 import rr.industries.pojos.youtube.YoutubeSearch;
 import rr.industries.util.*;
 import sx.blah.discord.handle.audio.IAudioManager;
@@ -197,7 +196,7 @@ public class Music implements Command {
         try {
             HttpResponse<java.lang.String> response = Unirest.get("https://www.googleapis.com/youtube/v3/videos").queryString("key", apiKey).queryString("part", "snippet")
                     .queryString("maxResults", 1).queryString("id", videoID).asString();
-            YoutubeResponse video = gson.fromJson(response.getBody(), YoutubeResponse.class);
+            YoutubeSearch video = gson.fromJson(response.getBody(), YoutubeSearch.class);
             if (video.items.size() == 0)
                 throw new InternalError("Youtube API couldn't find Video" + videoID);
             return new Entry<>(video.items.get(0).snippet.title, video.items.get(0).snippet.channelTitle);

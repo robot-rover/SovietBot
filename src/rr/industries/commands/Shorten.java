@@ -4,8 +4,9 @@ import com.mashape.unirest.http.HttpResponse;
 import com.mashape.unirest.http.Unirest;
 import com.mashape.unirest.http.exceptions.UnirestException;
 import rr.industries.exceptions.BotException;
-import rr.industries.pojos.ShortenedURL;
-import rr.industries.pojos.URLRequest;
+import rr.industries.exceptions.InternalError;
+import rr.industries.pojos.urlshortener.Error;
+import rr.industries.pojos.urlshortener.URLResponse;
 import rr.industries.util.*;
 
 /**
@@ -19,8 +20,15 @@ public class Shorten implements Command {
         String url = cont.getArgs().get(1);
         try {
             HttpResponse<String> response = Unirest.post("https://www.googleapis.com/urlshortener/v1/url").header("Content-Type", "application/json")
-                    .queryString("key", cont.getActions().getConfig().googleKey).body(gson.toJson(new URLRequest(url))).asString();
-            ShortenedURL shorten = gson.fromJson(response.getBody(), ShortenedURL.class);
+                    .queryString("key", cont.getActions().getConfig().googleKey).body(gson.toJson(new URLResponse(url))).asString();
+            URLResponse shorten = gson.fromJson(response.getBody(), URLResponse.class);
+            if (shorten.error != null) {
+                StringBuilder error = new StringBuilder("Recieved Error from google: Code ").append(shorten.error.code).append(" - ").append(shorten.error.message);
+                for (Error e : shorten.error.errors) {
+                    error.append("\n" + e.toString());
+                }
+                throw new InternalError(error.toString());
+            }
             cont.getActions().channels().sendMessage(cont.builder().appendContent(cont.getMessage().getAuthor().mention())
                     .appendContent(": ").appendContent(shorten.id));
         } catch (UnirestException ex) {

@@ -1,5 +1,5 @@
 
-package rr.industries.geoCoding;
+package rr.industries.pojos.geoCoding;
 
 import com.google.gson.annotations.Expose;
 import com.google.gson.annotations.SerializedName;
