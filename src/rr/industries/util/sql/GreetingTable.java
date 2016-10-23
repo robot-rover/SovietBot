@@ -3,6 +3,7 @@ package rr.industries.util.sql;
 import rr.industries.exceptions.BotException;
 import sx.blah.discord.handle.obj.IGuild;
 
+import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
@@ -12,8 +13,8 @@ import java.util.Optional;
  * @author Sam
  */
 public class GreetingTable extends Table implements ITable {
-    public GreetingTable(Statement executor) throws BotException {
-        super("greetingtable", executor,
+    public GreetingTable(Connection connection) throws BotException {
+        super("greetingtable", connection,
                 new Column("guildid", "text", false),
                 new Column("joinmessage", "text", true),
                 new Column("leavemessage", "text", true));
@@ -21,8 +22,8 @@ public class GreetingTable extends Table implements ITable {
     }
 
     public Optional<String> getJoinMessage(IGuild guild) throws BotException {
-        ResultSet result = queryValue(Value.of(guild.getID(), true), Value.empty(), Value.empty());
-        try {
+        try (Statement executor = connection.createStatement()) {
+            ResultSet result = queryValue(executor, Value.of(guild.getID(), true), Value.empty(), Value.empty());
             if (result.next())
                 if (result.getString("joinmessage").equals("null")) {
                     return Optional.empty();
@@ -38,8 +39,8 @@ public class GreetingTable extends Table implements ITable {
     }
 
     public Optional<String> getLeaveMessage(IGuild guild) throws BotException {
-        ResultSet result = queryValue(Value.of(guild.getID(), true), Value.empty(), Value.empty());
-        try {
+        try (Statement executor = connection.createStatement()) {
+            ResultSet result = queryValue(executor, Value.of(guild.getID(), true), Value.empty(), Value.empty());
             if (result.next())
                 if (result.getString("leavemessage").equals("null")) {
                     return Optional.empty();

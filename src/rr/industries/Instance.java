@@ -21,6 +21,7 @@ import sx.blah.discord.api.ClientBuilder;
 import sx.blah.discord.api.IDiscordClient;
 import sx.blah.discord.api.events.EventSubscriber;
 import sx.blah.discord.handle.impl.events.*;
+import sx.blah.discord.handle.obj.IGuild;
 import sx.blah.discord.util.DiscordException;
 import sx.blah.discord.util.Image;
 import sx.blah.discord.util.MessageBuilder;
@@ -48,6 +49,7 @@ import static rr.industries.SovietBot.defaultConfig;
  * todo: RSS feeds module
  * todo: refractor to modules to allow hotswap
  * todo: [Long Term] Write unit tests
+ * todo: impl stable async client
  * Commands -
  * Command: twitch stream / video on interweb :-P
  * Command: Reminder
@@ -66,6 +68,7 @@ public class Instance {
     private volatile IDiscordClient client;
     private ITable[] tables;
     private BotActions actions;
+    private volatile Statement executor;
     private static final List<sx.blah.discord.handle.obj.Permissions> neededPerms = SovietBot.neededPerms.stream().map(Entry::first).collect(Collectors.toList());
 
 
@@ -89,9 +92,7 @@ public class Instance {
         commandList = new CommandList();
         try {
             Connection connection = DriverManager.getConnection("jdbc:sqlite:sovietBot.db");
-            Statement statement = connection.createStatement();
-            statement.setQueryTimeout(20);  // set timeout to 20 sec.
-            tables = new ITable[]{new PermTable(statement, config), new TimeTable(statement), new TagTable(statement), new PrefixTable(statement, config), new GreetingTable(statement)};
+            tables = new ITable[]{new PermTable(connection, config), new TimeTable(connection), new TagTable(connection), new PrefixTable(connection, config), new GreetingTable(connection)};
         } catch (SQLException | BotException ex) {
             LOG.error("Unable to Initialize Database", ex);
             System.exit(1);
@@ -128,34 +129,13 @@ public class Instance {
             Optional<String> messageContent = actions.getTable(GreetingTable.class).getLeaveMessage(e.getGuild());
             if (messageContent.isPresent()) {
                 MessageBuilder message = new MessageBuilder(client).withChannel(client.getChannelByID(e.getGuild().getID()))
-                        .withContent(messageContent.get().replace("%user", e.getUser().mention()));
+                        .withContent(messageContent.get().replace("%user", "`" + e.getUser().getDisplayName(e.getGuild()) + "`"));
                 actions.channels().sendMessage(message);
             }
         } catch (BotException ex) {
             actions.channels().exception(ex, new MessageBuilder(client).withChannel(client.getChannelByID(e.getGuild().getID())));
         }
 
-    }
-
-    @EventSubscriber
-    public void onGuildCreate(GuildCreateEvent e) {
-        try {
-            actions.getTable(PermTable.class).setPerms(e.getGuild(), e.getGuild().getOwner(), Permissions.ADMIN);
-            for (String op : config.operators)
-                actions.getTable(PermTable.class).setPerms(e.getGuild(), client.getUserByID(op), Permissions.BOTOPERATOR);
-            LOG.info("Connected to Guild: " + e.getGuild().getName() + " (" + e.getGuild().getID() + ")");
-            PermWarning permTool = commandList.getCommand(PermWarning.class);
-            List<sx.blah.discord.handle.obj.Permissions> missingPerms = permTool.checkPerms(e.getGuild(), client.getOurUser(), neededPerms);
-
-            actions.getTable(PermTable.class).setPerms(e.getGuild(), e.getGuild().getOwner(), Permissions.ADMIN);
-            for (String op : config.operators)
-                actions.getTable(PermTable.class).setPerms(e.getGuild(), client.getUserByID(op), Permissions.BOTOPERATOR);
-            LOG.info("Connected to Guild: " + e.getGuild().getName() + " (" + e.getGuild().getID() + ")");
-            if (!missingPerms.isEmpty())
-                LOG.info("Missing Perms in guild {} ({}): {}", e.getGuild().getName(), e.getGuild().getID(), permTool.formatPerms(missingPerms));
-        } catch (BotException ex) {
-            actions.channels().exception(ex);
-        }
     }
 
     @EventSubscriber
@@ -169,6 +149,25 @@ public class Instance {
         }
         String[] filename = config.botAvatar.split("[.]");
         client.changeAvatar(Image.forStream(filename[filename.length - 1], SovietBot.resourceLoader.getResourceAsStream(config.botAvatar)));
+        for (IGuild guild : client.getGuilds()) {
+            try {
+                actions.getTable(PermTable.class).setPerms(guild, guild.getOwner(), Permissions.ADMIN);
+                for (String op : config.operators)
+                    actions.getTable(PermTable.class).setPerms(guild, client.getUserByID(op), Permissions.BOTOPERATOR);
+                LOG.info("Connected to Guild: " + guild.getName() + " (" + guild.getID() + ")");
+                PermWarning permTool = commandList.getCommand(PermWarning.class);
+                List<sx.blah.discord.handle.obj.Permissions> missingPerms = permTool.checkPerms(guild, client.getOurUser(), neededPerms);
+
+                actions.getTable(PermTable.class).setPerms(guild, guild.getOwner(), Permissions.ADMIN);
+                for (String op : config.operators)
+                    actions.getTable(PermTable.class).setPerms(guild, client.getUserByID(op), Permissions.BOTOPERATOR);
+                LOG.info("Connected to Guild: " + guild.getName() + " (" + guild.getID() + ")");
+                if (!missingPerms.isEmpty())
+                    LOG.info("Missing Perms in guild {} ({}): {}", guild.getName(), guild.getID(), permTool.formatPerms(missingPerms));
+            } catch (BotException ex) {
+                actions.channels().exception(ex);
+            }
+        }
         LOG.info("\n------------------------------------------------------------------------\n"
                 + "*** " + botName + " Ready ***\n"
                 + "------------------------------------------------------------------------");

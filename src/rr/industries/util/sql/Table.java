@@ -6,10 +6,7 @@ import rr.industries.exceptions.BotException;
 import rr.industries.exceptions.InternalError;
 import rr.industries.util.Entry;
 
-import java.sql.ResultSet;
-import java.sql.ResultSetMetaData;
-import java.sql.SQLException;
-import java.sql.Statement;
+import java.sql.*;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.InputMismatchException;
@@ -23,11 +20,11 @@ public class Table {
     static Logger LOG = LoggerFactory.getLogger(Table.class);
     protected Column[] columns;
     protected String tableName;
-    Statement executor;
+    Connection connection;
 
-    protected Table(String tableName, Statement executor, Column... columns) throws BotException {
+    protected Table(String tableName, Connection connection, Column... columns) throws BotException {
         this.columns = columns;
-        this.executor = executor;
+        this.connection = connection;
         this.tableName = tableName;
         StringBuilder initTable = new StringBuilder();
         for (int i = 0; i < columns.length; i++) {
@@ -36,7 +33,7 @@ public class Table {
                 initTable.append(",");
             initTable.append("\n");
         }
-        try {
+        try (Statement executor = connection.createStatement()) {
             executor.execute("create table if not exists " + tableName + "(" + initTable.toString() +
                     ");PRAGMA AUTO_VACUUM = FULL;");
 
@@ -57,7 +54,7 @@ public class Table {
     }
 
     protected Table createIndex(String indexName, String columns, boolean unique) throws BotException {
-        try {
+        try (Statement executor = connection.createStatement()) {
             executor.execute("DROP INDEX IF EXISTS " + indexName);
             LOG.info("Creating Index: " + indexName);
             executor.execute("CREATE " + (unique ? "UNIQUE " : "") + "INDEX " + indexName + " on " + tableName + " (" + columns + ");");
@@ -66,12 +63,13 @@ public class Table {
         }
         return this;
     }
-
-    protected ResultSet queryValue(Value... vals) throws BotException {
+    
+    protected ResultSet queryValue(Statement executor, Value... vals) throws BotException {
         List<Entry<Column, Value>> values = toEntryList(vals);
         try {
-            return executor.executeQuery("Select " + values.stream().map(v -> v.first().name).collect(Collectors.joining(", ")) + " from " + tableName +
+            ResultSet result = executor.executeQuery("Select " + values.stream().map(v -> v.first().name).collect(Collectors.joining(", ")) + " from " + tableName +
                     getConditions(vals));
+            return result;
         } catch (SQLException ex) {
             throw BotException.returnException(ex);
         }
@@ -86,24 +84,18 @@ public class Table {
         }
         boolean found;
         ResultSet result;
-        try {
-            result = queryValue(vals);
-            found = result.next();
-        } catch (SQLException ex) {
-            throw BotException.returnException(ex);
-        }
         Value[] queryVals = new Value[vals.length];
-        try {
+        try (Statement executor = connection.createStatement()) {
+            result = queryValue(executor, vals);
+            found = result.next();
             for (int i = 0; i < vals.length; i++) {
-                if (vals[i].isBlank()) {
+                if (found && vals[i].isBlank()) {
                     queryVals[i] = Value.of(result.getString(columns[i].name), false);
                 } else {
                     queryVals[i] = vals[i];
                 }
             }
             executor.execute("DELETE FROM " + tableName + getConditions(vals));
-            LOG.info("INSERT INTO " + tableName + " VALUES (" +
-                    Arrays.stream(queryVals).map(v -> "'" + v + "'").collect(Collectors.joining(", ")) + ")");
             executor.execute("INSERT INTO " + tableName + " VALUES (" +
                     Arrays.stream(queryVals).map(v -> "'" + v + "'").collect(Collectors.joining(", ")) + ")");
         } catch (SQLException ex) {
@@ -120,7 +112,7 @@ public class Table {
     }
 
     protected void removeEntry(Value... vals) throws BotException {
-        try {
+        try (Statement executor = connection.createStatement()) {
             executor.execute("DELETE FROM " + tableName + " Where " +
                     toEntryList(vals).stream().filter(v -> v.second().shouldQuery()).map(v -> v.first().name + "='" + v.second() + "'")
                             .collect(Collectors.joining(" AND ")));

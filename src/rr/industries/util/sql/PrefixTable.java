@@ -4,6 +4,7 @@ import rr.industries.Configuration;
 import rr.industries.exceptions.BotException;
 import sx.blah.discord.handle.obj.IGuild;
 
+import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
@@ -14,8 +15,8 @@ import java.sql.Statement;
 public class PrefixTable extends Table implements ITable {
     private Configuration config;
 
-    public PrefixTable(Statement executor, Configuration config) throws BotException {
-        super("prefixtable", executor,
+    public PrefixTable(Connection connection, Configuration config) throws BotException {
+        super("prefixtable", connection,
                 new Column("guildid", "text", false),
                 new Column("prefix", "text", false)
         );
@@ -34,8 +35,8 @@ public class PrefixTable extends Table implements ITable {
         if (guild == null) {
             return config.commChar;
         }
-        try {
-            ResultSet set = queryValue(Value.of(guild.getID(), true), Value.empty());
+        try (Statement executor = connection.createStatement()) {
+            ResultSet set = queryValue(executor, Value.of(guild.getID(), true), Value.empty());
             if (set.next()) {
                 return set.getString("prefix");
             } else {

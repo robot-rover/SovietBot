@@ -10,6 +10,7 @@ import rr.industries.util.TagData;
 import sx.blah.discord.handle.obj.IGuild;
 
 import javax.naming.ConfigurationException;
+import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
@@ -29,15 +30,17 @@ public class TagTable implements ITable {
     private static Logger LOG = LoggerFactory.getLogger(TagTable.class);
     Table localTags;
     Table globalTags;
+    private Connection connection;
 
-    public TagTable(Statement executor) throws BotException {
-        localTags = new Table("tags", executor,
+    public TagTable(Connection connection) throws BotException {
+        this.connection = connection;
+        localTags = new Table("tags", connection,
                 new Column("guildid", "text", false),
                 new Column("tagname", "text", false),
                 new Column("tagcontent", "text", false),
                 new Column("ispermanent", "integer", false, false)
         ).createIndex("tagindex", "guildid, tagname", true);
-        globalTags = new Table("globaltags", executor,
+        globalTags = new Table("globaltags", connection,
                 new Column("tagname", "text", false),
                 new Column("tagcontent", "text", false)
         ).createIndex("globaltagindex", "tagname", true);
@@ -110,14 +113,14 @@ public class TagTable implements ITable {
 
 
     public Optional<TagData> getTag(@Nullable IGuild guild, String name) throws BotException {
-        try {
+        try (Statement executor = connection.createStatement()) {
             if (guild != null) {
-                ResultSet result = localTags.queryValue(Value.of(guild.getID(), true), Value.of(name, true), Value.empty(), Value.empty());
+                ResultSet result = localTags.queryValue(executor, Value.of(guild.getID(), true), Value.of(name, true), Value.empty(), Value.empty());
                 if (result.next()) {
                     return Optional.of(getTagDataFromSQL(result));
                 }
             }
-            ResultSet result2 = globalTags.queryValue(Value.of(name, true), Value.empty());
+            ResultSet result2 = globalTags.queryValue(executor, Value.of(name, true), Value.empty());
             if (result2.next()) {
                 return Optional.of(getTagDataFromSQL(result2));
             }
@@ -144,8 +147,8 @@ public class TagTable implements ITable {
     }
 
     public List<TagData> getGlobalTags() throws BotException {
-        try {
-            ResultSet result = globalTags.queryValue(Value.empty(), Value.empty());
+        try (Statement executor = connection.createStatement()) {
+            ResultSet result = globalTags.queryValue(executor, Value.empty(), Value.empty());
             List<TagData> tags = new ArrayList<>();
             while (result.next()) {
                 tags.add(getTagDataFromSQL(result));
@@ -158,8 +161,8 @@ public class TagTable implements ITable {
     }
 
     public List<TagData> getAllTags(IGuild guild) throws BotException {
-        try {
-            ResultSet result = localTags.queryValue(Value.of(guild.getID(), true), Value.empty(), Value.empty(), Value.empty());
+        try (Statement executor = connection.createStatement()) {
+            ResultSet result = localTags.queryValue(executor, Value.of(guild.getID(), true), Value.empty(), Value.empty(), Value.empty());
             List<TagData> tags = new ArrayList<>();
             while (result.next()) {
                 tags.add(getTagDataFromSQL(result));

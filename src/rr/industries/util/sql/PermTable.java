@@ -8,6 +8,7 @@ import rr.industries.util.Permissions;
 import sx.blah.discord.handle.obj.IGuild;
 import sx.blah.discord.handle.obj.IUser;
 
+import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
@@ -21,8 +22,8 @@ import java.util.List;
 public class PermTable extends Table implements ITable {
     private Configuration config;
 
-    public PermTable(Statement executor, Configuration config) throws BotException {
-        super("perms", executor,
+    public PermTable(Connection connection, Configuration config) throws BotException {
+        super("perms", connection,
                 new Column("guildid", "text", false),
                 new Column("userid", "text", false),
                 new Column("perm", "int", false)
@@ -38,8 +39,8 @@ public class PermTable extends Table implements ITable {
                 return Permissions.BOTOPERATOR;
             return Permissions.REGULAR;
         }
-        try {
-            ResultSet result = queryValue(Value.of(guild.getID(), true), Value.of(user.getID(), true), Value.empty());
+        try (Statement executor = connection.createStatement()) {
+            ResultSet result = queryValue(executor, Value.of(guild.getID(), true), Value.of(user.getID(), true), Value.empty());
             if (result.next()) {
                 return BotUtils.toPerms(result.getInt("perm"));
             }
@@ -59,7 +60,7 @@ public class PermTable extends Table implements ITable {
     }
 
     public List<Entry<String, Integer>> getAllPerms(IGuild guild) {
-        try {
+        try (Statement executor = connection.createStatement()) {
             List<Entry<String, Integer>> list = new ArrayList<>();
             ResultSet rs = executor.executeQuery("SELECT userid, perm FROM " + getName() + " where guildid=" + guild.getID() + " ORDER BY perm DESC;");
             while (rs.next()) {
