@@ -21,7 +21,6 @@ import sx.blah.discord.api.ClientBuilder;
 import sx.blah.discord.api.IDiscordClient;
 import sx.blah.discord.api.events.EventSubscriber;
 import sx.blah.discord.handle.impl.events.*;
-import sx.blah.discord.handle.obj.IGuild;
 import sx.blah.discord.util.DiscordException;
 import sx.blah.discord.util.Image;
 import sx.blah.discord.util.MessageBuilder;
@@ -67,6 +66,8 @@ public class Instance {
     private volatile IDiscordClient client;
     private ITable[] tables;
     private BotActions actions;
+    private static final List<sx.blah.discord.handle.obj.Permissions> neededPerms = SovietBot.neededPerms.stream().map(Entry::first).collect(Collectors.toList());
+
 
     Instance() throws DiscordException {
         Unirest.setTimeouts(1000, 1000);
@@ -143,6 +144,15 @@ public class Instance {
             for (String op : config.operators)
                 actions.getTable(PermTable.class).setPerms(e.getGuild(), client.getUserByID(op), Permissions.BOTOPERATOR);
             LOG.info("Connected to Guild: " + e.getGuild().getName() + " (" + e.getGuild().getID() + ")");
+            PermWarning permTool = commandList.getCommand(PermWarning.class);
+            List<sx.blah.discord.handle.obj.Permissions> missingPerms = permTool.checkPerms(e.getGuild(), client.getOurUser(), neededPerms);
+
+            actions.getTable(PermTable.class).setPerms(e.getGuild(), e.getGuild().getOwner(), Permissions.ADMIN);
+            for (String op : config.operators)
+                actions.getTable(PermTable.class).setPerms(e.getGuild(), client.getUserByID(op), Permissions.BOTOPERATOR);
+            LOG.info("Connected to Guild: " + e.getGuild().getName() + " (" + e.getGuild().getID() + ")");
+            if (!missingPerms.isEmpty())
+                LOG.info("Missing Perms in guild {} ({}): {}", e.getGuild().getName(), e.getGuild().getID(), permTool.formatPerms(missingPerms));
         } catch (BotException ex) {
             actions.channels().exception(ex);
         }
@@ -159,21 +169,6 @@ public class Instance {
         }
         String[] filename = config.botAvatar.split("[.]");
         client.changeAvatar(Image.forStream(filename[filename.length - 1], SovietBot.resourceLoader.getResourceAsStream(config.botAvatar)));
-        List<sx.blah.discord.handle.obj.Permissions> neededPerms = SovietBot.neededPerms.stream().map(Entry::first).collect(Collectors.toList());
-        for (IGuild guild : client.getGuilds()) {
-            PermWarning permTool = commandList.getCommand(PermWarning.class);
-            List<sx.blah.discord.handle.obj.Permissions> missingPerms = permTool.checkPerms(guild, client.getOurUser(), neededPerms);
-            try {
-                actions.getTable(PermTable.class).setPerms(guild, guild.getOwner(), Permissions.ADMIN);
-                for (String op : config.operators)
-                    actions.getTable(PermTable.class).setPerms(guild, client.getUserByID(op), Permissions.BOTOPERATOR);
-                LOG.info("Connected to Guild: " + guild.getName() + " (" + guild.getID() + ")");
-                if (!missingPerms.isEmpty())
-                    LOG.info("Missing Perms in guild {} ({}): {}", guild.getName(), guild.getID(), permTool.formatPerms(missingPerms));
-            } catch (BotException ex) {
-                actions.channels().exception(ex);
-            }
-        }
         LOG.info("\n------------------------------------------------------------------------\n"
                 + "*** " + botName + " Ready ***\n"
                 + "------------------------------------------------------------------------");
