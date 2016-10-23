@@ -1,7 +1,7 @@
 package rr.industries.commands;
 
-import org.apache.commons.lang3.text.WordUtils;
 import rr.industries.SovietBot;
+import rr.industries.exceptions.BotMissingPermsException;
 import rr.industries.util.*;
 import sx.blah.discord.handle.obj.IGuild;
 import sx.blah.discord.handle.obj.IRole;
@@ -51,6 +51,6 @@ public class PermWarning implements Command {
     }
 
     public String formatPerms(Collection<Permissions> toFormat) {
-        return toFormat.stream().map(v -> WordUtils.capitalize(v.name().replace("_", " ").toLowerCase())).collect(Collectors.joining(", "));
+        return toFormat.stream().map(v -> BotMissingPermsException.formatDiscordPerms(v.name())).collect(Collectors.joining(", "));
     }
 }

@@ -37,7 +37,7 @@ public abstract class BotException extends Exception {
             return new DiscordError((DiscordException) ex);
         } else if (ex instanceof RateLimitException) {
             return new InternalError("A RateLimitException was not handled!", ex);
-        } else if (ex instanceof MissingPermsException) {
+        } else if (ex instanceof MissingPermissionsException) {
             return new BotMissingPermsException(((MissingPermissionsException) ex).getErrorMessage());
         } else if (ex instanceof UnirestException) {
             return new InternalError("Unirest Exception", ex);

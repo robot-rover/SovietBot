@@ -23,7 +23,7 @@ public class Purge implements Command {
         if (number > 100 || number < 2) {
             throw new IncorrectArgumentsException("Your number must be between 1 and 99");
         }
-        MessageList clear = cont.getMessage().getChannel().getMessages();
+        MessageList clear = new MessageList(cont.getClient(), cont.getMessage().getChannel(), number);
         clear.setCacheCapacity(number);
         BotUtils.bufferRequest(() -> {
             try {
