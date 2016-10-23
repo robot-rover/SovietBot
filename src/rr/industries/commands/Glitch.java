@@ -75,7 +75,7 @@ public class Glitch implements Command {
             int charMult;
             //add the normal character
             message.appendContent(txt.substring(i, i + 1));
-            if (txt.substring(i, i + 1).equals("`")) {
+            if (txt.substring(i, i + 1).equals("`") || txt.substring(i, i + 1).equals("*")) {
                 continue;
             }
             charMult = -1 * (8 / (txt.length() / 2)) * Math.abs(i - (txt.length() / 2)) + 8;

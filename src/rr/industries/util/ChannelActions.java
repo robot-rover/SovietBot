@@ -2,14 +2,12 @@ package rr.industries.util;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
-import com.sun.istack.internal.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import rr.industries.Configuration;
 import rr.industries.SovietBot;
 import rr.industries.exceptions.BotException;
 import sx.blah.discord.api.IDiscordClient;
-import sx.blah.discord.handle.obj.IChannel;
 import sx.blah.discord.handle.obj.IGuild;
 import sx.blah.discord.handle.obj.IMessage;
 import sx.blah.discord.handle.obj.IVoiceChannel;
@@ -21,7 +19,6 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.StandardCopyOption;
-import java.sql.SQLException;
 import java.util.Optional;
 
 /**
@@ -60,49 +57,6 @@ public class ChannelActions {
         if (exception.criticalMessage().isPresent()) {
             messageOwner("[Critical Error] - " + exception.criticalMessage().get(), true);
         }
-    }
-
-    @Deprecated
-    public void sqlError(SQLException ex, String methodName, Logger log) {
-        log.warn("SQL Error in " + methodName, ex);
-        messageOwner("SQL Error in " + methodName + ": " + ex.getMessage(), true);
-    }
-
-    @Deprecated
-    public void notFound(IMessage imessage, String methodName, String type, String name, Logger log) {
-        String message = methodName + " failed to find " + type + ": \"" + name + "\" in Server: \"" + imessage.getGuild().getName() + "\"";
-        log.info(message);
-        sendMessage(new MessageBuilder(client).withContent(message).withChannel(imessage.getChannel()));
-    }
-
-    @Deprecated
-    public void missingPermissions(IChannel channel, MissingPermissionsException ex) {
-        sendMessage(new MessageBuilder(client).withChannel(channel).withContent(ex.getErrorMessage()));
-    }
-
-    @Deprecated
-    public void missingPermissions(IChannel channel, Permissions neededPerm) {
-        sendMessage(new MessageBuilder(client).withChannel(channel).withContent("You need to be a" + BotUtils.startsWithVowel(neededPerm.title, "n ", " ", false) + neededPerm.formatted + " to do that!"));
-    }
-
-    @Deprecated
-    public void missingArgs(IChannel channel) {
-        sendMessage(new MessageBuilder(client).withChannel(channel).withContent("You have the wrong number of arguments"));
-    }
-
-    @Deprecated
-    public void wrongArgs(IChannel channel) {
-        sendMessage(new MessageBuilder(client).withChannel(channel).withContent("Your arguments are incorrect"));
-    }
-
-    @Deprecated
-    public void customException(String methodName, String message, @Nullable Exception ex) {
-        String fullMessage = methodName + ": " + message;
-        LOG.error(fullMessage);
-        if (ex != null) {
-            LOG.error("Full Stack Trace - ", ex);
-        }
-        messageOwner("[ERROR] " + fullMessage, true);
     }
 
     public void connectToChannel(IVoiceChannel channel) throws BotException {
@@ -163,10 +117,8 @@ public class ChannelActions {
         RequestBuffer.IRequest<Optional<IMessage>> request = () -> {
             try {
                 return Optional.of(builder.send());
-            } catch (DiscordException ex) {
-                customException("sendMessage", ex.getErrorMessage(), ex, LOG, true);
-            } catch (MissingPermissionsException ex) {
-                missingPermissions(builder.getChannel(), ex);
+            } catch (DiscordException | MissingPermissionsException ex) {
+                exception(BotException.returnException(ex));
             }
             return Optional.empty();
         };
