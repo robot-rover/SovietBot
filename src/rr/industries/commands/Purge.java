@@ -28,11 +28,9 @@ public class Purge implements Command {
         clear.setCacheCapacity(number);
         BotUtils.bufferRequest(() -> {
             try {
-                boolean successful = clear.size() == number;
-                for (int i = 0; i < tries && !successful; i++) {
+                for (int i = 0; i < tries && clear.size() < number; i++) {
                     int loading = number - clear.size();
-                    successful = clear.load(number);
-                    LOG.info((successful ? "Succeeded " : "Failed") + " to load/unload {} messages. MessageList now has {} messages.", loading, clear.size());
+                    LOG.info("Tried to load/unload {} messages. MessageList now has {} messages.", loading, clear.size());
                 }
                 if (clear.size() != number)
                     throw new ServerError("Could not load required messages after trying " + tries + " times (" + number + " required, " + clear.size() + " loaded)");

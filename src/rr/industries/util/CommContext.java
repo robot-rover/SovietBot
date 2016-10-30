@@ -7,6 +7,7 @@ package rr.industries.util;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import rr.industries.exceptions.BotException;
 import rr.industries.util.sql.PermTable;
 import rr.industries.util.sql.PrefixTable;
 import sx.blah.discord.api.IDiscordClient;
@@ -23,7 +24,7 @@ public class CommContext {
     private static final Logger LOG = LoggerFactory.getLogger(CommContext.class);
     private final List<String> args = new ArrayList<>();
     private String commChar;
-    private final Permissions callerPerms;
+    private Permissions callerPerms;
     private final BotActions actions;
     private final IMessage message;
 
@@ -31,7 +32,12 @@ public class CommContext {
         this.commChar = actions.getTable(PrefixTable.class).getPrefix(e.getMessage().getGuild());
         this.actions = actions;
         this.message = e.getMessage();
-        callerPerms = actions.getTable(PermTable.class).getPerms(e.getMessage().getAuthor(), e.getMessage().getGuild());
+        try {
+            callerPerms = actions.getTable(PermTable.class).getPerms(e.getMessage().getAuthor(), e.getMessage().getGuild());
+        } catch (BotException ex) {
+            actions.channels().exception(ex, builder());
+            callerPerms = Permissions.NORMAL;
+        }
         Scanner parser = new Scanner(e.getMessage().getContent());
         while (parser.hasNext()) {
             args.add(parser.next());

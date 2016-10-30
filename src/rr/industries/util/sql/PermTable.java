@@ -33,23 +33,23 @@ public class PermTable extends Table implements ITable {
 
     }
 
-    public Permissions getPerms(IUser user, IGuild guild) {
+    public Permissions getPerms(IUser user, IGuild guild) throws BotException {
+        if (Arrays.asList(config.operators).contains(user.getID()))
+            return Permissions.BOTOPERATOR;
         if (guild == null) {
-            if (Arrays.asList(config.operators).contains(user.getID()))
-                return Permissions.BOTOPERATOR;
             return Permissions.REGULAR;
         }
+        if (guild.getOwner().equals(user))
+            return Permissions.SERVEROWNER;
         try (Statement executor = connection.createStatement()) {
             ResultSet result = queryValue(executor, Value.of(guild.getID(), true), Value.of(user.getID(), true), Value.empty());
             if (result.next()) {
                 return BotUtils.toPerms(result.getInt("perm"));
             }
+            return Permissions.NORMAL;
         } catch (SQLException ex) {
-            LOG.error("SQL Error", ex);
-        } catch (BotException ex) {
-            LOG.warn("Corrupted Perm found in database", ex);
+            throw BotException.returnException(ex);
         }
-        return Permissions.NORMAL;
     }
 
     public void setPerms(IGuild guild, IUser user, Permissions permissions) throws BotException {

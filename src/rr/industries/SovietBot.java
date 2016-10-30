@@ -145,9 +145,6 @@ public class SovietBot implements IModule {
                 LOG.info("Connected to Guild: " + guild.getName() + " (" + guild.getID() + ")");
                 PermWarning permTool = commandList.getCommand(PermWarning.class);
                 List<sx.blah.discord.handle.obj.Permissions> missingPerms = permTool.checkPerms(guild, client.getOurUser(), info.neededPerms.stream().map(Entry::first).collect(Collectors.toCollection(ArrayList::new)));
-                actions.getTable(PermTable.class).setPerms(guild, guild.getOwner(), Permissions.ADMIN);
-                for (String op : config.operators)
-                    actions.getTable(PermTable.class).setPerms(guild, client.getUserByID(op), Permissions.BOTOPERATOR);
                 if (!missingPerms.isEmpty())
                     LOG.info("Missing Perms in guild {} ({}): {}", guild.getName(), guild.getID(), permTool.formatPerms(missingPerms));
             } catch (BotException ex) {
