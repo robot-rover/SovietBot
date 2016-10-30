@@ -5,15 +5,15 @@ import java.util.Optional;
 /**
  * @author Sam
  */
-public class InternalError extends BotException {
+public class ServerError extends BotException {
     private String reasonForFailure;
 
-    public InternalError(String reasonForFailure) {
+    public ServerError(String reasonForFailure) {
         super("There was an internal error. The bot Operator has been notified.");
         LOG.error("The bot is Misconfigured: " + reasonForFailure);
     }
 
-    public InternalError(String reasonForFailure, Throwable cause) {
+    public ServerError(String reasonForFailure, Throwable cause) {
         super("There was an internal error. The bot Operator has been notified.");
         LOG.error("The bot threw an Internal Error: " + reasonForFailure, cause);
         this.reasonForFailure = reasonForFailure;

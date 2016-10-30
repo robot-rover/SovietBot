@@ -6,7 +6,10 @@ import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.impl.client.HttpClients;
 import rr.industries.util.*;
+import sx.blah.discord.util.DiscordException;
 import sx.blah.discord.util.MessageBuilder;
+import sx.blah.discord.util.MissingPermissionsException;
+import sx.blah.discord.util.RateLimitException;
 
 import java.io.IOException;
 import java.util.List;
@@ -20,14 +23,22 @@ import java.util.function.Predicate;
 )
 public class Test implements Command {
 
-    @SubCommand(name = "", Syntax = {@Syntax(helpText = "searches for the youtube video", args = {Arguments.LONGTEXT})})
+    @SubCommand(name = "", Syntax = {@Syntax(helpText = "nothing", args = {Arguments.LONGTEXT})})
     public void execute(CommContext cont) {
 
     }
 
     @SubCommand(name = "tester", Syntax = {@Syntax(helpText = "Test the tester test", args = {})})
     public void testSub(CommContext cont) {
-
+        try {
+            cont.getMessage().reply("```" + cont.getMessage().getContent() + "```");
+        } catch (MissingPermissionsException e) {
+            LOG.error(MissingPermissionsException.class.getName(), e);
+        } catch (DiscordException e) {
+            LOG.error(DiscordException.class.getName(), e);
+        } catch (RateLimitException e) {
+            LOG.error(RateLimitException.class.getName(), e);
+        }
     }
 
     @SubCommand(name = "repeat", Syntax = {})

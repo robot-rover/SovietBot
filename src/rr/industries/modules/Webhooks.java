@@ -4,6 +4,7 @@ import com.google.gson.Gson;
 import org.apache.commons.codec.digest.DigestUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import rr.industries.exceptions.BotException;
 import rr.industries.pojos.RestartPost;
 import rr.industries.pojos.travisciwebhooks.TravisWebhook;
 import rr.industries.util.ChannelActions;
@@ -75,7 +76,11 @@ public class Webhooks implements Module {
                 Thread thread = new Thread() {
                     @Override
                     public void run() {
-                        actions.terminate(true);
+                        try {
+                            actions.terminate(true);
+                        } catch (BotException ex) {
+                            LOG.error("Could Not Restart", ex);
+                        }
                     }
                 };
                 thread.start();
@@ -126,7 +131,7 @@ public class Webhooks implements Module {
             response.status(200);
             return "\uD83D\uDC4C OK";
         });
-
+        Spark.init();
         LOG.info("Initialized webhooks on port " + actions.getConfig().webhooksPort);
         isEnabled = true;
         return this;

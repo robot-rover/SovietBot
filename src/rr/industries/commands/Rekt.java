@@ -6,7 +6,7 @@ import net.dv8tion.jda.player.source.AudioInfo;
 import net.dv8tion.jda.player.source.AudioSource;
 import rr.industries.exceptions.BotException;
 import rr.industries.exceptions.IncorrectArgumentsException;
-import rr.industries.exceptions.InternalError;
+import rr.industries.exceptions.ServerError;
 import rr.industries.util.*;
 import sx.blah.discord.handle.audio.IAudioManager;
 
@@ -74,7 +74,7 @@ public class Rekt implements Command {
                 }
             }
         } catch (NullPointerException ex) {
-            throw new InternalError("Error finding Rekt Video", ex);
+            throw new ServerError("Error finding Rekt Video", ex);
         }
         cont.getActions().channels().sendMessage(cont.builder().withContent(link[1]));
     }

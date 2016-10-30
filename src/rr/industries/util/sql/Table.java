@@ -3,7 +3,7 @@ package rr.industries.util.sql;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import rr.industries.exceptions.BotException;
-import rr.industries.exceptions.InternalError;
+import rr.industries.exceptions.ServerError;
 import rr.industries.util.Entry;
 
 import java.sql.*;
@@ -49,7 +49,7 @@ public class Table {
                 }
             }
         } catch (SQLException ex) {
-            throw new InternalError("Could not create table " + tableName, ex);
+            throw new ServerError("Could not create table " + tableName, ex);
         }
     }
 
@@ -59,7 +59,7 @@ public class Table {
             LOG.info("Creating Index: " + indexName);
             executor.execute("CREATE " + (unique ? "UNIQUE " : "") + "INDEX " + indexName + " on " + tableName + " (" + columns + ");");
         } catch (SQLException ex) {
-            throw new InternalError("SQL Exception creating index: " + indexName, ex);
+            throw new ServerError("SQL Exception creating index: " + indexName, ex);
         }
         return this;
     }
@@ -80,7 +80,7 @@ public class Table {
      */
     protected boolean insertValue(Value... vals) throws BotException {
         if (vals.length != columns.length) {
-            throw new InternalError("Not a Value object for every column");
+            throw new ServerError("Not a Value object for every column");
         }
         boolean found;
         ResultSet result;

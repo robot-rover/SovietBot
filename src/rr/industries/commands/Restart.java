@@ -1,5 +1,6 @@
 package rr.industries.commands;
 
+import rr.industries.exceptions.BotException;
 import rr.industries.util.*;
 
 @CommandInfo(
@@ -11,7 +12,12 @@ import rr.industries.util.*;
 )
 public class Restart implements Command {
     @SubCommand(name = "", Syntax = {@Syntax(helpText = "The process running the bot stops and restarts", args = {})})
-    public void execute(CommContext cont) {
+    public void execute(CommContext cont) throws BotException {
+        cont.getActions().channels().terminate(true);
+    }
+
+    @SubCommand(name = "", Syntax = {@Syntax(helpText = "The process running the bot stops and restarts", args = {})})
+    public void live(CommContext cont) throws BotException {
         cont.getActions().channels().terminate(true);
     }
 }

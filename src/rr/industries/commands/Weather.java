@@ -8,7 +8,7 @@ import org.bitpipeline.lib.owm.WeatherStatusResponse;
 import org.json.JSONException;
 import rr.industries.exceptions.BotException;
 import rr.industries.exceptions.IncorrectArgumentsException;
-import rr.industries.exceptions.InternalError;
+import rr.industries.exceptions.ServerError;
 import rr.industries.pojos.geoCoding.AddressComponent;
 import rr.industries.pojos.geoCoding.GeoCoding;
 import rr.industries.pojos.geoCoding.Result;
@@ -72,11 +72,11 @@ public class Weather implements Command {
                 message.appendContent("No weather data available for this location...");
             }
         } catch (IOException ex) {
-            throw new InternalError("IOException connecting to OWM Servers", ex);
+            throw new ServerError("IOException connecting to OWM Servers", ex);
         } catch (NoSuchElementException ex) {
             message.appendContent("No weather data available for this location...");
         } catch (JSONException ex) {
-            throw new InternalError("Malformed JSON on weather command", ex);
+            throw new ServerError("Malformed JSON on weather command", ex);
         }
         cont.getActions().channels().sendMessage(message);
 
@@ -99,7 +99,7 @@ public class Weather implements Command {
             if (response.results.size() == 0 || response.status.equals("ZERO_RESULTS"))
                 throw new IncorrectArgumentsException("Unable to find the specified location");
         if (!response.status.equals("OK"))
-            throw new InternalError("Google returned the status: " + response.status + "\n" + response.error_message);
+            throw new ServerError("Google returned the status: " + response.status + "\n" + response.error_message);
         return response.results.get(0);
         } catch (UnirestException ex) {
             throw BotException.returnException(ex);

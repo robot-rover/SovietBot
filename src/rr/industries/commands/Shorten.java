@@ -4,7 +4,7 @@ import com.mashape.unirest.http.HttpResponse;
 import com.mashape.unirest.http.Unirest;
 import com.mashape.unirest.http.exceptions.UnirestException;
 import rr.industries.exceptions.BotException;
-import rr.industries.exceptions.InternalError;
+import rr.industries.exceptions.ServerError;
 import rr.industries.pojos.urlshortener.Error;
 import rr.industries.pojos.urlshortener.URLResponse;
 import rr.industries.util.*;
@@ -27,7 +27,7 @@ public class Shorten implements Command {
                 for (Error e : shorten.error.errors) {
                     error.append("\n").append(e.toString());
                 }
-                throw new InternalError(error.toString());
+                throw new ServerError(error.toString());
             }
             cont.getActions().channels().sendMessage(cont.builder().appendContent(cont.getMessage().getAuthor().mention())
                     .appendContent(": ").appendContent(shorten.id));

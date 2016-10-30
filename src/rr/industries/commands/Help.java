@@ -1,6 +1,5 @@
 package rr.industries.commands;
 
-import rr.industries.SovietBot;
 import rr.industries.exceptions.BotException;
 import rr.industries.exceptions.NotFoundException;
 import rr.industries.util.*;
@@ -36,7 +35,7 @@ public class Help implements Command {
                 message.appendContent("**" + cont.getCommChar() + commandInfo.commandName() + " - " + commandInfo.helpText() + "**\n" + (commandInfo.pmSafe() ? "`|PM|`" : ""));
                 message.appendContent("`<>` means replace with your own value. `[]` means you can give more than one value.\n");
                 if (commandInfo.permLevel() != Permissions.BOTOPERATOR)
-                    message.appendContent("For more help, visit <**" + SovietBot.website + "commands/" + commandInfo.commandName() + ".html**>\n");
+                    message.appendContent("For more help, visit <**" + cont.getActions().channels().getInfo().website + "commands/" + commandInfo.commandName() + ".html**>\n");
                 SubCommand mainSubCommand = null;
                 List<SubCommand> subCommands = new ArrayList<>();
                 for (Method method : command.getClass().getDeclaredMethods()) {
@@ -78,9 +77,9 @@ public class Help implements Command {
             BotUtils.bufferRequest(() -> {
                 try {
                     MessageBuilder message2 = new MessageBuilder(cont.getClient()).withChannel(cont.getClient().getOrCreatePMChannel(cont.getMessage().getAuthor()));
-                    message2.appendContent("```markdown\n# " + SovietBot.botName + " - \"" + cont.getCommChar() + "\" #\n");
+                    message2.appendContent("```markdown\n# " + cont.getActions().channels().getInfo().botName + " - \"" + cont.getCommChar() + "\" #\n");
                     message2.appendContent("For more help type >help <command>\n");
-                    message2.appendContent("Or visit <" + SovietBot.website + ">\n");
+                    message2.appendContent("Or visit <" + cont.getActions().channels().getInfo().website + ">\n");
                     boolean userIsOp = cont.getActions().getTable(PermTable.class).getPerms(cont.getMessage().getAuthor(), cont.getMessage().getGuild()).equals(Permissions.BOTOPERATOR);
                     for (Permissions perm : Permissions.values()) {
                         if (perm.equals(Permissions.BOTOPERATOR) && !userIsOp) {

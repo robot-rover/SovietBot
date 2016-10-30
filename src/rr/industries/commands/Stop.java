@@ -1,5 +1,6 @@
 package rr.industries.commands;
 
+import rr.industries.exceptions.BotException;
 import rr.industries.util.*;
 
 @CommandInfo(
@@ -11,7 +12,7 @@ import rr.industries.util.*;
 )
 public class Stop implements Command {
     @SubCommand(name = "", Syntax = {@Syntax(helpText = "Stops the process running the bot", args = {})})
-    public void execute(CommContext cont) {
+    public void execute(CommContext cont) throws BotException {
         cont.getActions().channels().terminate(false);
     }
 }

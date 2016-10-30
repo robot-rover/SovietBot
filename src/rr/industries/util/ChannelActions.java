@@ -5,7 +5,8 @@ import com.google.gson.GsonBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import rr.industries.Configuration;
-import rr.industries.SovietBot;
+import rr.industries.Information;
+import rr.industries.Launcher;
 import rr.industries.exceptions.BotException;
 import sx.blah.discord.api.IDiscordClient;
 import sx.blah.discord.handle.obj.IGuild;
@@ -14,7 +15,6 @@ import sx.blah.discord.handle.obj.IVoiceChannel;
 import sx.blah.discord.util.*;
 
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.nio.file.Files;
@@ -28,10 +28,12 @@ public class ChannelActions {
     private static final Logger LOG = LoggerFactory.getLogger(ChannelActions.class);
     Configuration config;
     private IDiscordClient client;
+    private Information info;
 
-    public ChannelActions(IDiscordClient client, Configuration config) {
+    public ChannelActions(IDiscordClient client, Configuration config, Information info) {
         this.client = client;
         this.config = config;
+        this.info = info;
     }
 
     public IDiscordClient getClient() {
@@ -79,7 +81,7 @@ public class ChannelActions {
             }
         BotUtils.bufferRequest(() -> {
             try {
-                if (SovietBot.loggedIn && !message.getChannel().isPrivate()) {
+                if (client.isReady() && !message.getChannel().isPrivate()) {
                     message.delete();
                 }
             } catch (MissingPermissionsException ex) {
@@ -127,20 +129,52 @@ public class ChannelActions {
 
     public void disconnectFromChannel(IGuild guild) {
         guild.getClient().getConnectedVoiceChannels().stream().filter(v -> v.getGuild().equals(guild)).findAny().ifPresent(IVoiceChannel::leave);
-
     }
 
-    public void terminate(Boolean restart) {
+    public void finalizeResources() {
         LOG.info("Writing Config");
         Gson gson = new GsonBuilder().setPrettyPrinting().create();
         try (FileWriter writer = new FileWriter("configuration.json", false)) {
             writer.write(gson.toJson(config));
-        } catch (FileNotFoundException ex) {
-            LOG.error("Config file not found upon exit, but was saved", ex);
         } catch (IOException ex) {
             LOG.error("Config file was not saved upon exit", ex);
         }
+        LOG.info("Disabling Modules");
         BotActions.getActions(client).disableModules();
+        LOG.info("\n------------------------------------------------------------------------\n"
+                + "SovietBot Terminated\n"
+                + "------------------------------------------------------------------------");
+    }
+
+    public void terminate(Boolean restart) throws BotException {
+        File d4jJar = new File("Discord4J-combined.jar");
+        File updatedJar = new File("sovietBot-update.jar");
+        File currentJar = new File((Launcher.isLauncherUsed() ? "sovietBot-master" : "modules" + File.separator + "sovietBot-master.jar"));
+        finalizeResources();
+        if (restart) {
+            Runtime.getRuntime().addShutdownHook(
+                    new Thread() {
+                        @Override
+                        public void run() {
+                            if (updatedJar.exists()) {
+                                LOG.info("Moving updated jar to overwrite current");
+                                try {
+                                    Files.move(updatedJar.toPath(), currentJar.toPath(), StandardCopyOption.ATOMIC_MOVE, StandardCopyOption.REPLACE_EXISTING);
+                                } catch (IOException ex) {
+                                    LOG.warn("Unable to Overwrite old jar!", ex);
+                                }
+                            }
+                            LOG.info("Starting process of {}", (Launcher.isLauncherUsed() ? currentJar : d4jJar).getPath());
+                            try {
+                                new ProcessBuilder("java", "-jar", "-server", (Launcher.isLauncherUsed() ? currentJar : d4jJar).getPath(), client.getToken().substring("Bot ".length())).inheritIO().start();
+                            } catch (IOException ex) {
+                                LOG.error("Couldn't Start new Bot instance!", ex);
+                            }
+                            LOG.info("Process Started");
+                        }
+                    }
+            );
+        }
         try {
             client.logout();
         } catch (RateLimitException | DiscordException ex) {
@@ -149,33 +183,6 @@ public class ChannelActions {
         LOG.info("\n------------------------------------------------------------------------\n"
                 + "Terminated\n"
                 + "------------------------------------------------------------------------");
-        if (restart) {
-            Runtime.getRuntime().addShutdownHook(new Thread() {
-                @Override
-                public void run() {
-                    if (new File("sovietBot-update.jar").exists()) {
-                        LOG.info("Updated Jar exists, copying...");
-                        try {
-                            Files.copy(new File("sovietBot-update.jar").toPath(), new File("sovietBot-master.jar").toPath(), StandardCopyOption.REPLACE_EXISTING);
-                            Files.delete(new File("sovietBot-update.jar").toPath());
-                        } catch (IOException ex) {
-                            saveLog();
-                            LOG.error("Failed to Update SovietBot", ex);
-                        }
-                    }
-                    try {
-                        File launcher = new File("launch");
-                        if (launcher.exists()) {
-                            new ProcessBuilder("/bin/bash", launcher.getAbsolutePath()).inheritIO().start();
-                        } else {
-                            new ProcessBuilder("java", "-jar", "-server", "sovietBot-master.jar").inheritIO().start();
-                        }
-                    } catch (IOException ex) {
-                        LOG.error("restart failed :-(", ex);
-                    }
-                }
-            });
-        }
         System.exit(0);
     }
 
@@ -190,5 +197,9 @@ public class ChannelActions {
             successful = false;
         }
         return successful;
+    }
+
+    public Information getInfo() {
+        return info;
     }
 }

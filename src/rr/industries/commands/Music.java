@@ -9,7 +9,7 @@ import net.dv8tion.jda.player.source.AudioInfo;
 import net.dv8tion.jda.player.source.AudioSource;
 import rr.industries.exceptions.BotException;
 import rr.industries.exceptions.IncorrectArgumentsException;
-import rr.industries.exceptions.InternalError;
+import rr.industries.exceptions.ServerError;
 import rr.industries.pojos.youtube.YoutubeSearch;
 import rr.industries.util.*;
 import sx.blah.discord.handle.audio.IAudioManager;
@@ -185,7 +185,7 @@ public class Music implements Command {
             }
             return link.items.get(0).id.videoId;
         } catch (UnsupportedEncodingException ex) {
-            throw new InternalError("Unsupported Encoding hardcoded in Youtube Search", ex);
+            throw new ServerError("Unsupported Encoding hardcoded in Youtube Search", ex);
         } catch (UnirestException ex) {
             throw BotException.returnException(ex);
         }
@@ -197,7 +197,7 @@ public class Music implements Command {
                     .queryString("maxResults", 1).queryString("id", videoID).asString();
             YoutubeSearch video = gson.fromJson(response.getBody(), YoutubeSearch.class);
             if (video.items.size() == 0)
-                throw new InternalError("Youtube API couldn't find Video" + videoID);
+                throw new ServerError("Youtube API couldn't find Video" + videoID);
             return new Entry<>(video.items.get(0).snippet.title, video.items.get(0).snippet.channelTitle);
         } catch (UnirestException ex) {
             throw BotException.returnException(ex);

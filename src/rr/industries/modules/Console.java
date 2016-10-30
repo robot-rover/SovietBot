@@ -1,5 +1,8 @@
 package rr.industries.modules;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import rr.industries.exceptions.BotException;
 import rr.industries.util.ChannelActions;
 
 import java.util.Scanner;
@@ -8,30 +11,15 @@ import java.util.Scanner;
  * @author robot_rover
  */
 public class Console implements Module {
+    private static Logger LOG = LoggerFactory.getLogger(Console.class);
     boolean isEnabled;
     Thread listner;
     ChannelActions actions;
+    Scanner input;
 
     public Console(ChannelActions actions) {
         this.actions = actions;
         isEnabled = false;
-        listner = new Thread() {
-            @Override
-            public void run() {
-                Scanner input = new Scanner(System.in);
-                while (isEnabled) {
-                    switch (input.nextLine()) {
-                        case "stop":
-                            System.out.println("Shutting Down...");
-                            actions.terminate(false);
-                            break;
-                        default:
-                            System.out.println("Unrecognized Command...");
-                    }
-                }
-
-            }
-        };
     }
 
     @Override
@@ -42,6 +30,30 @@ public class Console implements Module {
     @Override
     public Module enable() {
         isEnabled = true;
+        input = new Scanner(System.in);
+        listner = new Thread() {
+            @Override
+            public void run() {
+
+                while (isEnabled) {
+                    try {
+                        switch (input.nextLine()) {
+                            case "stop":
+                                System.out.println("Shutting Down...");
+                                try {
+                                    actions.terminate(false);
+                                } catch (BotException e) {
+                                    LOG.error("Could not Shutdown", e);
+                                }
+                                break;
+                        }
+                    } catch (IllegalStateException ex) {
+                        break;
+                    }
+                }
+
+            }
+        };
         listner.start();
         return this;
     }
@@ -49,6 +61,8 @@ public class Console implements Module {
     @Override
     public Module disable() {
         isEnabled = false;
+        System.out.println();
+        listner = null;
         return this;
     }
 }

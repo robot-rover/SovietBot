@@ -37,6 +37,14 @@ import java.util.jar.JarFile;
  *
  * @author Weerapong Phadungsukanan
  */
+/*
+<!-- Find all Classes in Package -->
+<dependency>
+    <groupId>gigadot.rebound</groupId>
+    <artifactId>rebound</artifactId>
+    <version>0.2</version>
+</dependency>
+ */
 @SuppressWarnings("ALL")
 public class Rebound {
 

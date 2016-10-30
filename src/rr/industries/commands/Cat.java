@@ -2,7 +2,7 @@ package rr.industries.commands;
 
 import org.apache.commons.io.IOUtils;
 import rr.industries.exceptions.BotException;
-import rr.industries.exceptions.InternalError;
+import rr.industries.exceptions.ServerError;
 import rr.industries.pojos.CatRequest;
 import rr.industries.util.CommContext;
 import rr.industries.util.CommandInfo;
@@ -27,9 +27,9 @@ public class Cat implements Command {
             CatRequest cat = gson.fromJson(IOUtils.toString(br), CatRequest.class);
             cont.getActions().channels().sendMessage(cont.builder().withContent(cont.getMessage().getAuthor().mention() + " " + cat.file));
         } catch (MalformedURLException ex) {
-            throw new InternalError("The cat api URL is Malformed", ex);
+            throw new ServerError("The cat api URL is Malformed", ex);
         } catch (IOException ex) {
-            throw new InternalError("IOException in Cat command", ex);
+            throw new ServerError("IOException in Cat command", ex);
         }
     }
 }

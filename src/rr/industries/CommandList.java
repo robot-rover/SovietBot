@@ -11,6 +11,7 @@ import java.lang.reflect.Method;
 import java.security.ProviderException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * @author robot_rover
@@ -56,7 +57,8 @@ public class CommandList {
     public <T extends Command> T getCommand(Class<T> c) {
         try {
             return (T) commandList.stream().filter((Command v) -> v.getClass().equals(c))
-                    .findAny().orElseThrow(() -> new NullPointerException("No Command from Class" + c.getName()));
+                    .findAny().orElseThrow(() -> new NullPointerException("No Command from Class " + c.getName() + "\nCurrent Commands:\n"
+                            + commandList.stream().map(v -> v.getClass().getName()).collect(Collectors.joining("\n"))));
         } catch (NullPointerException ex) {
             throw new ProviderException("CommandInfo annotation is misconfigured", ex);
         }

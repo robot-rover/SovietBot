@@ -27,22 +27,17 @@ public abstract class BotException extends Exception {
         return getMessage();
     }
 
-    @Deprecated
-    public static void translateException(Exception ex) throws BotException {
-        throw returnException(ex);
-    }
-
     public static BotException returnException(Exception ex) {
         if (ex instanceof DiscordException) {
             return new DiscordError((DiscordException) ex);
         } else if (ex instanceof RateLimitException) {
-            return new InternalError("A RateLimitException was not handled!", ex);
+            return new ServerError("A RateLimitException was not handled!", ex);
         } else if (ex instanceof MissingPermissionsException) {
             return new BotMissingPermsException(((MissingPermissionsException) ex).getErrorMessage());
         } else if (ex instanceof UnirestException) {
-            return new InternalError("Unirest Exception", ex);
+            return new ServerError("Unirest Exception", ex);
         } else if (ex instanceof SQLException) {
-            return new InternalError("SQLError", ex);
+            return new ServerError("SQLError", ex);
         } else {
             throw new UnsupportedOperationException(ex.getClass().getName() + " is not a supported exception", ex);
         }

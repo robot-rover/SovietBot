@@ -8,6 +8,7 @@
             <level>INFO</level>
         </filter>
         <encoder>
+            <charset>UTF-8</charset>
             <pattern>
                 %d{HH:mm:ss.SSS} [%thread] %-5level %logger{5} - %msg%n
             </pattern>
@@ -18,6 +19,7 @@
         <param name="Append" value="false"/>
         <file>debug.log</file>
         <encoder>
+            <charset>UTF-8</charset>
             <Pattern>
                 %d{HH:mm:ss.SSS} [%thread] %-5level %logger{36} – %msg%n
             </Pattern>
@@ -31,6 +33,7 @@
             <level>INFO</level>
         </filter>
         <encoder>
+            <charset>UTF-8</charset>
             <Pattern>
                 %d{HH:mm:ss.SSS} [%thread] %-5level %logger{36} – %msg%n
             </Pattern>

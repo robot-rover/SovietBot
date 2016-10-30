@@ -3,6 +3,7 @@ package rr.industries.util;
 import org.apache.commons.io.IOUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import rr.industries.Information;
 import rr.industries.SovietBot;
 import rr.industries.commands.Command;
 
@@ -27,6 +28,8 @@ public class GenHelpDocs {
     static final boolean gitPush = true;
 
     public static void generate(List<Command> commands) {
+        Information info = new Information();
+        ClassLoader resourceLoader = SovietBot.class.getClassLoader();
         File repo = new File("SovietBot");
         if (!repo.exists() || !repo.isDirectory()) {
             LOG.error("gh-pages not mirrored, Can not generate CommDocs");
@@ -56,7 +59,7 @@ public class GenHelpDocs {
                 }
                 for (SubCommand subComm : subCommands) {
                     for (Syntax syntax : subComm.Syntax()) {
-                        body.append("<h2>").append(escapeHtml4("\t" + SovietBot.defaultConfig.commChar + commInfo.commandName() + " " + subComm.name() + "\n"));
+                        body.append("<h2>").append(escapeHtml4("\t" + info.defaultConfig.commChar + commInfo.commandName() + " " + subComm.name() + "\n"));
                         for (Arguments arg : syntax.args())
                             body.append(escapeHtml4(arg.text));
                         body.append("</h2>\n<p>").append(escapeHtml4(syntax.helpText())).append("</p>\n");
@@ -65,11 +68,11 @@ public class GenHelpDocs {
                     }
 
                 }
-                String string = IOUtils.toString(SovietBot.resourceLoader.getResourceAsStream("template.txt"));
+                String string = IOUtils.toString(resourceLoader.getResourceAsStream("template.txt"));
                 String htmlBody = "<h1>Syntax</h1>\n" + "<p>Possible Syntaxes for this command. Type what you see exactly, but replace what is between <strong>&lt;&gt;</strong> with your own values.\n" + body.toString();
                 string = string.replace("{css-prefix}", "../");
-                string = string.replace("{title}", escapeHtml4(SovietBot.defaultConfig.commChar + commInfo.commandName()));
-                string = string.replace("{header}", escapeHtml4(SovietBot.defaultConfig.commChar + commInfo.commandName()));
+                string = string.replace("{title}", escapeHtml4(info.defaultConfig.commChar + commInfo.commandName()));
+                string = string.replace("{header}", escapeHtml4(info.defaultConfig.commChar + commInfo.commandName()));
                 string = string.replace("{description}", escapeHtml4(commInfo.helpText()));
                 string = string.replace("{content}", htmlBody);
                 BufferedWriter writer = Files.newBufferedWriter(htmlFile.toPath());
@@ -77,18 +80,18 @@ public class GenHelpDocs {
                 writer.close();
             }
             BufferedWriter writer = Files.newBufferedWriter(new File(repo.getAbsolutePath() + File.separator + "commandList.html").toPath());
-            String string = IOUtils.toString(SovietBot.resourceLoader.getResourceAsStream("template.txt"));
+            String string = IOUtils.toString(resourceLoader.getResourceAsStream("template.txt"));
             StringBuilder commandListText = new StringBuilder("<ul class=\"container\">\n");
-            List<CommandInfo> commInfo = new ArrayList<>();
+            List<CommandInfo> commInfos = new ArrayList<>();
             for (Command command : commands) {
-                CommandInfo info = command.getClass().getAnnotation(CommandInfo.class);
-                if (info.permLevel() == Permissions.BOTOPERATOR)
+                CommandInfo commInfo = command.getClass().getAnnotation(CommandInfo.class);
+                if (commInfo.permLevel() == Permissions.BOTOPERATOR)
                     continue;
-                commInfo.add(info);
+                commInfos.add(commInfo);
             }
-            commInfo.sort(comparing(CommandInfo::commandName));
-            for (CommandInfo info : commInfo) {
-                commandListText.append("<a href=\"commands").append(File.separator).append(info.commandName()).append(".html").append("\"><li>").append(escapeHtml4(SovietBot.defaultConfig.commChar + info.commandName())).append("</li></a>\n");
+            commInfos.sort(comparing(CommandInfo::commandName));
+            for (CommandInfo commInfo : commInfos) {
+                commandListText.append("<a href=\"commands").append(File.separator).append(commInfo.commandName()).append(".html").append("\"><li>").append(escapeHtml4(info.defaultConfig.commChar + commInfo.commandName())).append("</li></a>\n");
             }
             commandListText.append("<div style=\"clear:both\"></ul>");
             string = string.replace("{css-prefix}", "");
@@ -99,8 +102,8 @@ public class GenHelpDocs {
             writer.write(string);
             writer.close();
             BufferedWriter writer2 = Files.newBufferedWriter(new File(repo.getAbsolutePath() + File.separator + "index.html").toPath());
-            String string2 = IOUtils.toString(SovietBot.resourceLoader.getResourceAsStream("template.txt"));
-            String body2 = IOUtils.toString(SovietBot.resourceLoader.getResourceAsStream("index.txt"));
+            String string2 = IOUtils.toString(resourceLoader.getResourceAsStream("template.txt"));
+            String body2 = IOUtils.toString(resourceLoader.getResourceAsStream("index.txt"));
             string2 = string2.replace("{css-prefix}", "");
             string2 = string2.replace("{title}", escapeHtml4("SovietBot by robot-rover"));
             string2 = string2.replace("{header}", "SovietBot");

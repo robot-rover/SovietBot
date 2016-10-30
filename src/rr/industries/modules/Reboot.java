@@ -2,6 +2,7 @@ package rr.industries.modules;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import rr.industries.exceptions.BotException;
 import rr.industries.util.ChannelActions;
 import sx.blah.discord.api.events.EventSubscriber;
 import sx.blah.discord.handle.impl.events.DiscordDisconnectedEvent;
@@ -16,7 +17,6 @@ public class Reboot implements Module {
 
     public Reboot(ChannelActions actions) {
         this.actions = actions;
-        actions.getClient().getDispatcher().registerListener(this);
     }
 
     @Override
@@ -26,18 +26,20 @@ public class Reboot implements Module {
 
     @Override
     public Module enable() {
+        actions.getClient().getDispatcher().registerListener(this);
         isEnabled = true;
         return this;
     }
 
     @Override
     public Module disable() {
+        actions.getClient().getDispatcher().unregisterListener(this);
         isEnabled = false;
         return this;
     }
 
     @EventSubscriber
-    public void onDisconnect(DiscordDisconnectedEvent e) {
+    public void onDisconnect(DiscordDisconnectedEvent e) throws BotException {
         if (e.getReason().equals(DiscordDisconnectedEvent.Reason.LOGGED_OUT)) {
             LOG.info("Successfully Logged Out...");
         } else {
