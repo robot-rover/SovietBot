@@ -43,9 +43,7 @@ import java.util.stream.Collectors;
 /**
  * todo: XP and Levels
  * todo: RSS feeds module
- * todo: refractor to modules to allow hotswap
  * todo: [Long Term] Write unit tests
- * todo: impl stable async client
  * Commands -
  * Command: twitch stream / video on interweb :-P
  * Command: Reminder
@@ -173,7 +171,7 @@ public class SovietBot implements IModule {
                     if (commandSet.second() != null) {
                         SubCommand subComm = commandSet.second().getAnnotation(SubCommand.class);
                         CommandInfo commandInfo = commandSet.first().getClass().getAnnotation(CommandInfo.class);
-                        if (e.getMessage().getChannel().isPrivate() && !commandInfo.pmSafe() || !subComm.pmSafe()) {
+                        if (e.getMessage().getChannel().isPrivate() && (!commandInfo.pmSafe() || !subComm.pmSafe())) {
                             throw new PMNotSupportedException();
                         }
                         if (subComm.permLevel().level > cont.getCallerPerms().level || commandInfo.permLevel().level > cont.getCallerPerms().level) {

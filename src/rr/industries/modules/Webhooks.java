@@ -17,6 +17,7 @@ import sx.blah.discord.util.MessageBuilder;
 import java.io.File;
 import java.io.FileInputStream;
 import java.net.URLDecoder;
+import java.nio.file.Files;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
@@ -130,6 +131,15 @@ public class Webhooks implements Module {
             }
             response.status(200);
             return "\uD83D\uDC4C OK";
+        });
+        Spark.get("/procelio", (Request request, Response response) -> {
+            File launcher = new File("launcher.json");
+            if (!launcher.exists()) {
+                response.status(500);
+                return "{}";
+            }
+            response.status(200);
+            return Files.readAllLines(launcher.toPath()).stream().collect(Collectors.joining("\n"));
         });
         Spark.init();
         LOG.info("Initialized webhooks on port " + actions.getConfig().webhooksPort);
