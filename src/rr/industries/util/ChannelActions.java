@@ -12,7 +12,10 @@ import sx.blah.discord.api.IDiscordClient;
 import sx.blah.discord.handle.obj.IGuild;
 import sx.blah.discord.handle.obj.IMessage;
 import sx.blah.discord.handle.obj.IVoiceChannel;
-import sx.blah.discord.util.*;
+import sx.blah.discord.util.DiscordException;
+import sx.blah.discord.util.MessageBuilder;
+import sx.blah.discord.util.MissingPermissionsException;
+import sx.blah.discord.util.RequestBuffer;
 
 import java.io.File;
 import java.io.FileWriter;
@@ -177,7 +180,7 @@ public class ChannelActions {
         }
         try {
             client.logout();
-        } catch (RateLimitException | DiscordException ex) {
+        } catch (DiscordException ex) {
             LOG.warn("Logout Failed, Forcing Shutdown", ex);
         }
         LOG.info("\n------------------------------------------------------------------------\n"

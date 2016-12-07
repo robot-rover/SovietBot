@@ -1,5 +1,6 @@
 package rr.industries.commands;
 
+import com.google.gson.JsonSyntaxException;
 import com.mashape.unirest.http.HttpResponse;
 import com.mashape.unirest.http.Unirest;
 import com.mashape.unirest.http.exceptions.UnirestException;
@@ -195,7 +196,12 @@ public class Music implements Command {
         try {
             HttpResponse<java.lang.String> response = Unirest.get("https://www.googleapis.com/youtube/v3/videos").queryString("key", apiKey).queryString("part", "snippet")
                     .queryString("maxResults", 1).queryString("id", videoID).asString();
-            YoutubeSearch video = gson.fromJson(response.getBody(), YoutubeSearch.class);
+            YoutubeSearch video;
+            try {
+                video = gson.fromJson(response.getBody(), YoutubeSearch.class);
+            } catch (JsonSyntaxException ex) {
+                throw new InternalError("Malformed Json Recieved:\n" + response.getBody(), ex);
+            }
             if (video.items.size() == 0)
                 throw new ServerError("Youtube API couldn't find Video" + videoID);
             return new Entry<>(video.items.get(0).snippet.title, video.items.get(0).snippet.channelTitle);

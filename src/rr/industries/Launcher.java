@@ -19,6 +19,8 @@ package rr.industries;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import rr.industries.exceptions.BotException;
+import rr.industries.util.BotUtils;
 import rr.industries.util.GenHelpDocs;
 import sx.blah.discord.api.ClientBuilder;
 import sx.blah.discord.api.IDiscordClient;
@@ -30,7 +32,7 @@ public class Launcher {
     static SovietBot bot;
     private static boolean launcherUsed = false;
 
-    public static void main(String[] args) {
+    public static void main(String[] args) throws BotException {
         launcherUsed = true;
         try {
             if (args.length >= 1 && args[0].equals("generate")) {
@@ -38,16 +40,28 @@ public class Launcher {
                 return;
             }
             IDiscordClient client = new ClientBuilder().withToken(args[0]).setMaxReconnectAttempts(6).build();
-            login(client);
+            BotUtils.bufferRequest(() -> {
+                try {
+                    login(client);
+                } catch (DiscordException ex) {
+                    throw BotException.returnException(ex);
+                }
+            });
         } catch (DiscordException ex) {
             LOG.error("The Bot could not start", ex);
         }
     }
 
-    public static void login(IDiscordClient client) throws DiscordException {
+    public static void login(IDiscordClient client) throws DiscordException, BotException {
         LOG.info("\n------------------------------------------------------------------------\n### SovietBot ###\n------------------------------------------------------------------------");
         bot = new SovietBot();
-        client.login();
+        BotUtils.bufferRequest(() -> {
+            try {
+                client.login();
+            } catch (DiscordException ex) {
+                throw BotException.returnException(ex);
+            }
+        });
         bot.enable(client);
         client.getDispatcher().registerListener(bot);
     }

@@ -75,7 +75,7 @@
         <dependency>
             <groupId>com.github.austinv11</groupId>
             <artifactId>Discord4J</artifactId>
-            <version>dev-SNAPSHOT</version>
+            <version>websocket-rewrite-SNAPSHOT</version>
             <scope>compile</scope>
         </dependency>
         <!-- Apache Commons-io: Used for file download -->

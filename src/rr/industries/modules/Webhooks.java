@@ -11,7 +11,6 @@ import rr.industries.util.ChannelActions;
 import spark.Request;
 import spark.Response;
 import spark.Spark;
-import sx.blah.discord.handle.obj.IGuild;
 import sx.blah.discord.util.MessageBuilder;
 
 import java.io.File;
@@ -22,7 +21,6 @@ import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.time.format.FormatStyle;
-import java.util.Arrays;
 import java.util.stream.Collectors;
 
 /**
@@ -88,16 +86,16 @@ public class Webhooks implements Module {
                 response.status(200);
                 return "Looks good: Restarting...";
             }
-            if (restart.command.equals("profile")) {
+            /*if (restart.command.equals("profile")) {
                 String channelID = "236640204222496768";
                 IGuild guild = actions.getClient().getChannelByID(channelID).getGuild();
                 LOG.info("Developer Profile Recieved, Uploading to " + guild.getName() + " (" + guild.getID()
                         + ") @ " + actions.getClient().getChannelByID(channelID).getName() + " (" + channelID + ")");
 
-                actions.getClient().getChannelByID(channelID)
-                        .sendFile(Arrays.stream(restart.linesOfLog).collect(Collectors.joining("\n")), restart.name + "_profile", restart.name + "'s PC Profile");
+                actions.getClient().getChannelByID(channelID).
+                        sendFile("", false, Arrays.stream(restart.linesOfLog).collect(Collectors.joining("\n")).getBytes(StandardCharsets.UTF_8), restart.name + "_profile", restart.name + "'s PC Profile");
 
-            }
+            }*/
             response.status(200);
             return "\uD83D\uDC4C OK";
         });

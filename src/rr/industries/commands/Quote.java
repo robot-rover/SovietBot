@@ -27,7 +27,6 @@ public class Quote implements Command {
                 "http://i2.kym-cdn.com/photos/images/original/000/000/948/in-soviet-russia.png",
                 "In Soviet Russia, a van steals you",
                 "In Soviet Russia, jokes crack you.",
-                "http://ci.memecdn.com/689/2331689.jpg",
                 "http://67.media.tumblr.com/tumblr_meknuzRXuD1rxustho1_500.jpg",
                 "https://cdn.meme.am/instances/10678438.jpg",
                 "http://files.sharenator.com/in_soviet_russia_holy_crap_not_another_internet_meme_demotivational_poster_1247942328-s640x458-173710.jpg"

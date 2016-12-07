@@ -47,6 +47,10 @@ public class Test implements Command {
                 .withContent("```" + cont.getMessage().getContent() + "```"));
     }
 
+    @SubCommand(name = "invite", Syntax = {})
+    public void invite(CommContext cont) {
+    }
+
     @SubCommand(name = "ping", Syntax = {})
     public void ping(CommContext cont) {
         MessageBuilder message = new MessageBuilder(cont.getClient()).withChannel(cont.getMessage().getChannel()).withContent("**Pinged Webhook**\n");
