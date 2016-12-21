@@ -25,13 +25,9 @@ public class Purge implements Command {
             throw new IncorrectArgumentsException("Your number must be between 1 and 99");
         }
         MessageList clear = new MessageList(cont.getClient(), cont.getMessage().getChannel(), number);
-        clear.setCacheCapacity(number);
         BotUtils.bufferRequest(() -> {
             try {
-                for (int i = 0; i < tries && clear.size() < number; i++) {
-                    int loading = number - clear.size();
-                    LOG.info("Tried to load/unload {} messages. MessageList now has {} messages.", loading, clear.size());
-                }
+                clear.load(number);
                 if (clear.size() != number)
                     throw new ServerError("Could not load required messages after trying " + tries + " times (" + number + " required, " + clear.size() + " loaded)");
                 clear.bulkDelete(clear);

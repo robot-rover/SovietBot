@@ -22,6 +22,14 @@
         </repository>
     </repositories>
 
+
+    <properties>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <maven.compiler.source>1.8</maven.compiler.source>
+        <maven.compiler.target>1.8</maven.compiler.target>
+        <jetty.version>9.4.0.v20161208</jetty.version>
+    </properties>
+
     <dependencies>
         <!-- Case Formatter -->
         <dependency>
@@ -41,18 +49,40 @@
             <artifactId>sqlite-jdbc</artifactId>
             <version>3.8.11.2</version>
         </dependency>
+
         <!-- Spark: Websocket Server -->
         <dependency>
             <groupId>com.sparkjava</groupId>
             <artifactId>spark-core</artifactId>
-            <version>2.5</version>
-            <exclusions>
-                <exclusion>
-                    <artifactId>websocket-common</artifactId>
-                    <groupId>org.eclipse.jetty.websocket</groupId>
-                </exclusion>
-            </exclusions>
+            <version>2.5.4</version>
         </dependency>
+        <!-- Reguired by Spark after D4J Updated -->
+        <dependency>
+            <groupId>org.eclipse.jetty.websocket</groupId>
+            <artifactId>websocket-client</artifactId>
+            <version>${jetty.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.eclipse.jetty</groupId>
+            <artifactId>jetty-server</artifactId>
+            <version>${jetty.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.eclipse.jetty</groupId>
+            <artifactId>jetty-webapp</artifactId>
+            <version>${jetty.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.eclipse.jetty.websocket</groupId>
+            <artifactId>websocket-server</artifactId>
+            <version>${jetty.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.eclipse.jetty.websocket</groupId>
+            <artifactId>websocket-servlet</artifactId>
+            <version>${jetty.version}</version>
+        </dependency>
+        <!-- End Spark Dependencies -->
         <!-- JDA Player: Playing Audio in Voice Channels -->
         <dependency>
             <groupId>net.dv8tion</groupId>
@@ -72,12 +102,12 @@
             <version>1.4.9</version>
         </dependency>
         <!--Discord4J: Base API for discord -->
-        <dependency>
+        <!--<dependency>
             <groupId>com.github.austinv11</groupId>
             <artifactId>Discord4J</artifactId>
             <version>websocket-rewrite-SNAPSHOT</version>
             <scope>compile</scope>
-        </dependency>
+        </dependency>-->
         <!-- Apache Commons-io: Used for file download -->
         <dependency>
             <groupId>commons-io</groupId>
@@ -105,11 +135,12 @@
             <version>15.0</version>
         </dependency>
         <!-- Discord4J local testing branch -->
-        <!--<dependency>
+        <dependency>
             <groupId>sx.blah</groupId>
             <artifactId>Discord4J</artifactId>
             <version>2.6.2-SNAPSHOT</version>
-        </dependency>-->
+            <scope>compile</scope>
+        </dependency>
     </dependencies>
 
     <build>
@@ -152,9 +183,4 @@
         </plugins>
     </build>
 
-    <properties>
-        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <maven.compiler.source>1.8</maven.compiler.source>
-        <maven.compiler.target>1.8</maven.compiler.target>
-    </properties>
 </project>
