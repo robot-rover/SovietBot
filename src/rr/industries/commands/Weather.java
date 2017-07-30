@@ -54,8 +54,7 @@ public class Weather implements Command {
             Result location = queryGoogle(googleQuery);
             WeatherStatusResponse weather = map.currentWeatherAroundPoint((float) location.geometry.location.lat, (float) location.geometry.location.lng, 1);
             Optional<AddressComponent> place = location.addressComponents.stream().filter((v) -> v.types.contains("locality")).findFirst();
-            if (place.isPresent())
-                message.appendContent("Weather in **" + place.get().shortName + "**\n");
+            place.ifPresent(addressComponent -> message.appendContent("Weather in **" + addressComponent.shortName + "**\n"));
             if (weather.hasWeatherStatus() && weather.getWeatherStatus().size() > 0) {
                 StatusWeatherData set = weather.getWeatherStatus().get(0);
                 message.appendContent("Station: " + set.getName() + "\n");

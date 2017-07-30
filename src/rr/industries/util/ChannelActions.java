@@ -97,16 +97,16 @@ public class ChannelActions {
         MessageBuilder messageBuilder = new MessageBuilder(client).withContent(message);
         if (!notify) {
             for (IGuild guild : client.getGuilds()) {
-                if (guild.getID().equals("161155978199302144"))
-                    messageBuilder.withChannel("161155978199302144");
-                if (guild.getID().equals("141313424880566272"))
-                    messageBuilder.withChannel("170685308273164288");
+                if (guild.getLongID() == 161155978199302144L)
+                    messageBuilder.withChannel(161155978199302144L);
+                if (guild.getLongID() == 141313424880566272L)
+                    messageBuilder.withChannel(170685308273164288L);
             }
         }
         if (messageBuilder.getChannel() == null) {
             RequestBuffer.request(() -> {
                 try {
-                    messageBuilder.withChannel(client.getOrCreatePMChannel(client.getUserByID("141981833951838208")));
+                    messageBuilder.withChannel(client.getOrCreatePMChannel(client.getUserByID(141981833951838208L)));
                 } catch (DiscordException ex) {
                     LOG.error("Error messaging bot owner", ex);
                 }
@@ -153,26 +153,23 @@ public class ChannelActions {
         finalizeResources();
         if (restart) {
             Runtime.getRuntime().addShutdownHook(
-                    new Thread() {
-                        @Override
-                        public void run() {
-                            if (updatedJar.exists()) {
-                                LOG.info("Moving updated jar to overwrite current");
-                                try {
-                                    Files.move(updatedJar.toPath(), currentJar.toPath(), StandardCopyOption.ATOMIC_MOVE, StandardCopyOption.REPLACE_EXISTING);
-                                } catch (IOException ex) {
-                                    LOG.warn("Unable to Overwrite old jar!", ex);
-                                }
-                            }
-                            LOG.info("Starting process of {}", (Launcher.isLauncherUsed() ? currentJar : d4jJar).getPath());
+                    new Thread(() -> {
+                        if (updatedJar.exists()) {
+                            LOG.info("Moving updated jar to overwrite current");
                             try {
-                                new ProcessBuilder("java", "-jar", "-server", (Launcher.isLauncherUsed() ? currentJar : d4jJar).getPath(), client.getToken().substring("Bot ".length())).inheritIO().start();
+                                Files.move(updatedJar.toPath(), currentJar.toPath(), StandardCopyOption.ATOMIC_MOVE, StandardCopyOption.REPLACE_EXISTING);
                             } catch (IOException ex) {
-                                LOG.error("Couldn't Start new Bot instance!", ex);
+                                LOG.warn("Unable to Overwrite old jar!", ex);
                             }
-                            LOG.info("Process Started");
                         }
-                    }
+                        LOG.info("Starting process of {}", (Launcher.isLauncherUsed() ? currentJar : d4jJar).getPath());
+                        try {
+                            new ProcessBuilder("java", "-jar", "-server", (Launcher.isLauncherUsed() ? currentJar : d4jJar).getPath(), client.getToken().substring("Bot ".length())).inheritIO().start();
+                        } catch (IOException ex) {
+                            LOG.error("Couldn't Start new Bot instance!", ex);
+                        }
+                        LOG.info("Process Started");
+                    })
             );
         }
         try {

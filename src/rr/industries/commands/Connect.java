@@ -36,9 +36,9 @@ public class Connect implements Command {
                 throw new NotFoundException("Voice Channel", channelName);
             }
         } else {
-            List<IVoiceChannel> channel = cont.getMessage().getAuthor().getConnectedVoiceChannels();
-            if (channel.size() > 0) {
-                cont.getActions().channels().connectToChannel(channel.get(0));
+            IVoiceChannel channel = cont.getMessage().getAuthor().getVoiceStateForGuild(cont.getMessage().getGuild()).getChannel();
+            if (channel != null) {
+                cont.getActions().channels().connectToChannel(channel);
             }
         }
     }

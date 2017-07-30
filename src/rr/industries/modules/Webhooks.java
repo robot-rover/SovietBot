@@ -72,16 +72,13 @@ public class Webhooks implements Module {
                     return "MD5 hashes do not match Post:(" + restart.name + "), File:(" + fileHash + ")";
                 }
                 LOG.info("Everything Looks good, Restarting...");
-                Thread thread = new Thread() {
-                    @Override
-                    public void run() {
-                        try {
-                            actions.terminate(true);
-                        } catch (BotException ex) {
-                            LOG.error("Could Not Restart", ex);
-                        }
+                Thread thread = new Thread(() -> {
+                    try {
+                        actions.terminate(true);
+                    } catch (BotException ex) {
+                        LOG.error("Could Not Restart", ex);
                     }
-                };
+                });
                 thread.start();
                 response.status(200);
                 return "Looks good: Restarting...";
@@ -154,7 +151,7 @@ public class Webhooks implements Module {
 
     private void sendMessageToChannels(String event, String content) {
         LOG.info("Sent a webhook message to channels for event " + event);
-        actions.sendMessage(new MessageBuilder(actions.getClient()).withContent(content).withChannel(actions.getClient().getChannelByID("170685308273164288")));
+        actions.sendMessage(new MessageBuilder(actions.getClient()).withContent(content).withChannel(actions.getClient().getChannelByID(170685308273164288L)));
     }
 
 }

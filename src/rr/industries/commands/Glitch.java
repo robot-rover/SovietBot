@@ -65,7 +65,7 @@ public class Glitch implements Command {
         MessageBuilder message = cont.builder();
         Matcher mention = Pattern.compile("<@!?([0-9]{18})>").matcher(txt);
         while (mention.find()) {
-            txt = txt.replace(mention.group(), cont.getClient().getUserByID(mention.group(1)).getDisplayName(cont.getMessage().getGuild()));
+            txt = txt.replace(mention.group(), cont.getClient().getUserByID(Long.parseLong(mention.group(1))).getDisplayName(cont.getMessage().getGuild()));
         }
 
         for (int i = 0; i < txt.length(); i++) {

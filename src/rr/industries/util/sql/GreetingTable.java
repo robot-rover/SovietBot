@@ -23,7 +23,7 @@ public class GreetingTable extends Table implements ITable {
 
     public Optional<String> getJoinMessage(IGuild guild) throws BotException {
         try (Statement executor = connection.createStatement()) {
-            ResultSet result = queryValue(executor, Value.of(guild.getID(), true), Value.empty(), Value.empty());
+            ResultSet result = queryValue(executor, Value.of(guild.getStringID(), true), Value.empty(), Value.empty());
             if (result.next())
                 if (result.getString("joinmessage").equals("null")) {
                     return Optional.empty();
@@ -40,7 +40,7 @@ public class GreetingTable extends Table implements ITable {
 
     public Optional<String> getLeaveMessage(IGuild guild) throws BotException {
         try (Statement executor = connection.createStatement()) {
-            ResultSet result = queryValue(executor, Value.of(guild.getID(), true), Value.empty(), Value.empty());
+            ResultSet result = queryValue(executor, Value.of(guild.getStringID(), true), Value.empty(), Value.empty());
             if (result.next())
                 if (result.getString("leavemessage").equals("null")) {
                     return Optional.empty();
@@ -56,10 +56,10 @@ public class GreetingTable extends Table implements ITable {
     }
 
     public void setJoinMessage(IGuild guild, String message) throws BotException {
-        insertValue(Value.of(guild.getID(), true), Value.of(message, false), Value.empty());
+        insertValue(Value.of(guild.getStringID(), true), Value.of(message, false), Value.empty());
     }
 
     public void setLeaveMessage(IGuild guild, String message) throws BotException {
-        insertValue(Value.of(guild.getID(), true), Value.empty(), Value.of(message, false));
+        insertValue(Value.of(guild.getStringID(), true), Value.empty(), Value.of(message, false));
     }
 }

@@ -3,7 +3,6 @@ package rr.industries.modules;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import sx.blah.discord.api.IDiscordClient;
-import sx.blah.discord.handle.obj.Status;
 
 import java.time.LocalDateTime;
 import java.time.ZoneId;
@@ -28,7 +27,7 @@ public class UTCStatus implements Module {
         this.executor = null;
         updateStatus = new TimerTask() {
             public void run() {
-                client.changeStatus(Status.game(ZonedDateTime.now(ZoneId.of("UTC")).format(DateTimeFormatter.ofPattern("kk':'mm zzz"))));
+                client.changePlayingText(ZonedDateTime.now(ZoneId.of("UTC")).format(DateTimeFormatter.ofPattern("kk':'mm zzz")));
             }
         };
     }

@@ -102,12 +102,12 @@
             <version>1.4.9</version>
         </dependency>
         <!--Discord4J: Base API for discord -->
-        <!--<dependency>
+        <dependency>
             <groupId>com.github.austinv11</groupId>
             <artifactId>Discord4J</artifactId>
-            <version>websocket-rewrite-SNAPSHOT</version>
-            <scope>compile</scope>
-        </dependency>-->
+            <version>dev-SNAPSHOT</version>
+            <!--<scope>compile</scope>-->
+        </dependency>
         <!-- Apache Commons-io: Used for file download -->
         <dependency>
             <groupId>commons-io</groupId>
@@ -119,14 +119,14 @@
             <groupId>com.google.code.gson</groupId>
             <artifactId>gson</artifactId>
             <version>2.7</version>
-            <scope>compile</scope>
+            <!--<scope>compile</scope>-->
         </dependency>
         <!-- Logback Classic: SLF4J Binding -->
         <dependency>
             <groupId>ch.qos.logback</groupId>
             <artifactId>logback-classic</artifactId>
             <version>1.1.6</version>
-            <scope>compile</scope>
+            <!--<scope>compile</scope>-->
         </dependency>
         <!--Nullity Inference-->
         <dependency>
@@ -135,12 +135,12 @@
             <version>15.0</version>
         </dependency>
         <!-- Discord4J local testing branch -->
-        <dependency>
+        <!--<dependency>
             <groupId>sx.blah</groupId>
             <artifactId>Discord4J</artifactId>
             <version>2.6.2-SNAPSHOT</version>
             <scope>compile</scope>
-        </dependency>
+        </dependency>-->
     </dependencies>
 
     <build>

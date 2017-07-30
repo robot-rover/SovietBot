@@ -24,13 +24,13 @@ public class Bring implements Command {
         IVoiceChannel current;
         MessageBuilder message = new MessageBuilder(cont.getClient()).withChannel(cont.getMessage().getChannel());
         try {
-            back = cont.getMessage().getAuthor().getConnectedVoiceChannels().get(0);
+            back = cont.getMessage().getAuthor().getVoiceStateForGuild(cont.getMessage().getGuild()).getChannel();
         } catch (ArrayIndexOutOfBoundsException ex) {
             return;
         }
         for (IUser user : Users) {
             try {
-                current = user.getConnectedVoiceChannels().get(0);
+                current = user.getVoiceStateForGuild(cont.getMessage().getGuild()).getChannel();
             } catch (ArrayIndexOutOfBoundsException ex) {
                 continue;
             }

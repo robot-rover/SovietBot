@@ -56,20 +56,23 @@ public class Music implements Command {
         }
         int characters = 0;
         int line = 0;
-        String message = "";
+        StringBuilder messageBuild = new StringBuilder();
         for (String s : messageLines) {
             characters += s.length();
             if (characters >= 1970 || line > 11) {
-                message = message + "            + " + (messageLines.size() - line) + " more...";
+                messageBuild.append("            + ").append(messageLines.size() - line).append(" more...");
                 break;
             } else {
-                message = message + s + "\n";
+                messageBuild.append(s).append("\n");
             }
             line++;
 
         }
-        if (message.equals("")) {
+        String message;
+        if (messageBuild.toString().equals("")) {
             message = "Queue is Empty";
+        } else {
+            message = messageBuild.toString();
         }
         Optional<IMessage> delete = cont.getActions().channels().sendMessage(new MessageBuilder(cont.getClient()).withContent(message).withChannel(cont.getMessage().getChannel()));
         if (delete.isPresent())

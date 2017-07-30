@@ -26,9 +26,9 @@ public class PrefixTable extends Table implements ITable {
 
     public void setPrefix(IGuild guild, String prefix) throws BotException {
         if (prefix.equals(config.commChar))
-            removeEntry(Value.of(guild.getID(), true), Value.empty());
+            removeEntry(Value.of(guild.getStringID(), true), Value.empty());
         else
-            insertValue(Value.of(guild.getID(), true), Value.of(prefix, false));
+            insertValue(Value.of(guild.getStringID(), true), Value.of(prefix, false));
     }
 
     public String getPrefix(IGuild guild) {
@@ -36,7 +36,7 @@ public class PrefixTable extends Table implements ITable {
             return config.commChar;
         }
         try (Statement executor = connection.createStatement()) {
-            ResultSet set = queryValue(executor, Value.of(guild.getID(), true), Value.empty());
+            ResultSet set = queryValue(executor, Value.of(guild.getStringID(), true), Value.empty());
             if (set.next()) {
                 return set.getString("prefix");
             } else {

@@ -20,7 +20,7 @@ public class Tag implements Command {
         MessageBuilder message = cont.builder();
         String name = cont.getArgs().get(2);
         String content = cont.getConcatArgs(3);
-        if (Arrays.stream(this.getClass().getMethods()).filter(v -> v.getAnnotation(SubCommand.class) != null && v.getAnnotation(SubCommand.class).name().equals(name)).findAny().isPresent()) {
+        if (Arrays.stream(this.getClass().getMethods()).anyMatch(v -> v.getAnnotation(SubCommand.class) != null && v.getAnnotation(SubCommand.class).name().equals(name))) {
             message.withContent("`" + name + "` is a protected name");
         } else {
             cont.getActions().getTable(TagTable.class).makeTag(cont.getMessage().getGuild(), name, content, false, cont.getCallerPerms());

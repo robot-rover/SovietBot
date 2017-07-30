@@ -28,7 +28,7 @@ public class PermWarning implements Command {
         Collection<Permissions> allPerms = cont.getActions().channels().getInfo().neededPerms.stream().map(Entry::first).collect(Collectors.toList());
         for (IGuild guild : cont.getClient().getGuilds()) {
             List<Permissions> missingPerms = checkPerms(guild, cont.getClient().getOurUser(), allPerms);
-            MessageBuilder message = new MessageBuilder(cont.getClient()).withChannel(guild.getChannelByID(guild.getID()))
+            MessageBuilder message = new MessageBuilder(cont.getClient()).withChannel(guild.getChannelByID(guild.getLongID()))
                     .withContent(":warning: **Attention** :warning: SovietBot is missing Permissions it requires to *function* properly\n")
                     .appendContent("Missing: ").appendContent(formatPerms(missingPerms));
             cont.getActions().channels().sendMessage(message);

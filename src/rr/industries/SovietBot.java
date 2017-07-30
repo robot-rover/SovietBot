@@ -19,7 +19,11 @@ import rr.industries.util.sql.*;
 import sx.blah.discord.Discord4J;
 import sx.blah.discord.api.IDiscordClient;
 import sx.blah.discord.api.events.EventSubscriber;
-import sx.blah.discord.handle.impl.events.*;
+import sx.blah.discord.handle.impl.events.ReadyEvent;
+import sx.blah.discord.handle.impl.events.guild.GuildCreateEvent;
+import sx.blah.discord.handle.impl.events.guild.channel.message.MessageReceivedEvent;
+import sx.blah.discord.handle.impl.events.guild.member.UserJoinEvent;
+import sx.blah.discord.handle.impl.events.guild.member.UserLeaveEvent;
 import sx.blah.discord.modules.IModule;
 import sx.blah.discord.util.DiscordException;
 import sx.blah.discord.util.Image;
@@ -89,11 +93,11 @@ public class SovietBot implements IModule {
     public void onUserJoin(UserJoinEvent e) {
         try {
             Optional<String> messageContent = actions.getTable(GreetingTable.class).getJoinMessage(e.getGuild());
-            if (messageContent.isPresent()) {
+            messageContent.ifPresent(s -> {
                 MessageBuilder message = new MessageBuilder(client).withChannel(client.getChannelByID(e.getGuild().getID()))
-                        .withContent(messageContent.get().replace("%user", e.getUser().mention()));
+                        .withContent(s.replace("%user", e.getUser().mention()));
                 actions.channels().sendMessage(message);
-            }
+            });
         } catch (BotException ex) {
             actions.channels().exception(ex, new MessageBuilder(client).withChannel(client.getChannelByID(e.getGuild().getID())));
         }
@@ -103,11 +107,11 @@ public class SovietBot implements IModule {
     public void onUserLeave(UserLeaveEvent e) {
         try {
             Optional<String> messageContent = actions.getTable(GreetingTable.class).getLeaveMessage(e.getGuild());
-            if (messageContent.isPresent()) {
+            messageContent.ifPresent(s -> {
                 MessageBuilder message = new MessageBuilder(client).withChannel(client.getChannelByID(e.getGuild().getID()))
-                        .withContent(messageContent.get().replace("%user", "`" + e.getUser().getDisplayName(e.getGuild()) + "`"));
+                        .withContent(s.replace("%user", "`" + e.getUser().getDisplayName(e.getGuild()) + "`"));
                 actions.channels().sendMessage(message);
-            }
+            });
         } catch (BotException ex) {
             actions.channels().exception(ex, new MessageBuilder(client).withChannel(client.getChannelByID(e.getGuild().getID())));
         }
@@ -148,7 +152,7 @@ public class SovietBot implements IModule {
         LOG.info("\n------------------------------------------------------------------------\n"
                 + "*** " + info.botName + " Ready ***\n"
                 + "------------------------------------------------------------------------");
-        actions.channels().messageOwner("Startup Successful", false);
+        //actions.channels().messageOwner("Startup Successful", false);
     }
 
     @EventSubscriber

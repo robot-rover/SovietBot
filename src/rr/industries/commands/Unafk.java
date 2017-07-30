@@ -18,10 +18,10 @@ public class Unafk implements Command {
     @SubCommand(name = "", Syntax = {@Syntax(helpText = "All players in the AFK channel will be moved to your channel", args = {})})
     public void execute(CommContext cont) throws BotException {
         MessageBuilder message = cont.builder();
-        if (cont.getMessage().getAuthor().getConnectedVoiceChannels().isEmpty())
+        if (cont.getMessage().getAuthor().getVoiceStateForGuild(cont.getMessage().getGuild()).getChannel() == null)
             throw new IncorrectArgumentsException("You aren't connected to a voice channel");
         IVoiceChannel afk = cont.getMessage().getGuild().getAFKChannel();
-        IVoiceChannel bringToo = cont.getMessage().getAuthor().getConnectedVoiceChannels().get(0);
+        IVoiceChannel bringToo = cont.getMessage().getAuthor().getVoiceStateForGuild(cont.getMessage().getGuild()).getChannel();
         if (afk == null) {
             message.withContent("There is no AFK Channel.");
         } else {

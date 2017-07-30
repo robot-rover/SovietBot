@@ -6,7 +6,6 @@ import rr.industries.util.Entry;
 
 import java.util.Arrays;
 import java.util.List;
-import java.util.stream.Collectors;
 
 /**
  * @author Sam
@@ -45,7 +44,7 @@ public class Information {
                 perm(sx.blah.discord.handle.obj.Permissions.VOICE_MOVE_MEMBERS, "01000000"),
                 perm(sx.blah.discord.handle.obj.Permissions.CHANGE_NICKNAME, "04000000")
         );
-        Integer permID = neededPerms.stream().collect(Collectors.summingInt(Entry::second));
+        Integer permID = neededPerms.stream().mapToInt(Entry::second).sum();
         invite = "https://discordapp.com/oauth2/authorize?&client_id=184445488093724672&scope=bot&permissions=" + permID;
 
     }

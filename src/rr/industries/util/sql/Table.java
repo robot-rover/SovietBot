@@ -106,7 +106,7 @@ public class Table {
     }
 
     private String getConditions(Value... vals) {
-        if (!toEntryList(vals).stream().filter(v -> v.second().shouldQuery()).findAny().isPresent())
+        if (toEntryList(vals).stream().noneMatch(v -> v.second().shouldQuery()))
             return "";
         return " where " + toEntryList(vals).stream().filter(v -> v.second().shouldQuery()).map(v -> v.first().name + "='" + v.second() + "'").collect(Collectors.joining(" AND "));
     }

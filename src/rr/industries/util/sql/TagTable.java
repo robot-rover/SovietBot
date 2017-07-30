@@ -82,7 +82,7 @@ public class TagTable implements ITable {
         if (permanent && perm.level < permanentPerm.level)
             throw new MissingPermsException("Edit a Permanent Tag", permanentPerm);
         if (guild != null) {
-            localTags.insertValue(Value.of(guild.getID(), true), Value.of(name, true), Value.of(content, false), Value.of(permanent, false));
+            localTags.insertValue(Value.of(guild.getStringID(), true), Value.of(name, true), Value.of(content, false), Value.of(permanent, false));
         } else {
             globalTags.insertValue(Value.of(name, true), Value.of(content, false));
         }
@@ -115,7 +115,7 @@ public class TagTable implements ITable {
     public Optional<TagData> getTag(@Nullable IGuild guild, String name) throws BotException {
         try (Statement executor = connection.createStatement()) {
             if (guild != null) {
-                ResultSet result = localTags.queryValue(executor, Value.of(guild.getID(), true), Value.of(name, true), Value.empty(), Value.empty());
+                ResultSet result = localTags.queryValue(executor, Value.of(guild.getStringID(), true), Value.of(name, true), Value.empty(), Value.empty());
                 if (result.next()) {
                     return Optional.of(getTagDataFromSQL(result));
                 }
@@ -162,7 +162,7 @@ public class TagTable implements ITable {
 
     public List<TagData> getAllTags(IGuild guild) throws BotException {
         try (Statement executor = connection.createStatement()) {
-            ResultSet result = localTags.queryValue(executor, Value.of(guild.getID(), true), Value.empty(), Value.empty(), Value.empty());
+            ResultSet result = localTags.queryValue(executor, Value.of(guild.getStringID(), true), Value.empty(), Value.empty(), Value.empty());
             List<TagData> tags = new ArrayList<>();
             while (result.next()) {
                 tags.add(getTagDataFromSQL(result));

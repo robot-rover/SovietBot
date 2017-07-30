@@ -26,7 +26,7 @@ public class Rip implements Command {
         Matcher matcher = p.matcher(rawSubject);
         while (matcher.find()) {
             String id = matcher.group(1);
-            IUser mention = cont.getClient().getUserByID(id);
+            IUser mention = cont.getClient().getUserByID(Long.parseLong(id));
             if (mention != null) {
                 rawSubject = rawSubject.replace(matcher.group(), mention.getDisplayName(cont.getMessage().getGuild()));
             } else {

@@ -27,9 +27,8 @@ public class Time implements Command {
         MessageBuilder message = cont.builder().withContent("**Times:**");
         for (IUser user : cont.getMessage().getGuild().getUsers()) {
             Optional<String> zone = cont.getActions().getTable(TimeTable.class).getTimeZone(user);
-            if (zone.isPresent())
-                message.appendContent("\n").appendContent(user.getDisplayName(cont.getMessage().getGuild())).appendContent(" - ")
-                        .appendContent(DateTimeFormatter.ofLocalizedTime(FormatStyle.SHORT).format(ZonedDateTime.now(ZoneId.of(zone.get()))));
+            zone.ifPresent(s -> message.appendContent("\n").appendContent(user.getDisplayName(cont.getMessage().getGuild())).appendContent(" - ")
+                    .appendContent(DateTimeFormatter.ofLocalizedTime(FormatStyle.SHORT).format(ZonedDateTime.now(ZoneId.of(s)))));
         }
         cont.getActions().channels().sendMessage(message);
     }

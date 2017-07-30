@@ -23,7 +23,7 @@ public class TimeTable extends Table implements ITable {
 
     public Optional<String> getTimeZone(IUser user) throws BotException {
         try (Statement executor = connection.createStatement()) {
-            ResultSet rs = queryValue(executor, Value.of(user.getID(), true), Value.empty());
+            ResultSet rs = queryValue(executor, Value.of(user.getStringID(), true), Value.empty());
             if (rs.next()) {
                 return Optional.ofNullable(rs.getString("timezone"));
             } else {
@@ -36,6 +36,6 @@ public class TimeTable extends Table implements ITable {
     }
 
     public void setTimeZone(IUser user, String timeZone) throws BotException {
-        insertValue(Value.of(user.getID(), true), Value.of(timeZone, false));
+        insertValue(Value.of(user.getStringID(), true), Value.of(timeZone, false));
     }
 }

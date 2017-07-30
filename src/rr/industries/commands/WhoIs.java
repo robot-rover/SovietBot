@@ -8,7 +8,6 @@ import sx.blah.discord.util.MessageBuilder;
 
 import java.time.format.DateTimeFormatter;
 import java.time.format.FormatStyle;
-import java.util.Optional;
 import java.util.stream.Collectors;
 
 /**
@@ -31,17 +30,17 @@ public class WhoIs implements Command {
         }
         MessageBuilder message = new MessageBuilder(cont.getClient()).withChannel(cont.getMessage().getChannel());
         message.appendContent(examine.getName() + "`#" + examine.getDiscriminator() + "`");
-        Optional<String> nick = examine.getNicknameForGuild(cont.getMessage().getGuild());
-        if (nick.isPresent()) {
-            message.appendContent(" aka *" + nick.get() + "*");
+        String nick = examine.getNicknameForGuild(cont.getMessage().getGuild());
+        if (nick != null) {
+            message.appendContent(" aka *" + nick + "*");
         }
         if (examine.isBot()) {
             message.appendContent(" - `|BOT|`");
         }
         message.appendContent("\n**--------------**\n");
-        message.appendContent("ID: " + examine.getID() + "\n");
+        message.appendContent("ID: " + examine.getStringID() + "\n");
         message.appendContent("Joined: " + DateTimeFormatter.ofLocalizedDateTime(FormatStyle.SHORT).format(examine.getCreationDate()) + "\n");
-        message.appendContent("Status: " + WordUtils.capitalizeFully(examine.getPresence().name()) + "\n");
+        message.appendContent("Status: " + WordUtils.capitalizeFully(examine.getPresence().getStatus().name()) + "\n");
         message.appendContent("Roles: " + examine.getRolesForGuild(cont.getMessage().getGuild()).stream().filter(v -> !v.isEveryoneRole()).map(IRole::getName).collect(Collectors.joining(", ")) + "\n");
         if (examine.getAvatar() != null)
             message.appendContent("Avatar: " + examine.getAvatarURL() + "\n");

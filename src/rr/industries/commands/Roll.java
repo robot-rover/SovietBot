@@ -34,7 +34,7 @@ public class Roll implements Command {
                     rolls.add(rn.nextInt(value) + 1);
                 }
                 message.appendContent(rolls.stream().map(Object::toString).collect(Collectors.joining(", ")));
-                message.appendContent("\n**Total: **" + rolls.stream().collect(Collectors.summingInt(v -> v)));
+                message.appendContent("\n**Total: **" + (Integer) rolls.stream().mapToInt(v -> v).sum());
 
             } else {
                 roll = Integer.parseInt(cont.getArgs().get(1));

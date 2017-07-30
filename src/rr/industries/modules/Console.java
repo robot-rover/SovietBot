@@ -31,29 +31,26 @@ public class Console implements Module {
     public Module enable() {
         isEnabled = true;
         input = new Scanner(System.in);
-        listner = new Thread() {
-            @Override
-            public void run() {
+        listner = new Thread(() -> {
 
-                while (isEnabled) {
-                    try {
-                        switch (input.nextLine()) {
-                            case "stop":
-                                System.out.println("Shutting Down...");
-                                try {
-                                    actions.terminate(false);
-                                } catch (BotException e) {
-                                    LOG.error("Could not Shutdown", e);
-                                }
-                                break;
-                        }
-                    } catch (IllegalStateException ex) {
-                        break;
+            while (isEnabled) {
+                try {
+                    switch (input.nextLine()) {
+                        case "stop":
+                            System.out.println("Shutting Down...");
+                            try {
+                                actions.terminate(false);
+                            } catch (BotException e) {
+                                LOG.error("Could not Shutdown", e);
+                            }
+                            break;
                     }
+                } catch (IllegalStateException ex) {
+                    break;
                 }
-
             }
-        };
+
+        });
         listner.start();
         return this;
     }

@@ -51,9 +51,9 @@ public class Server implements Command {
         MessageBuilder message = cont.builder();
         message.appendContent("Command Character: ").appendContent(cont.getActions().getConfig().commChar).appendContent("\n");
         Optional<String> joinMessage = cont.getActions().getTable(GreetingTable.class).getJoinMessage(cont.getMessage().getGuild());
-        message.appendContent("Join Message: ").appendContent((joinMessage.isPresent() ? joinMessage.get().replace("%user", "`USERNAME`") : "*Not Set*")).appendContent("\n");
+        message.appendContent("Join Message: ").appendContent((joinMessage.map(s -> s.replace("%user", "`USERNAME`")).orElse("*Not Set*"))).appendContent("\n");
         Optional<String> leaveMessage = cont.getActions().getTable(GreetingTable.class).getLeaveMessage(cont.getMessage().getGuild());
-        message.appendContent("Leave Message: ").appendContent((leaveMessage.isPresent() ? leaveMessage.get().replace("%user", "`USERNAME`") : "*Not Set*")).appendContent("\n");
+        message.appendContent("Leave Message: ").appendContent((leaveMessage.map(s -> s.replace("%user", "`USERNAME`")).orElse("*Not Set*"))).appendContent("\n");
         cont.getActions().channels().sendMessage(message);
     }
 }

@@ -28,10 +28,10 @@ public class Perms implements Command {
 
     @SubCommand(name = "all", Syntax = {@Syntax(helpText = "Lists all permissions for the server", args = {})})
     public void all(CommContext cont) throws BotException {
-            List<Entry<String, Integer>> list = cont.getActions().getTable(PermTable.class).getAllPerms(cont.getMessage().getGuild());
+        List<Entry<Long, Integer>> list = cont.getActions().getTable(PermTable.class).getAllPerms(cont.getMessage().getGuild());
         MessageBuilder message = cont.builder().withContent("```markdown\n");
             message.appendContent("# Permissions for " + cont.getMessage().getGuild().getName() + " #\n");
-            for (Entry<String, Integer> entry : list) {
+        for (Entry<Long, Integer> entry : list) {
                 message.appendContent(String.format("%-15s", "<" + BotUtils.toPerms(entry.second()).title + ">") + cont.getClient().getUserByID(entry.first()).getDisplayName(cont.getMessage().getGuild()) + "\n");
             }
         cont.getActions().channels().sendMessage(message.appendContent("```"));

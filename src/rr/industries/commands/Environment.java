@@ -30,7 +30,7 @@ public class Environment implements Command {
         message.appendContent("<OS> " + bean.getName() + " v" + bean.getVersion() + "\n");
         message.appendContent("<Java> Java v" + System.getProperty("java.version") + "\n");
         message.appendContent("<Launch> " + Discord4J.getLaunchTime().format(DateTimeFormatter.ofLocalizedTime(FormatStyle.MEDIUM)) + "\n");
-        message.appendContent("<Bot_ID> " + cont.getClient().getOurUser().getID() + "\n");
+        message.appendContent("<Bot_ID> " + cont.getClient().getOurUser().getStringID() + "\n");
         cont.getActions().channels().sendMessage(message.appendContent("```"));
     }
 }

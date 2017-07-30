@@ -34,7 +34,7 @@ public class PermTable extends Table implements ITable {
     }
 
     public Permissions getPerms(IUser user, IGuild guild) throws BotException {
-        if (Arrays.asList(config.operators).contains(user.getID()))
+        if (Arrays.asList(config.operators).contains(user.getStringID()))
             return Permissions.BOTOPERATOR;
         if (guild == null) {
             return Permissions.REGULAR;
@@ -42,7 +42,7 @@ public class PermTable extends Table implements ITable {
         if (guild.getOwner().equals(user))
             return Permissions.SERVEROWNER;
         try (Statement executor = connection.createStatement()) {
-            ResultSet result = queryValue(executor, Value.of(guild.getID(), true), Value.of(user.getID(), true), Value.empty());
+            ResultSet result = queryValue(executor, Value.of(guild.getStringID(), true), Value.of(user.getStringID(), true), Value.empty());
             if (result.next()) {
                 return BotUtils.toPerms(result.getInt("perm"));
             }
@@ -54,17 +54,17 @@ public class PermTable extends Table implements ITable {
 
     public void setPerms(IGuild guild, IUser user, Permissions permissions) throws BotException {
         if (permissions == Permissions.NORMAL)
-            removeEntry(Value.of(guild.getID(), true), Value.of(user.getID(), true), Value.empty());
+            removeEntry(Value.of(guild.getStringID(), true), Value.of(user.getStringID(), true), Value.empty());
         else
-            insertValue(Value.of(guild.getID(), true), Value.of(user.getID(), true), Value.of(Integer.toString(permissions.level), false));
+            insertValue(Value.of(guild.getStringID(), true), Value.of(user.getStringID(), true), Value.of(Integer.toString(permissions.level), false));
     }
 
-    public List<Entry<String, Integer>> getAllPerms(IGuild guild) {
+    public List<Entry<Long, Integer>> getAllPerms(IGuild guild) {
         try (Statement executor = connection.createStatement()) {
-            List<Entry<String, Integer>> list = new ArrayList<>();
-            ResultSet rs = executor.executeQuery("SELECT userid, perm FROM " + getName() + " where guildid=" + guild.getID() + " ORDER BY perm DESC;");
+            List<Entry<Long, Integer>> list = new ArrayList<>();
+            ResultSet rs = executor.executeQuery("SELECT userid, perm FROM " + getName() + " where guildid=" + guild.getStringID() + " ORDER BY perm DESC;");
             while (rs.next()) {
-                list.add(new Entry<>(rs.getString("userid"), rs.getInt("perm")));
+                list.add(new Entry<>(Long.parseLong(rs.getString("userid")), rs.getInt("perm")));
             }
             return list;
         } catch (SQLException ex) {

@@ -11,7 +11,7 @@ import rr.industries.exceptions.BotException;
 import rr.industries.util.sql.PermTable;
 import rr.industries.util.sql.PrefixTable;
 import sx.blah.discord.api.IDiscordClient;
-import sx.blah.discord.handle.impl.events.MessageReceivedEvent;
+import sx.blah.discord.handle.impl.events.guild.channel.message.MessageReceivedEvent;
 import sx.blah.discord.handle.obj.IMessage;
 import sx.blah.discord.util.MessageBuilder;
 
