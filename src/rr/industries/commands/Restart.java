@@ -7,7 +7,6 @@ import rr.industries.util.*;
         commandName = "restart",
         helpText = "Restarts the bot.",
         permLevel = Permissions.BOTOPERATOR,
-        deleteMessage = false,
         pmSafe = true
 )
 public class Restart implements Command {

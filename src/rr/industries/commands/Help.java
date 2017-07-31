@@ -5,6 +5,7 @@ import rr.industries.exceptions.NotFoundException;
 import rr.industries.util.*;
 import rr.industries.util.sql.PermTable;
 import sx.blah.discord.util.DiscordException;
+import sx.blah.discord.util.EmbedBuilder;
 import sx.blah.discord.util.MessageBuilder;
 
 import java.lang.reflect.Method;
@@ -23,9 +24,9 @@ public class Help implements Command {
 
     @SubCommand(name = "", Syntax = {
             @Syntax(helpText = "Displays all possible commands", args = {}),
-            @Syntax(helpText = "Displays the selected command in greater detail", args = {Arguments.COMMAND})
+            @Syntax(helpText = "Displays the selected command in greater detail", args = {@Argument(value = Validate.COMMAND)})
     })
-    public void execute(CommContext cont) throws BotException {
+    /*public void execute(CommContext cont) throws BotException {
         MessageBuilder message = cont.builder();
         if (cont.getArgs().size() >= 2) {
             String name = cont.getArgs().get(1);
@@ -55,7 +56,7 @@ public class Help implements Command {
                 for (SubCommand subCom : subCommands) {
                     for (Syntax syntax : subCom.Syntax()) {
                         message.appendContent("[" + cont.getCommChar() + commandInfo.commandName() + (subCom.name().equals("") ? "" : " ") + subCom.name() +
-                                Arrays.stream(syntax.args()).map(v -> v.text).collect(Collectors.joining(" ", " ", " ")) + "]: ");
+                                Arrays.stream(syntax.args()).map(v -> {if(v.description().equals("")){return v.value().defaultLabel;}else{return v.description();}}).map(v -> "<" + v + ">").collect(Collectors.joining(" ", " ", " ")) + "]: ");
                         if (subCom.permLevel().level > commandInfo.permLevel().level) {
                             message.appendContent("<*" + subCom.permLevel().title + "*> ");
                         }
@@ -63,9 +64,7 @@ public class Help implements Command {
                         if (!subCom.pmSafe())
                             message.appendContent(" `|NO PM|`");
                         message.appendContent("\n");
-                        if (syntax.options().length > 0) {
-                            message.appendContent(Arrays.stream(syntax.options()).collect(Collectors.joining(" | ", "( ", " )"))).appendContent("\n");
-                        }
+                        Arrays.stream(syntax.args()).filter(v -> v.options().length > 0).forEach(v -> message.appendContent("\t" + v.description() + " -> ").appendContent(Arrays.stream(v.options()).collect(Collectors.joining(" | ", "( ", " )"))).appendContent("\n"));
                     }
                 }
 
@@ -92,6 +91,89 @@ public class Help implements Command {
                     cont.getActions().channels().sendMessage(message2.appendContent("```"));
                     if (!cont.getMessage().getChannel().isPrivate())
                     cont.getActions().channels().sendMessage(message.withContent(cont.getMessage().getAuthor().mention() + ", Check your PMs!"));
+                } catch (DiscordException ex) {
+                    throw BotException.returnException(ex);
+                }
+            });
+        }
+    }*/
+
+    public void execute(CommContext cont) throws BotException {
+        EmbedBuilder embed = new EmbedBuilder();
+        if (cont.getArgs().size() >= 2) {
+            String name = cont.getArgs().get(1);
+            Command command = cont.getActions().getCommands().getCommandList().stream().filter(v -> v.getClass().getAnnotation(CommandInfo.class).commandName().equals(name)).findAny().orElse(null);
+            if (command != null) {
+                CommandInfo commandInfo = command.getClass().getDeclaredAnnotation(CommandInfo.class);
+                embed.withTitle(cont.getCommChar() + commandInfo.commandName() + " - " + commandInfo.helpText() + (commandInfo.pmSafe() ? " - `|PM|`" : ""));
+                embed.appendDescription("`<>` means replace with your own value. `[]` means you can give more than one value.\n");
+                embed.appendDescription("For more help, visit <" + cont.getActions().channels().getInfo().website + "commands/" + commandInfo.commandName() + ".html>\n");
+                SubCommand mainSubCommand = null;
+                List<SubCommand> subCommands = new ArrayList<>();
+                for (Method method : command.getClass().getDeclaredMethods()) {
+                    SubCommand sub = method.getAnnotation(SubCommand.class);
+                    if (sub != null) {
+                        if (sub.name().equals("")) {
+                            mainSubCommand = sub;
+                        } else {
+                            if (sub.permLevel() == Permissions.BOTOPERATOR && cont.getCallerPerms() != Permissions.BOTOPERATOR)
+                                continue;
+                            subCommands.add(sub);
+                        }
+                    }
+                }
+                if (mainSubCommand != null)
+                    subCommands.add(0, mainSubCommand);
+                for (SubCommand subCom : subCommands) {
+                    for (Syntax syntax : subCom.Syntax()) {
+                        String title = cont.getCommChar() + commandInfo.commandName() + (subCom.name().equals("") ? "" : " ") + subCom.name() +
+                                Arrays.stream(syntax.args()).map(v -> {
+                                    if (v.description().equals("")) {
+                                        return v.value().defaultLabel;
+                                    } else {
+                                        return v.description();
+                                    }
+                                }).map(v -> "<" + v + ">").collect(Collectors.joining(" ", " ", " "));
+                        /*if (subCom.permLevel().level > commandInfo.permLevel().level) {
+                            title += " - Requires " + subCom.permLevel().title;
+                        }*/
+
+                        if (!subCom.pmSafe() && commandInfo.pmSafe())
+                            title += " `|NO PM|`";
+                        StringBuilder content = new StringBuilder(syntax.helpText());
+                        Arrays.stream(syntax.args()).filter(v -> v.options().length > 0).forEach(v -> content.append("\n\t" + v.description() + " -> ").append(Arrays.stream(v.options()).collect(Collectors.joining(" | ", "( ", " )"))));
+                        embed.appendField(title, content.toString(), false);
+                    }
+                }
+
+            } else {
+                throw new NotFoundException("Command", cont.getArgs().get(1));
+            }
+            cont.getActions().channels().sendMessage(cont.builder().withEmbed(embed.build()));
+        } else {
+            BotUtils.bufferRequest(() -> {
+                try {
+                    MessageBuilder message2 = new MessageBuilder(cont.getClient()).withChannel(cont.getClient().getOrCreatePMChannel(cont.getMessage().getAuthor()));
+                    embed.withAuthorName(cont.getActions().channels().getInfo().botName + " - \"" + cont.getCommChar() + "\"");
+                    embed.withAuthorIcon("http://i.imgur.com/djeMU8C.jpg");
+                    embed.withTitle("For more help type >help <command>");
+                    embed.withDescription("Or visit " + cont.getActions().channels().getInfo().website);
+                    boolean userIsOp = cont.getActions().getTable(PermTable.class).getPerms(cont.getMessage().getAuthor(), cont.getMessage()).equals(Permissions.BOTOPERATOR);
+                    for (Permissions perm : Permissions.values()) {
+                        if (perm.equals(Permissions.BOTOPERATOR) && !userIsOp) {
+                            continue;
+                        }
+                        String title = "[Permission]: " + perm.title;
+                        StringBuilder content = new StringBuilder();
+                        cont.getActions().getCommands().getCommandList().stream().filter(comm -> comm.getClass().getDeclaredAnnotation(CommandInfo.class).permLevel().equals(perm))
+                                .map(v -> v.getClass().getDeclaredAnnotation(CommandInfo.class)).forEach(comm -> content.append(cont.getCommChar()).append(comm.commandName()).append(" - ").append(comm.helpText()).append("\n"));
+                        if (content.length() > 0)
+                            embed.appendField(title, content.toString(), false);
+                    }
+                    LOG.info("is Embed too big? {}", embed.doesExceedCharacterLimit());
+                    cont.getActions().channels().sendMessage(message2.withEmbed(embed.build()));
+                    if (!cont.getMessage().getChannel().isPrivate())
+                        cont.getActions().channels().sendMessage(cont.builder().withContent(cont.getMessage().getAuthor().mention() + ", Check your PMs!"));
                 } catch (DiscordException ex) {
                     throw BotException.returnException(ex);
                 }

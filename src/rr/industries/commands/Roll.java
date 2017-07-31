@@ -17,8 +17,8 @@ import java.util.stream.Collectors;
 public class Roll implements Command {
     @SubCommand(name = "", Syntax = {
             @Syntax(helpText = "Rolls a number 1-100", args = {}),
-            @Syntax(helpText = "Rolls a number 1-#", args = {Arguments.NUMBER}),
-            @Syntax(helpText = "Rolls the dice RP style. Rolls a number 1-Y, X times", args = {Arguments.DND})
+            @Syntax(helpText = "Rolls a number 1-#", args = {@Argument(Validate.NUMBER)}),
+            @Syntax(helpText = "Rolls the dice RP style. Rolls a number 1-Y, X times", args = {@Argument(Validate.DND)})
     })
     public void execute(CommContext cont) {
         MessageBuilder message = cont.builder();

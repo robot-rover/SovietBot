@@ -15,7 +15,7 @@ import rr.industries.util.*;
 @CommandInfo(commandName = "shorten", helpText = "Shortens URLs", pmSafe = true)
 public class Shorten implements Command {
 
-    @SubCommand(name = "", Syntax = {@Syntax(helpText = "Gives you a shortened version of the link", args = {Arguments.LINK})})
+    @SubCommand(name = "", Syntax = {@Syntax(helpText = "Gives you a shortened version of the link", args = {@Argument(description = "Video Link", value = Validate.LINK)})})
     public void execute(CommContext cont) throws BotException {
         String url = cont.getArgs().get(1);
         try {

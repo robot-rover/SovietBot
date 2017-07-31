@@ -10,14 +10,12 @@ import sx.blah.discord.util.MissingPermissionsException;
 @CommandInfo(
         commandName = "purge",
         helpText = "Deletes Messages from a text Channel",
-        permLevel = Permissions.MOD,
-        deleteMessage = false
+        permLevel = Permissions.MOD
 )
 public class Purge implements Command {
-    final static int tries = 3;
 
     @SuppressWarnings("CollectionAddedToSelf")
-    @SubCommand(name = "", Syntax = {@Syntax(helpText = "Deletes the number off messages you specify", args = {Arguments.NUMBER})})
+    @SubCommand(name = "", Syntax = {@Syntax(helpText = "Deletes the number off messages you specify", args = {@Argument(description = "# of Messages", value = Validate.NUMBER)})})
     public void execute(CommContext cont) throws BotException {
         int number = Integer.parseInt(cont.getArgs().get(1)) + 1;
         if (number > 100 || number < 2) {

@@ -60,11 +60,10 @@ public class GenHelpDocs {
                 for (SubCommand subComm : subCommands) {
                     for (Syntax syntax : subComm.Syntax()) {
                         body.append("<h2>").append(escapeHtml4("\t" + info.defaultConfig.commChar + commInfo.commandName() + " " + subComm.name() + "\n"));
-                        for (Arguments arg : syntax.args())
-                            body.append(escapeHtml4(arg.text));
+                        for (Argument arg : syntax.args())
+                            body.append(escapeHtml4(" <" + (arg.description().equals("") ? arg.value().defaultLabel : arg.description()) + ">"));
                         body.append("</h2>\n<p>").append(escapeHtml4(syntax.helpText())).append("</p>\n");
-                        if (syntax.options().length > 0)
-                            body.append("<p>Options: ").append(escapeHtml4(Arrays.stream(syntax.options()).collect(Collectors.joining(" | ")))).append("</p>\n");
+                        body.append("<p>").append(Arrays.stream(syntax.args()).filter(v -> v.options().length > 0).map(v -> Arrays.stream(v.options()).collect(Collectors.joining(" | ", (v.description().equals("") ? v.value().defaultLabel : v.description()) + " ( ", " )"))).collect(Collectors.joining("<p>", "</p><p>", "</p>")));
                     }
 
                 }

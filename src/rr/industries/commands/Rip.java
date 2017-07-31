@@ -16,8 +16,8 @@ import java.util.regex.Pattern;
 public class Rip implements Command {
 
     @SubCommand(name = "", Syntax = {
-            @Syntax(helpText = "No Messing about here, just gives you the link", args = {}),
-            @Syntax(helpText = "Specify the thing(s) that are rip (Works with @\u200Bmentions)", args = {Arguments.LONGTEXT})
+            @Syntax(helpText = "No Messing around here, just gives you the link", args = {}),
+            @Syntax(helpText = "Specify the thing(s) that are rip (Works with @\u200Bmentions)", args = {@Argument(description = "Things that are RIP", value = Validate.LONGTEXT)})
     })
     public void execute(CommContext cont) {
         Pattern p = Pattern.compile("<@!?([0-9]{18})>");

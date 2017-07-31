@@ -16,7 +16,7 @@ import java.util.List;
 
 @CommandInfo(commandName = "role", helpText = "Lets the Awesome BotOperator screw around", permLevel = Permissions.BOTOPERATOR)
 public class Role implements Command {
-    @SubCommand(name = "add", Syntax = @Syntax(helpText = "Adds a command named thsi", args = {Arguments.TEXT}))
+    @SubCommand(name = "add", Syntax = @Syntax(helpText = "Adds a role named this", args = {@Argument(description = "Role Name", value = Validate.TEXT)}))
     public void execute(CommContext cont) throws BotException {
         List<IRole> role = cont.getMessage().getGuild().getRolesByName(cont.getArgs().get(2));
         if (role.size() == 0)

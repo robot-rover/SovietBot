@@ -15,7 +15,7 @@ import sx.blah.discord.util.MissingPermissionsException;
 )
 //todo: disconnect multiple users
 public class Disconnect implements Command {
-    @SubCommand(name = "", Syntax = {@Syntax(helpText = "Disconnects the mentioned user", args = {Arguments.MENTION})})
+    @SubCommand(name = "", Syntax = {@Syntax(helpText = "Disconnects the mentioned user", args = {@Argument(value = Validate.MENTION)})})
     public void execute(CommContext cont) throws BotException {
 
         if (cont.getMessage().getMentions().size() == 0) {

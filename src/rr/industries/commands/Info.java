@@ -18,10 +18,10 @@ public class Info implements Command {
         String message =
                 "# **" + info.botName + "** #\n" +
                         "[Created with] " + info.frameName + " version `" + info.frameVersion + "`\n" +
-                        "[For help type] `" + cont.getActions().getTable(PrefixTable.class).getPrefix(cont.getMessage().getGuild()) + info.helpCommand + "`\n" +
+                        "[For help type] `" + cont.getActions().getTable(PrefixTable.class).getPrefix(cont.getMessage()) + info.helpCommand + "`\n" +
                         "[Created By] **@" + info.author + "**\n" +
-                        "[Invite Link] " + info.invite + "\n" +
-                        "[Website] " + info.website;
+                        "[Website] " + info.website +
+                        "[Invite Link] " + info.invite + "\n";
         cont.getActions().channels().sendMessage(cont.builder().withContent(message));
     }
 }

@@ -11,7 +11,5 @@ import java.lang.annotation.*;
 public @interface Syntax {
     String helpText();
 
-    Arguments[] args();
-
-    String[] options() default {};
+    Argument[] args();
 }

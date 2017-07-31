@@ -19,8 +19,8 @@ import java.util.stream.Collectors;
 public class Define implements Command {
 
     @SubCommand(name = "", Syntax = {
-            @Syntax(helpText = "defines a word", args = {Arguments.TEXT}),
-            @Syntax(helpText = "defines a phrase", args = {Arguments.LONGTEXT})
+            @Syntax(helpText = "defines a word", args = {@Argument(description = "Word", value = Validate.TEXT)}),
+            @Syntax(helpText = "defines a phrase", args = {@Argument(description = "Phrase", value = Validate.LONGTEXT)})
     })
     public void execute(CommContext cont) throws BotException {
         try {

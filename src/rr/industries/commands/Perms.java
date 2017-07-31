@@ -38,8 +38,8 @@ public class Perms implements Command {
     }
 
     @SubCommand(name = "set", Syntax = {
-            @Syntax(helpText = "Sets the Permissions of the user(s) @\u200Bmentioned", args = {Arguments.MENTION, Arguments.NUMBER}, options = {"0 - Normal", "1 - Regular", "2 - Moderator", "3 - Admin"}),
-            @Syntax(helpText = "Sets the Permissions of all users with the Role(s) @\u200Bmentioned", args = {Arguments.MENTIONROLE, Arguments.NUMBER}, options = {"0 - Normal", "1 - Regular", "2 - Moderator", "3 - Admin"})
+            @Syntax(helpText = "Sets the Permissions of the user(s) @\u200Bmentioned", args = {@Argument(Validate.MENTION), @Argument(description = "Permission Level", value = Validate.NUMBER, options = {"0 - Normal", "1 - Regular", "2 - Moderator", "3 - Admin"})}),
+            @Syntax(helpText = "Sets the Permissions of all users with the Role(s) @\u200Bmentioned", args = {@Argument(Validate.MENTIONROLE), @Argument(description = "Permission Level", value = Validate.NUMBER, options = {"0 - Normal", "1 - Regular", "2 - Moderator", "3 - Admin"})})
     })
     public void set(CommContext cont) throws BotException {
         MessageBuilder message = cont.builder();
@@ -54,8 +54,8 @@ public class Perms implements Command {
             //iterate through all of the @mentions
             for (IUser user : cont.getMessage().getMentions()) {
                 //make sure the @mention is the lower perms than the caller
-                if (cont.getCallerPerms().level <= cont.getActions().getTable(PermTable.class).getPerms(user, cont.getMessage().getGuild()).level) {
-                    message.appendContent("Did not change " + user.getDisplayName(cont.getMessage().getGuild()) + "'s perms because your level is not higher than theirs (" + cont.getActions().getTable(PermTable.class).getPerms(user, cont.getMessage().getGuild()).formatted + ")\n");
+                if (cont.getCallerPerms().level <= cont.getActions().getTable(PermTable.class).getPerms(user, cont.getMessage()).level) {
+                    message.appendContent("Did not change " + user.getDisplayName(cont.getMessage().getGuild()) + "'s perms because your level is not higher than theirs (" + cont.getActions().getTable(PermTable.class).getPerms(user, cont.getMessage()).formatted + ")\n");
                 } else {
                     //and finally, change their perms
                     cont.getActions().getTable(PermTable.class).setPerms(cont.getMessage().getGuild(), user, setPerm);
@@ -67,9 +67,9 @@ public class Perms implements Command {
             for (IRole role : cont.getMessage().getRoleMentions()) {
                 //iterate through all of the users
                 for (IUser user : cont.getMessage().getGuild().getUsersByRole(role)) {
-                    if (cont.getCallerPerms().level <= cont.getActions().getTable(PermTable.class).getPerms(cont.getMessage().getAuthor(), cont.getMessage().getGuild()).level) {
+                    if (cont.getCallerPerms().level <= cont.getActions().getTable(PermTable.class).getPerms(cont.getMessage().getAuthor(), cont.getMessage()).level) {
                         message.appendContent("Did not change " + user.getDisplayName(cont.getMessage().getGuild()) + "'s perms because your level is not higher than theirs ("
-                                + cont.getActions().getTable(PermTable.class).getPerms(user, cont.getMessage().getGuild()).formatted + ")\n");
+                                + cont.getActions().getTable(PermTable.class).getPerms(user, cont.getMessage()).formatted + ")\n");
                     } else {
                         //and finally, change their perms
                         cont.getActions().getTable(PermTable.class).setPerms(cont.getMessage().getGuild(), user, setPerm);
@@ -89,11 +89,11 @@ public class Perms implements Command {
         return (v) -> {
             if (v.size() >= 3 && v.get(1).equals("set")) {
                 for (int i = 2; i < v.size() - 1; i++) {
-                    if (!Arguments.MENTION.isValid.test(v.get(i)) && !Arguments.MENTIONROLE.isValid.test(v.get(i))) {
+                    if (!Validate.MENTION.isValid.test(v.get(i)) && !Validate.MENTIONROLE.isValid.test(v.get(i))) {
                         return false;
                     }
                 }
-                return Arguments.NUMBER.isValid.test(v.get(v.size() - 1));
+                return Validate.NUMBER.isValid.test(v.get(v.size() - 1));
             } else if (v.size() == 2 && v.get(1).equals("all")) {
                 return true;
             } else if (v.size() == 1) {

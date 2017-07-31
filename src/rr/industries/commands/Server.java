@@ -15,14 +15,14 @@ import java.util.Optional;
 @CommandInfo(commandName = "server", helpText = "set various server settings", permLevel = Permissions.ADMIN)
 public class Server implements Command {
 
-    @SubCommand(name = "prefix", Syntax = {@Syntax(helpText = "set the Command Character for this server", args = {Arguments.TEXT})})
+    @SubCommand(name = "prefix", Syntax = {@Syntax(helpText = "set the Command Character for this server", args = {@Argument(description = "Command Character", value = Validate.TEXT)})})
     public void prefix(CommContext cont) throws BotException {
         String prefix = cont.getArgs().get(2);
         cont.getActions().getTable(PrefixTable.class).setPrefix(cont.getMessage().getGuild(), prefix);
         cont.getActions().channels().sendMessage(cont.builder().withContent("Changed Prefix to `" + prefix + "`"));
     }
 
-    @SubCommand(name = "leave", Syntax = {@Syntax(helpText = "set the message sent when a user leaves. \"%user\" is changed to the user's name. \"clear\" removes it", args = {Arguments.LONGTEXT})})
+    @SubCommand(name = "leave", Syntax = {@Syntax(helpText = "set the message sent when a user leaves. \"%user\" is changed to the user's name. \"clear\" removes it", args = {@Argument(description = "Leave Message", value = Validate.LONGTEXT)})})
     public void leave(CommContext cont) throws BotException {
         String message = cont.getConcatArgs(2);
         String output = "Changed Leave Message";
@@ -34,7 +34,7 @@ public class Server implements Command {
         cont.getActions().channels().sendMessage(cont.builder().withContent(output));
     }
 
-    @SubCommand(name = "join", Syntax = {@Syntax(helpText = "set the message sent when a user joins. \"%user\" is changed to the user's name. \"clear\" removes it", args = {Arguments.LONGTEXT})})
+    @SubCommand(name = "join", Syntax = {@Syntax(helpText = "set the message sent when a user joins. \"%user\" is changed to the user's name. \"clear\" removes it", args = {@Argument(description = "Join Message", value = Validate.LONGTEXT)})})
     public void join(CommContext cont) throws BotException {
         String message = cont.getConcatArgs(2);
         String output = "Changed Join Message";

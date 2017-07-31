@@ -37,7 +37,7 @@ public class Rekt implements Command {
 
     @SubCommand(name = "", Syntax = {
             @Syntax(helpText = "Plays a random rekt clip", args = {}),
-            @Syntax(helpText = "Plays the specified rekt clip", args = {Arguments.TEXT}, options = {"wombo", "wrong", "airhorn", "never", "scope", "nope"})
+            @Syntax(helpText = "Plays the specified rekt clip", args = {@Argument(description = "Clip Name", value = Validate.TEXT, options = {"wombo", "wrong", "airhorn", "never", "scope", "nope"})})
     })
     public void execute(CommContext cont) throws BotException {
         String[] link;

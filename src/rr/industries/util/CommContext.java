@@ -29,11 +29,11 @@ public class CommContext {
     private final IMessage message;
 
     public CommContext(MessageReceivedEvent e, BotActions actions) {
-        this.commChar = actions.getTable(PrefixTable.class).getPrefix(e.getMessage().getGuild());
+        this.commChar = actions.getTable(PrefixTable.class).getPrefix(e.getMessage());
         this.actions = actions;
         this.message = e.getMessage();
         try {
-            callerPerms = actions.getTable(PermTable.class).getPerms(e.getMessage().getAuthor(), e.getMessage().getGuild());
+            callerPerms = actions.getTable(PermTable.class).getPerms(e.getMessage().getAuthor(), e.getMessage());
         } catch (BotException ex) {
             actions.channels().exception(ex, builder());
             callerPerms = Permissions.NORMAL;

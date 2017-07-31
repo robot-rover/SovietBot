@@ -20,8 +20,8 @@ public class Connect implements Command {
     }
 
     @SubCommand(name = "", Syntax = {
-            @Syntax(helpText = "Connects the bot to the Voice Channel provided", args = {Arguments.VOICECHANNEL}),
-            @Syntax(helpText = "If the voice channel is more than one word, put it in quotes", args = {Arguments.LONGTEXT}),
+            @Syntax(helpText = "Connects the bot to the Voice Channel provided", args = {@Argument(value = Validate.VOICECHANNEL)}),
+            @Syntax(helpText = "If the voice channel is more than one word, put it in quotes", args = {@Argument(description = "\"Channel Name\"", value = Validate.LONGTEXT)}),
             @Syntax(helpText = "Connects the bot to the voice channel you are connected too", args = {})
     })
     public void execute(CommContext cont) throws BotException {

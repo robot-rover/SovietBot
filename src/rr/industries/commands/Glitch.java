@@ -59,7 +59,7 @@ public class Glitch implements Command {
         };
     }
 
-    @SubCommand(name = "", Syntax = {@Syntax(helpText = "Creates normal Glitch Text using your input", args = {Arguments.LONGTEXT})})
+    @SubCommand(name = "", Syntax = {@Syntax(helpText = "Creates normal Glitch Text using your input", args = {@Argument(description = "Text", value = Validate.LONGTEXT)})})
     public void execute(CommContext cont) {
         String txt = cont.getConcatArgs(1);
         MessageBuilder message = cont.builder();

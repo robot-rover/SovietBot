@@ -7,7 +7,6 @@ import rr.industries.util.*;
         commandName = "stop",
         helpText = "Shuts down SovietBot",
         permLevel = Permissions.BOTOPERATOR,
-        deleteMessage = false,
         pmSafe = true
 )
 public class Stop implements Command {

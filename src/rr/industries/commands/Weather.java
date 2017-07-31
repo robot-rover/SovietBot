@@ -31,7 +31,7 @@ public class Weather implements Command {
     private OwmClient map;
     //link - https://github.com/migtavares/owmClient
     //todo: implement forcasting
-    @SubCommand(name = "forecast", Syntax = {@Syntax(helpText = "Displays forecast for your area. Give your location any way you like.", args = {Arguments.LOCATION})})
+    @SubCommand(name = "forecast", Syntax = {@Syntax(helpText = "Displays forecast for your area. Give your location any way you like.", args = {@Argument(Validate.LOCATION)})})
     public void forecast(CommContext cont) {
         OwmClient map = new OwmClient();
         map.setAPPID(cont.getActions().getConfig().owmKey);
@@ -42,7 +42,7 @@ public class Weather implements Command {
     }
 
     @SubCommand(name = "", Syntax = {
-            @Syntax(helpText = "Displays the current weather in your area. Give your location any way you like.", args = {Arguments.LOCATION})
+            @Syntax(helpText = "Displays the current weather in your area. Give your location any way you like.", args = {@Argument(Validate.LOCATION)})
     })
     public void execute(CommContext cont) throws BotException {
         OwmClient map = new OwmClient();

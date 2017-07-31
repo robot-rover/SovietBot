@@ -3,6 +3,7 @@ package rr.industries.util.sql;
 import rr.industries.Configuration;
 import rr.industries.exceptions.BotException;
 import sx.blah.discord.handle.obj.IGuild;
+import sx.blah.discord.handle.obj.IMessage;
 
 import java.sql.Connection;
 import java.sql.ResultSet;
@@ -31,7 +32,15 @@ public class PrefixTable extends Table implements ITable {
             insertValue(Value.of(guild.getStringID(), true), Value.of(prefix, false));
     }
 
-    public String getPrefix(IGuild guild) {
+    public String getPrefix(IMessage e) {
+        if (e.getChannel().isPrivate()) {
+            return getPrefix((IGuild) null);
+        } else {
+            return getPrefix(e.getGuild());
+        }
+    }
+
+    private String getPrefix(IGuild guild) {
         if (guild == null) {
             return config.commChar;
         }

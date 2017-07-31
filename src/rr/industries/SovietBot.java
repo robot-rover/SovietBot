@@ -16,7 +16,6 @@ import rr.industries.modules.UTCStatus;
 import rr.industries.modules.Webhooks;
 import rr.industries.util.*;
 import rr.industries.util.sql.*;
-import sx.blah.discord.Discord4J;
 import sx.blah.discord.api.IDiscordClient;
 import sx.blah.discord.api.events.EventSubscriber;
 import sx.blah.discord.handle.impl.events.ReadyEvent;
@@ -78,12 +77,12 @@ public class SovietBot implements IModule {
         try {
             actions.getTable(PermTable.class).setPerms(e.getGuild(), e.getGuild().getOwner(), Permissions.ADMIN);
             for (String op : config.operators)
-                actions.getTable(PermTable.class).setPerms(e.getGuild(), client.getUserByID(op), Permissions.BOTOPERATOR);
-            LOG.info("Connected to Guild: " + e.getGuild().getName() + " (" + e.getGuild().getID() + ")");
+                actions.getTable(PermTable.class).setPerms(e.getGuild(), client.getUserByID(Long.parseLong(op)), Permissions.BOTOPERATOR);
+            LOG.info("Connected to Guild: {} ({})", e.getGuild().getName(), e.getGuild().getStringID());
             PermWarning permTool = commandList.getCommand(PermWarning.class);
             List<sx.blah.discord.handle.obj.Permissions> missingPerms = permTool.checkPerms(e.getGuild(), client.getOurUser(), info.neededPerms.stream().map(Entry::first).collect(Collectors.toCollection(ArrayList::new)));
             if (!missingPerms.isEmpty())
-                LOG.info("Missing Perms in guild() {} ({}): {}", e.getGuild().getName(), e.getGuild().getID(), permTool.formatPerms(missingPerms));
+                LOG.info("Missing Perms in guild() {} ({}): {}", e.getGuild().getName(), e.getGuild().getStringID(), permTool.formatPerms(missingPerms));
         } catch (BotException ex) {
             actions.channels().exception(ex);
         }
@@ -94,12 +93,12 @@ public class SovietBot implements IModule {
         try {
             Optional<String> messageContent = actions.getTable(GreetingTable.class).getJoinMessage(e.getGuild());
             messageContent.ifPresent(s -> {
-                MessageBuilder message = new MessageBuilder(client).withChannel(client.getChannelByID(e.getGuild().getID()))
+                MessageBuilder message = new MessageBuilder(client).withChannel(client.getChannelByID(e.getGuild().getLongID()))
                         .withContent(s.replace("%user", e.getUser().mention()));
                 actions.channels().sendMessage(message);
             });
         } catch (BotException ex) {
-            actions.channels().exception(ex, new MessageBuilder(client).withChannel(client.getChannelByID(e.getGuild().getID())));
+            actions.channels().exception(ex, new MessageBuilder(client).withChannel(client.getChannelByID(e.getGuild().getLongID())));
         }
     }
 
@@ -108,12 +107,12 @@ public class SovietBot implements IModule {
         try {
             Optional<String> messageContent = actions.getTable(GreetingTable.class).getLeaveMessage(e.getGuild());
             messageContent.ifPresent(s -> {
-                MessageBuilder message = new MessageBuilder(client).withChannel(client.getChannelByID(e.getGuild().getID()))
+                MessageBuilder message = new MessageBuilder(client).withChannel(client.getChannelByID(e.getGuild().getLongID()))
                         .withContent(s.replace("%user", "`" + e.getUser().getDisplayName(e.getGuild()) + "`"));
                 actions.channels().sendMessage(message);
             });
         } catch (BotException ex) {
-            actions.channels().exception(ex, new MessageBuilder(client).withChannel(client.getChannelByID(e.getGuild().getID())));
+            actions.channels().exception(ex, new MessageBuilder(client).withChannel(client.getChannelByID(e.getGuild().getLongID())));
         }
 
     }
@@ -121,9 +120,9 @@ public class SovietBot implements IModule {
     @EventSubscriber
     public void onReady(ReadyEvent e) {
         actions.enableModules();
-        Discord4J.disableChannelWarnings();
         LOG.info("*** " + info.botName + " armed ***");
         if (!client.getOurUser().getName().equals(config.botName)) {
+            //todo: uncomment when not testing...
             /*try {
                 BotUtils.bufferRequest(() -> {
                     try {
@@ -161,7 +160,7 @@ public class SovietBot implements IModule {
             return;
         }
         String message = e.getMessage().getContent();
-        boolean command = message.startsWith(actions.getTable(PrefixTable.class).getPrefix(e.getMessage().getGuild()));
+        boolean command = message.startsWith(e.getMessage().getChannel().isPrivate() ? actions.getConfig().commChar : actions.getTable(PrefixTable.class).getPrefix(e.getMessage()));
         boolean mention = e.getMessage().getMentions().contains(client.getOurUser()) && !e.getMessage().mentionsEveryone();
         if (command || mention) {
             CommContext cont = new CommContext(e, actions);
@@ -180,7 +179,7 @@ public class SovietBot implements IModule {
                             final int iteratorConstant = (subComm.name().equals("") ? 1 : 2);
                             List<Syntax> syntax = Arrays.stream(subComm.Syntax()).filter(
                                     v -> v.args().length + iteratorConstant == cont.getArgs().size() ||
-                                            v.args().length + iteratorConstant <= cont.getArgs().size() && Arrays.asList(v.args()).contains(Arguments.LONGTEXT))
+                                            v.args().length + iteratorConstant <= cont.getArgs().size() && Arrays.asList(v.args()).contains(Validate.LONGTEXT))
                                     .collect(Collectors.toList());
                             if (commandSet.first().getValiddityOverride() != null) {
                                 if (!commandSet.first().getValiddityOverride().test(cont.getArgs())) {
@@ -192,10 +191,10 @@ public class SovietBot implements IModule {
                                 for (Syntax syntax1 : syntax) {
                                     found = true;
                                     for (int i = 0; i < syntax1.args().length; i++) {
-                                        if (syntax1.args()[i].equals(Arguments.LONGTEXT) && Arguments.LONGTEXT.isValid.test(cont.getArgs().get(i + iteratorConstant))) {
+                                        if (syntax1.args()[i].equals(Validate.LONGTEXT) && Validate.LONGTEXT.isValid.test(cont.getArgs().get(i + iteratorConstant))) {
                                             break outerLoop;
                                         }
-                                        if (!syntax1.args()[i].isValid.test(cont.getArgs().get(i + iteratorConstant))) {
+                                        if (!syntax1.args()[i].value().isValid.test(cont.getArgs().get(i + iteratorConstant))) {
                                             found = false;
                                             break;
                                         }
@@ -268,7 +267,6 @@ public class SovietBot implements IModule {
         info = new Information();
         this.client = client;
         Unirest.setTimeouts(1000, 1000);
-        Discord4J.disableChannelWarnings();
         config = loadConfig(configFile, gson.toJson(info.defaultConfig), Configuration.class).orElse(null);
         if (config == null) {
             LOG.info("One or more config files are empty, Exiting...");

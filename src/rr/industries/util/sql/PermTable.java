@@ -6,6 +6,7 @@ import rr.industries.util.BotUtils;
 import rr.industries.util.Entry;
 import rr.industries.util.Permissions;
 import sx.blah.discord.handle.obj.IGuild;
+import sx.blah.discord.handle.obj.IMessage;
 import sx.blah.discord.handle.obj.IUser;
 
 import java.sql.Connection;
@@ -33,7 +34,7 @@ public class PermTable extends Table implements ITable {
 
     }
 
-    public Permissions getPerms(IUser user, IGuild guild) throws BotException {
+    private Permissions getPerms(IUser user, IGuild guild) throws BotException {
         if (Arrays.asList(config.operators).contains(user.getStringID()))
             return Permissions.BOTOPERATOR;
         if (guild == null) {
@@ -50,6 +51,13 @@ public class PermTable extends Table implements ITable {
         } catch (SQLException ex) {
             throw BotException.returnException(ex);
         }
+    }
+
+    public Permissions getPerms(IUser user, IMessage e) throws BotException {
+        if (e.getChannel().isPrivate())
+            return getPerms(user, (IGuild) null);
+        else
+            return getPerms(user, e.getGuild());
     }
 
     public void setPerms(IGuild guild, IUser user, Permissions permissions) throws BotException {

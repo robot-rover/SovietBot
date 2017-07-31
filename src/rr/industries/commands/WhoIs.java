@@ -19,7 +19,7 @@ public class WhoIs implements Command {
 
     @SubCommand(name = "", Syntax = {
             @Syntax(helpText = "Tells you information about yourself", args = {}),
-            @Syntax(helpText = "Tells you information about the mentioned user", args = {Arguments.MENTION})
+            @Syntax(helpText = "Tells you information about the mentioned user", args = {@Argument(Validate.MENTION)})
     })
     public void execute(CommContext cont) {
         IUser examine;

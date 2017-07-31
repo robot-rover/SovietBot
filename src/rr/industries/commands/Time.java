@@ -33,7 +33,7 @@ public class Time implements Command {
         cont.getActions().channels().sendMessage(message);
     }
 
-    @SubCommand(name = "set", Syntax = {@Syntax(helpText = "Set your own timezone", args = {Arguments.TIMEZONE})})
+    @SubCommand(name = "set", Syntax = {@Syntax(helpText = "Set your own timezone", args = {@Argument(Validate.TIMEZONE)})})
     public void set(CommContext cont) throws BotException {
             MessageBuilder message = new MessageBuilder(cont.getClient()).withChannel(cont.getMessage().getChannel());
         cont.getActions().getTable(TimeTable.class).setTimeZone(cont.getMessage().getAuthor(), ZoneId.of(cont.getArgs().get(2)).normalized().getId());
@@ -43,7 +43,7 @@ public class Time implements Command {
 
     @SubCommand(name = "", Syntax = {
             @Syntax(helpText = "Show your own time and timezone", args = {}),
-            @Syntax(helpText = "Show the mentioned person's current time and timezone", args = {Arguments.MENTION})
+            @Syntax(helpText = "Show the mentioned person's current time and timezone", args = {@Argument(Validate.MENTION)})
     })
     public void execute(CommContext cont) throws BotException {
         MessageBuilder message = new MessageBuilder(cont.getClient()).withChannel(cont.getMessage().getChannel());

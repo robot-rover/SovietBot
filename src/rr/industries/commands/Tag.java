@@ -15,7 +15,11 @@ import java.util.stream.Collectors;
  */
 @CommandInfo(commandName = "tag", helpText = "Makes custom commands", pmSafe = true)
 public class Tag implements Command {
-    @SubCommand(name = "add", Syntax = {@Syntax(helpText = "Adds the Tag <Text> with the Content <Lots_of_Text>", args = {Arguments.TEXT, Arguments.LONGTEXT})}, permLevel = Permissions.REGULAR, pmSafe = false)
+    @SubCommand(name = "add", Syntax = {@Syntax(helpText = "Creates a new Tag", args = {
+            @Argument(description = "Tag Name", value = Validate.TEXT),
+            @Argument(description = "", value = Validate.LONGTEXT)})
+    },
+            permLevel = Permissions.REGULAR, pmSafe = false)
     public void add(CommContext cont) throws BotException {
         MessageBuilder message = cont.builder();
         String name = cont.getArgs().get(2);
@@ -29,7 +33,7 @@ public class Tag implements Command {
         cont.getActions().channels().sendMessage(message);
     }
 
-    @SubCommand(name = "remove", Syntax = {@Syntax(helpText = "Removes the command <Text>", args = {Arguments.TEXT})}, permLevel = Permissions.MOD, pmSafe = false)
+    @SubCommand(name = "remove", Syntax = {@Syntax(helpText = "Removes the Tag", args = {@Argument(description = "Command Name", value = Validate.TEXT)})}, permLevel = Permissions.MOD, pmSafe = false)
     public void remove(CommContext cont) throws BotException {
         MessageBuilder message = new MessageBuilder(cont.getClient()).withChannel(cont.getMessage().getChannel());
         if (cont.getActions().getTable(TagTable.class).deleteTag(cont.getMessage().getGuild(), cont.getArgs().get(2), cont.getCallerPerms()).isPresent())
@@ -39,7 +43,10 @@ public class Tag implements Command {
         cont.getActions().channels().sendMessage(message);
     }
 
-    @SubCommand(name = "global", Syntax = {@Syntax(helpText = "Sets the Tag <Text> as global or not", args = {Arguments.TEXT, Arguments.BOOLEAN})}, permLevel = Permissions.BOTOPERATOR, pmSafe = false)
+    @SubCommand(name = "global", Syntax = {@Syntax(helpText = "Sets the Tag as global or not", args = {
+            @Argument(description = "Tag Name", value = Validate.TEXT),
+            @Argument(description = "Global?", value = Validate.BOOLEAN, options = {"True", "False"})
+    })}, permLevel = Permissions.BOTOPERATOR, pmSafe = false)
     public void global(CommContext cont) throws BotException {
         String name = cont.getArgs().get(2);
         boolean global = Boolean.parseBoolean(cont.getArgs().get(3));
@@ -52,7 +59,9 @@ public class Tag implements Command {
         cont.getActions().channels().sendMessage(message);
     }
 
-    @SubCommand(name = "perm", Syntax = {@Syntax(helpText = "Sets the Tag <Text> as permanent or not", args = {Arguments.TEXT, Arguments.BOOLEAN})}, permLevel = Permissions.ADMIN, pmSafe = false)
+    @SubCommand(name = "perm", Syntax = {@Syntax(helpText = "Sets the Tag as permanent or not", args = {
+            @Argument(description = "Tag Name", value = Validate.TEXT),
+            @Argument(description = "Permanent?", value = Validate.BOOLEAN, options = {"True", "False"})})}, permLevel = Permissions.ADMIN, pmSafe = false)
     public void permanent(CommContext cont) throws BotException {
         String name = cont.getArgs().get(2);
         boolean permanent = Boolean.parseBoolean(cont.getArgs().get(3));
@@ -67,7 +76,7 @@ public class Tag implements Command {
 
     @SubCommand(name = "", Syntax = {
             @Syntax(helpText = "Tells you all of the tags for your Server", args = {}),
-            @Syntax(helpText = "Displays the Tag Called <Text>", args = {Arguments.TEXT})})
+            @Syntax(helpText = "Displays the Tag Called <Text>", args = {@Argument(description = "Tag Name", value = Validate.TEXT)})})
     public void execute(CommContext cont) throws BotException {
         MessageBuilder message = new MessageBuilder(cont.getClient()).withChannel(cont.getMessage().getChannel());
         if (cont.getArgs().size() >= 2) {

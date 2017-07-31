@@ -17,8 +17,10 @@ Total:          19950624
  */
 package rr.industries;
 
+import gigadot.rebound.Rebound;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import rr.industries.commands.Command;
 import rr.industries.exceptions.BotException;
 import rr.industries.util.BotUtils;
 import rr.industries.util.GenHelpDocs;
@@ -36,6 +38,8 @@ public class Launcher {
         launcherUsed = true;
         try {
             if (args.length >= 1 && args[0].equals("generate")) {
+                Rebound r = new Rebound("rr.industries.commands", false, true);
+                r.getSubClassesOf(Command.class).forEach(CommandList::addCommand);
                 GenHelpDocs.generate(new CommandList().getCommandList());
                 return;
             }

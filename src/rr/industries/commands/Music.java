@@ -79,7 +79,7 @@ public class Music implements Command {
             cont.getActions().channels().delayDelete(delete.get(), 45000);
     }
 
-    @SubCommand(name = "volume", Syntax = {@Syntax(helpText = "Sets the Volume for the bot (0-100)", args = {Arguments.NUMBER})}, permLevel = Permissions.REGULAR)
+    @SubCommand(name = "volume", Syntax = {@Syntax(helpText = "Sets the Volume for the bot (0-100)", args = {@Argument(description = "Volume", value = Validate.NUMBER)})}, permLevel = Permissions.REGULAR)
     public void volume(CommContext cont) throws BotException {
         Float volume = Float.parseFloat(cont.getArgs().get(2));
         if (volume > 100 || volume < 0)
@@ -113,8 +113,8 @@ public class Music implements Command {
     }
 
     @SubCommand(name = "", Syntax = {
-            @Syntax(helpText = "Queues the video the link is for", args = {Arguments.LINK}),
-            @Syntax(helpText = "Queues the first video in a search the phrase", args = {Arguments.LONGTEXT})
+            @Syntax(helpText = "Queues the video the link is for", args = {@Argument(description = "Video Link", value = Validate.LINK)}),
+            @Syntax(helpText = "Queues the first video in a search the phrase", args = {@Argument(description = "Search Phrase", value = Validate.LONGTEXT)})
     })
     public void execute(CommContext cont) throws BotException {
         String link;
