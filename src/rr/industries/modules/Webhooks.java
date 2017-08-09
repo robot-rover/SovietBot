@@ -50,51 +50,53 @@ public class Webhooks implements Module {
     public Module enable() {
         Spark.port(actions.getConfig().webhooksPort);
         Spark.post("/command", (Request request, Response response) -> {
-            RestartPost restart = gson.fromJson(request.body(), RestartPost.class);
-            LOG.info("Command POST received - " + restart.command);
-            if (restart.secret == null || !restart.secret.equals(actions.getConfig().secret)) {
+            try {
+                RestartPost restart = null;
+                try {
+                    restart = gson.fromJson(request.body(), RestartPost.class);
+                } catch (Exception e) {
+                    LOG.error("Spark Error: ", e);
+                    response.status(418);
+                    return "I'm a teapot and Have an ERROR!!!";
+                }
+                if (restart.command != null && restart.command.equals("restart")) {
+                    if (!restart.secret.equals(actions.getConfig().secret)) {
+                        response.status(401);
+                        return "Incorrect Secret!";
+                    }
+                    if (restart.name == null) {
+                        response.status(400);
+                        return "Missing MD5 hash in field \"name\"";
+                    }
+                    File updated = new File("sovietBot-update.jar");
+                    if (!updated.exists()) {
+                        response.status(400);
+                        return "Missing Uploaded Jar";
+                    }
+                    String fileHash = DigestUtils.md5Hex(new FileInputStream(new File("sovietBot-update.jar")));
+                    if (!restart.name.equals(fileHash)) {
+                        response.status(400);
+                        return "MD5 hashes do not match! Post:(" + restart.name + "), File:(" + fileHash + ")";
+                    }
+                    LOG.info("Everything Looks good, Restarting...");
+                    Thread thread = new Thread(() -> {
+                        try {
+                            actions.terminate(true);
+                        } catch (BotException ex) {
+                            LOG.error("Could Not Restart", ex);
+                        }
+                    });
+                    thread.start();
+                    response.status(200);
+                    return "Looks good: Restarting...";
+                }
                 response.status(418);
                 return "I'm a teapot";
+            } catch (Exception e) {
+                LOG.error("Spark Error: ", e);
+                response.status(500);
+                return e.getMessage();
             }
-            if (restart.command.equals("restart")) {
-                if (restart.name == null) {
-                    response.status(400);
-                    return "Missing MD5 hash in field Name";
-                }
-                File updated = new File("sovietBot-update.jar");
-                if (!updated.exists()) {
-                    response.status(400);
-                    return "Missing Uploaded Jar";
-                }
-                String fileHash = DigestUtils.md5Hex(new FileInputStream(new File("sovietBot-update.jar")));
-                if (!restart.name.equals(fileHash)) {
-                    response.status(400);
-                    return "MD5 hashes do not match Post:(" + restart.name + "), File:(" + fileHash + ")";
-                }
-                LOG.info("Everything Looks good, Restarting...");
-                Thread thread = new Thread(() -> {
-                    try {
-                        actions.terminate(true);
-                    } catch (BotException ex) {
-                        LOG.error("Could Not Restart", ex);
-                    }
-                });
-                thread.start();
-                response.status(200);
-                return "Looks good: Restarting...";
-            }
-            /*if (restart.command.equals("profile")) {
-                String channelID = "236640204222496768";
-                IGuild guild = actions.getClient().getChannelByID(channelID).getGuild();
-                LOG.info("Developer Profile Recieved, Uploading to " + guild.getName() + " (" + guild.getID()
-                        + ") @ " + actions.getClient().getChannelByID(channelID).getName() + " (" + channelID + ")");
-
-                actions.getClient().getChannelByID(channelID).
-                        sendFile("", false, Arrays.stream(restart.linesOfLog).collect(Collectors.joining("\n")).getBytes(StandardCharsets.UTF_8), restart.name + "_profile", restart.name + "'s PC Profile");
-
-            }*/
-            response.status(200);
-            return "\uD83D\uDC4C OK";
         });
         Spark.post("/travis", (Request request, Response response) -> {
             try {

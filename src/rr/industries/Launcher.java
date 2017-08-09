@@ -22,7 +22,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import rr.industries.commands.Command;
 import rr.industries.exceptions.BotException;
-import rr.industries.util.BotUtils;
 import rr.industries.util.GenHelpDocs;
 import sx.blah.discord.api.ClientBuilder;
 import sx.blah.discord.api.IDiscordClient;
@@ -44,30 +43,24 @@ public class Launcher {
                 return;
             }
             IDiscordClient client = new ClientBuilder().withToken(args[0]).setMaxReconnectAttempts(6).build();
-            BotUtils.bufferRequest(() -> {
                 try {
                     login(client);
                 } catch (DiscordException ex) {
-                    throw BotException.returnException(ex);
+                    ex.printStackTrace();
+                    return;
                 }
-            });
         } catch (DiscordException ex) {
             LOG.error("The Bot could not start", ex);
         }
     }
 
-    public static void login(IDiscordClient client) throws DiscordException, BotException {
+    public static void login(IDiscordClient client) throws DiscordException {
         LOG.info("\n------------------------------------------------------------------------\n### SovietBot ###\n------------------------------------------------------------------------");
         bot = new SovietBot();
-        BotUtils.bufferRequest(() -> {
-            try {
-                client.login();
-            } catch (DiscordException ex) {
-                throw BotException.returnException(ex);
-            }
-        });
-        bot.enable(client);
         client.getDispatcher().registerListener(bot);
+        bot.enable(client);
+        client.login();
+
     }
 
     public static IModule getModule() {

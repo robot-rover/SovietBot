@@ -56,6 +56,7 @@ import java.util.stream.Collectors;
  */
 
 public class SovietBot implements IModule {
+    private boolean readyCalled = false;
     private static final Logger LOG = LoggerFactory.getLogger(SovietBot.class);
     private static final File configFile = new File("configuration.json");
     public static Gson gson = new GsonBuilder().setPrettyPrinting().serializeNulls().create();
@@ -119,6 +120,7 @@ public class SovietBot implements IModule {
 
     @EventSubscriber
     public void onReady(ReadyEvent e) {
+        readyCalled = true;
         actions.enableModules();
         LOG.info("*** " + info.botName + " armed ***");
         if (!client.getOurUser().getName().equals(config.botName)) {
@@ -156,6 +158,8 @@ public class SovietBot implements IModule {
 
     @EventSubscriber
     public void onMessage(MessageReceivedEvent e) {
+        /*if(!readyCalled)
+            onReady(null);*/
         if (e.getMessage().getAuthor().isBot()) {
             return;
         }
@@ -270,7 +274,7 @@ public class SovietBot implements IModule {
         config = loadConfig(configFile, gson.toJson(info.defaultConfig), Configuration.class).orElse(null);
         if (config == null) {
             LOG.info("One or more config files are empty, Exiting...");
-            System.exit(0);
+            System.exit(1);
         }
         for (Field f : config.getClass().getFields()) {
             try {
