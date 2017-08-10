@@ -22,7 +22,7 @@ public class Information {
     public final List<Entry<sx.blah.discord.handle.obj.Permissions, Integer>> neededPerms;
 
     public Information() {
-        defaultConfig = new Configuration("SovietBot", "person.jpeg", ">", "", "", "", 1000, new String[0], "", "", "");
+        defaultConfig = new Configuration("SovietBot", "person.jpeg", ">", "", "", 1000, new String[0], "", "", "");
         botName = "SovietBot";
         frameName = sx.blah.discord.Discord4J.NAME;
         frameVersion = sx.blah.discord.Discord4J.VERSION;

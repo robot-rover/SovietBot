@@ -12,6 +12,7 @@ import rr.industries.pojos.travisciwebhooks.TravisWebhook;
 import rr.industries.util.ChannelActions;
 import spark.Request;
 import spark.Response;
+import spark.Service;
 import spark.Spark;
 import spark.utils.IOUtils;
 import sx.blah.discord.util.MessageBuilder;
@@ -53,12 +54,13 @@ public class Webserver implements Module {
 
     @Override
     public Module enable() {
-        Spark.port(actions.getConfig().webhooksPort);
-        Spark.get("/ping", ((request, response) -> {
+        Service apis = Service.ignite().port(actions.getConfig().webhooksPort);
+        Service http = Service.ignite().port(80);
+        apis.get("/ping", ((request, response) -> {
             response.status(418);
             return "I'm a Teapot!";
         }));
-        Spark.post("/command", (Request request, Response response) -> {
+        apis.post("/command", (Request request, Response response) -> {
             try {
                 RestartPost restart = null;
                 try {
@@ -107,7 +109,7 @@ public class Webserver implements Module {
                 return e.getMessage();
             }
         });
-        Spark.post("/travis", (Request request, Response response) -> {
+        apis.post("/travis", (Request request, Response response) -> {
             try {
                 LOG.info("Received Travis Post");
                 TravisWebhook payload = gson.fromJson(URLDecoder.decode(request.body(), "UTF-8").replace("payload=", ""), TravisWebhook.class);
@@ -138,7 +140,7 @@ public class Webserver implements Module {
             response.status(200);
             return "\uD83D\uDC4C OK";
         });
-        Spark.get("/procelio", (Request request, Response response) -> {
+        apis.get("/procelio", (Request request, Response response) -> {
             File launcher = new File("launcher.json");
             response.type("application/json");
             if (!launcher.exists()) {
@@ -149,7 +151,7 @@ public class Webserver implements Module {
             response.status(200);
             return Files.readAllLines(launcher.toPath()).stream().collect(Collectors.joining("\n"));
         });
-        Spark.get("/image/*", (Request request, Response response) -> {
+        http.get("/image/*", (Request request, Response response) -> {
             File image = new File(request.pathInfo().substring(1));
             if (image.isDirectory() || !image.exists()) {
                 response.status(404);
@@ -165,8 +167,9 @@ public class Webserver implements Module {
 
             return response.raw();
         });
-        Spark.get("/favicon.ico", ((Request request, Response response) -> {
-            byte[] bytes = IOUtils.toByteArray(SovietBot.class.getClassLoader().getResourceAsStream(actions.getConfig().icon));
+        http.get("/favicon.ico", ((Request request, Response response) -> {
+            LOG.info("Favicon Requested!");
+            byte[] bytes = IOUtils.toByteArray(SovietBot.class.getClassLoader().getResourceAsStream("icon.png"));
             if (bytes.length == 0) {
                 LOG.error("Unable to load favicon!");
             }
@@ -178,8 +181,10 @@ public class Webserver implements Module {
 
             return response.raw();
         }));
-        Spark.init();
-        LOG.info("Initialized webhooks on port " + actions.getConfig().webhooksPort);
+        apis.init();
+        http.init();
+        LOG.info("Initialized webhooks on port " + apis.port());
+        LOG.info("Initialized http server on port " + http.port());
         isEnabled = true;
         return this;
     }
