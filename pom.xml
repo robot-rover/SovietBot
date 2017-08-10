@@ -105,7 +105,7 @@
         <dependency>
             <groupId>com.github.austinv11</groupId>
             <artifactId>Discord4J</artifactId>
-            <version>dev-SNAPSHOT</version>
+            <version>36cbe1b27b</version>
             <!--<scope>compile</scope>-->
         </dependency>
         <!-- Apache Commons-io: Used for file download -->

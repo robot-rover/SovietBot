@@ -2,6 +2,7 @@ package rr.industries.modules;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import rr.industries.SovietBot;
 import rr.industries.exceptions.BotException;
 import rr.industries.util.ChannelActions;
 
@@ -43,6 +44,14 @@ public class Console implements Module {
                             } catch (BotException e) {
                                 LOG.error("Could not Shutdown", e);
                             }
+                            break;
+                        case "spark stop":
+                            System.out.println("Stopping Spark...");
+                            SovietBot.getBotActions().getModule(Webserver.class).disable();
+                            break;
+                        case "spark start":
+                            System.out.println("Starting Spark...");
+                            SovietBot.getBotActions().getModule(Webserver.class).enable();
                             break;
                     }
                 } catch (IllegalStateException ex) {

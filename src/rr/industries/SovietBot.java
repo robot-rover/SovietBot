@@ -13,7 +13,7 @@ import rr.industries.exceptions.*;
 import rr.industries.modules.Console;
 import rr.industries.modules.Module;
 import rr.industries.modules.UTCStatus;
-import rr.industries.modules.Webhooks;
+import rr.industries.modules.Webserver;
 import rr.industries.util.*;
 import rr.industries.util.sql.*;
 import sx.blah.discord.api.IDiscordClient;
@@ -68,9 +68,20 @@ public class SovietBot implements IModule {
     ClassLoader resourceLoader;
     Information info;
 
+    //this is bad practice but its just for debugging so I don't have to constantly log in so ¯\_(ツ)_/¯
+    static SovietBot singleton;
+
 
     public SovietBot() {
         resourceLoader = SovietBot.class.getClassLoader();
+        singleton = this;
+    }
+
+    //ditto with the bad practice. Its just to debug the webserver...
+    public static BotActions getBotActions() {
+        if (singleton == null)
+            throw new RuntimeException("SovietBot has not yet been initialized!");
+        return singleton.actions;
     }
 
     @EventSubscriber
@@ -158,8 +169,6 @@ public class SovietBot implements IModule {
 
     @EventSubscriber
     public void onMessage(MessageReceivedEvent e) {
-        /*if(!readyCalled)
-            onReady(null);*/
         if (e.getMessage().getAuthor().isBot()) {
             return;
         }
@@ -183,7 +192,7 @@ public class SovietBot implements IModule {
                             final int iteratorConstant = (subComm.name().equals("") ? 1 : 2);
                             List<Syntax> syntax = Arrays.stream(subComm.Syntax()).filter(
                                     v -> v.args().length + iteratorConstant == cont.getArgs().size() ||
-                                            v.args().length + iteratorConstant <= cont.getArgs().size() && Arrays.asList(v.args()).contains(Validate.LONGTEXT))
+                                            v.args().length + iteratorConstant <= cont.getArgs().size() && Arrays.stream(v.args()).anyMatch(w -> w.value() == Validate.LONGTEXT))
                                     .collect(Collectors.toList());
                             if (commandSet.first().getValiddityOverride() != null) {
                                 if (!commandSet.first().getValiddityOverride().test(cont.getArgs())) {
@@ -302,7 +311,7 @@ public class SovietBot implements IModule {
         }
         LOG.info("Database Initialized");
         ChannelActions ca = new ChannelActions(client, config, info);
-        actions = new BotActions(client, commandList, tables, new Module[]{new Console(ca), new UTCStatus(client), new Webhooks(ca)}, ca);
+        actions = new BotActions(client, commandList, tables, new Module[]{new Console(ca), new UTCStatus(client), new Webserver(ca)}, ca);
         return true;
     }
 

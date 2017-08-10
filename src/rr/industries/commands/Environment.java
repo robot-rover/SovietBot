@@ -2,7 +2,7 @@ package rr.industries.commands;
 
 import rr.industries.util.*;
 import sx.blah.discord.Discord4J;
-import sx.blah.discord.util.MessageBuilder;
+import sx.blah.discord.util.EmbedBuilder;
 
 import java.lang.management.ManagementFactory;
 import java.lang.management.OperatingSystemMXBean;
@@ -20,17 +20,17 @@ public class Environment implements Command {
 
     @SubCommand(name = "", Syntax = {@Syntax(helpText = "Display's statistics about the bots operating environment", args = {})})
     public void execute(CommContext cont) {
-        MessageBuilder message = cont.builder().withContent("```markdown\n");
+        EmbedBuilder embed = new EmbedBuilder();
         Runtime runtime = Runtime.getRuntime();
         OperatingSystemMXBean bean = ManagementFactory.getPlatformMXBean(OperatingSystemMXBean.class);
-        message.appendContent("# SovietBot System Environment #\n");
-        message.appendContent("<API> Discord4J v" + Discord4J.VERSION + "\n");
-        message.appendContent("<Memory> " + (double) runtime.totalMemory() / (double) byteToMegabyte + " MB / " + (double) runtime.maxMemory() / (double) byteToMegabyte + " MB\n");
-        message.appendContent("<CPU> " + bean.getAvailableProcessors() + " available processor(s) - " + ((int) (bean.getSystemLoadAverage() * 10000) / 100f) + "%\n");
-        message.appendContent("<OS> " + bean.getName() + " v" + bean.getVersion() + "\n");
-        message.appendContent("<Java> Java v" + System.getProperty("java.version") + "\n");
-        message.appendContent("<Launch> " + Discord4J.getLaunchTime().format(DateTimeFormatter.ofLocalizedTime(FormatStyle.MEDIUM)) + "\n");
-        message.appendContent("<Bot_ID> " + cont.getClient().getOurUser().getStringID() + "\n");
-        cont.getActions().channels().sendMessage(message.appendContent("```"));
+        embed.withTitle("SovietBot System Environment");
+        embed.appendField("API", "Discord4J v" + Discord4J.VERSION + "", true);
+        embed.appendField("Memory", (double) runtime.totalMemory() / (double) byteToMegabyte + " MB / " + (double) runtime.maxMemory() / (double) byteToMegabyte + " MB", true);
+        embed.appendField("CPU", bean.getAvailableProcessors() + " cpu(s) - " + ((int) (bean.getSystemLoadAverage() * 10000) / 100f) + "%", true);
+        embed.appendField("OS", bean.getName() + " v" + bean.getVersion(), true);
+        embed.appendField("Java", "Java v" + System.getProperty("java.version"), true);
+        embed.appendField("Launch", Discord4J.getLaunchTime().format(DateTimeFormatter.ofLocalizedTime(FormatStyle.MEDIUM)) + "\n", true);
+        embed.appendField("Bot_ID", cont.getClient().getOurUser().getStringID(), true);
+        cont.getActions().channels().sendMessage(cont.builder().withEmbed(embed.build()));
     }
 }
