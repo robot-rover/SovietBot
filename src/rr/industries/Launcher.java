@@ -39,7 +39,7 @@ public class Launcher {
             if (args.length >= 1 && args[0].equals("generate")) {
                 Rebound r = new Rebound("rr.industries.commands", false, true);
                 r.getSubClassesOf(Command.class).forEach(CommandList::addCommand);
-                GenHelpDocs.generate(new CommandList().getCommandList());
+                GenHelpDocs.generate(CommandList.getCommandList());
                 return;
             }
             IDiscordClient client = new ClientBuilder().withToken(args[0]).setMaxReconnectAttempts(6).build();

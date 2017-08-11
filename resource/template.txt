@@ -19,7 +19,7 @@
   <body>
     <header>
       <div class="inner">
-      <img class="avatar" src="{css-prefix}images/person.jpeg">
+      <img class="avatar" src="{css-prefix}/avatar">
         <div class="header-content">
             <h1>{header}</h1>
             <h2>{description}</h2>

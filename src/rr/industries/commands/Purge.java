@@ -14,7 +14,6 @@ import sx.blah.discord.util.MissingPermissionsException;
 )
 public class Purge implements Command {
 
-    @SuppressWarnings("CollectionAddedToSelf")
     @SubCommand(name = "", Syntax = {@Syntax(helpText = "Deletes the number off messages you specify", args = {@Argument(description = "# of Messages", value = Validate.NUMBER)})})
     public void execute(CommContext cont) throws BotException {
         int number = Integer.parseInt(cont.getArgs().get(1)) + 1;

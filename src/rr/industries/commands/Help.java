@@ -1,5 +1,7 @@
 package rr.industries.commands;
 
+import rr.industries.CommandList;
+import rr.industries.Information;
 import rr.industries.exceptions.BotException;
 import rr.industries.exceptions.NotFoundException;
 import rr.industries.util.*;
@@ -102,12 +104,12 @@ public class Help implements Command {
         EmbedBuilder embed = new EmbedBuilder();
         if (cont.getArgs().size() >= 2) {
             String name = cont.getArgs().get(1);
-            Command command = cont.getActions().getCommands().getCommandList().stream().filter(v -> v.getClass().getAnnotation(CommandInfo.class).commandName().equals(name)).findAny().orElse(null);
+            Command command = CommandList.getCommandList().stream().filter(v -> v.getClass().getAnnotation(CommandInfo.class).commandName().equals(name)).findAny().orElse(null);
             if (command != null) {
                 CommandInfo commandInfo = command.getClass().getDeclaredAnnotation(CommandInfo.class);
                 embed.withTitle(cont.getCommChar() + commandInfo.commandName() + " - " + commandInfo.helpText() + (commandInfo.pmSafe() ? " - `|PM|`" : ""));
                 embed.appendDescription("`<>` means replace with your own value. `[]` means you can give more than one value.\n");
-                embed.appendDescription("For more help, visit <" + cont.getActions().channels().getInfo().website + "commands/" + commandInfo.commandName() + ".html>\n");
+                embed.appendDescription("For more help, visit <" + cont.getActions().getConfig().url + "commands/" + commandInfo.commandName() + ".html>\n");
                 SubCommand mainSubCommand = null;
                 List<SubCommand> subCommands = new ArrayList<>();
                 for (Method method : command.getClass().getDeclaredMethods()) {
@@ -154,10 +156,10 @@ public class Help implements Command {
             BotUtils.bufferRequest(() -> {
                 try {
                     MessageBuilder message2 = new MessageBuilder(cont.getClient()).withChannel(cont.getClient().getOrCreatePMChannel(cont.getMessage().getAuthor()));
-                    embed.withAuthorName(cont.getActions().channels().getInfo().botName + " - \"" + cont.getCommChar() + "\"");
+                    embed.withAuthorName(Information.botName + " - \"" + cont.getCommChar() + "\"");
                     embed.withAuthorIcon("http://i.imgur.com/djeMU8C.jpg");
                     embed.withTitle("For more help type >help <command>");
-                    embed.withDescription("Or visit " + cont.getActions().channels().getInfo().website);
+                    embed.withDescription("Or visit " + cont.getActions().getConfig().url);
                     boolean userIsOp = cont.getActions().getTable(PermTable.class).getPerms(cont.getMessage().getAuthor(), cont.getMessage()).equals(Permissions.BOTOPERATOR);
                     for (Permissions perm : Permissions.values()) {
                         if (perm.equals(Permissions.BOTOPERATOR) && !userIsOp) {
@@ -165,7 +167,7 @@ public class Help implements Command {
                         }
                         String title = "[Permission]: " + perm.title;
                         StringBuilder content = new StringBuilder();
-                        cont.getActions().getCommands().getCommandList().stream().filter(comm -> comm.getClass().getDeclaredAnnotation(CommandInfo.class).permLevel().equals(perm))
+                        CommandList.getCommandList().stream().filter(comm -> comm.getClass().getDeclaredAnnotation(CommandInfo.class).permLevel().equals(perm))
                                 .map(v -> v.getClass().getDeclaredAnnotation(CommandInfo.class)).forEach(comm -> content.append(cont.getCommChar()).append(comm.commandName()).append(" - ").append(comm.helpText()).append("\n"));
                         if (content.length() > 0)
                             embed.appendField(title, content.toString(), false);

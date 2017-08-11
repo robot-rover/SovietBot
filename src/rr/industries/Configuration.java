@@ -1,30 +1,30 @@
 package rr.industries;
 
 public class Configuration {
-    public String botName;
-    public String botAvatar;
     public String commChar;
-    public String secret;
-    public int webhooksPort;
+    public String url;
+    public String webhookSecret;
     public String[] operators;
     public String owmKey;
     public String googleKey;
     public String dictKey;
 
-    public Configuration(String botName, String botAvatar, String commChar, String token, String secret, int webhooksPort, String[] operators, String owmKey, String googleKey, String dictKey) {
-        this.botName = botName;
-        this.botAvatar = botAvatar;
+    public Configuration(String commChar, String url, String secret, String[] operators, String owmKey, String googleKey, String dictKey) {
         this.commChar = commChar;
-        this.secret = secret;
-        this.webhooksPort = webhooksPort;
+        this.webhookSecret = secret;
+        this.url = url;
         this.operators = (operators == null ? new String[0] : operators);
         this.owmKey = owmKey;
         this.googleKey = googleKey;
         this.dictKey = dictKey;
     }
 
+    public Configuration() {
+        this(">", "", "", new String[0], "", "", "");
+    }
+
     @Override
     public String toString() {
-        return botName.concat(" Configuration");
+        return "Bot Configuration";
     }
 }

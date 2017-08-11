@@ -40,7 +40,7 @@
         </encoder>
     </appender>
 
-    <root level="TRACE">
+    <root level="DEBUG">
         <appender-ref ref="DEBUG_FILE"/>
         <appender-ref ref="EVENT_FILE"/>
         <appender-ref ref="STDOUT"/>

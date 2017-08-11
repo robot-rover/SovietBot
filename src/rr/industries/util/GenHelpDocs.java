@@ -28,7 +28,6 @@ public class GenHelpDocs {
     static final boolean gitPush = true;
 
     public static void generate(List<Command> commands) {
-        Information info = new Information();
         ClassLoader resourceLoader = SovietBot.class.getClassLoader();
         File repo = new File("SovietBot");
         if (!repo.exists() || !repo.isDirectory()) {
@@ -59,7 +58,7 @@ public class GenHelpDocs {
                 }
                 for (SubCommand subComm : subCommands) {
                     for (Syntax syntax : subComm.Syntax()) {
-                        body.append("<h2>").append(escapeHtml4("\t" + info.defaultConfig.commChar + commInfo.commandName() + " " + subComm.name() + "\n"));
+                        body.append("<h2>").append(escapeHtml4("\t" + Information.defaultCommChar + commInfo.commandName() + " " + subComm.name() + "\n"));
                         for (Argument arg : syntax.args())
                             body.append(escapeHtml4(" <" + (arg.description().equals("") ? arg.value().defaultLabel : arg.description()) + ">"));
                         body.append("</h2>\n<p>").append(escapeHtml4(syntax.helpText())).append("</p>\n");
@@ -70,8 +69,8 @@ public class GenHelpDocs {
                 String string = IOUtils.toString(resourceLoader.getResourceAsStream("template.txt"));
                 String htmlBody = "<h1>Syntax</h1>\n" + "<p>Possible Syntaxes for this command. Type what you see exactly, but replace what is between <strong>&lt;&gt;</strong> with your own values.\n" + body.toString();
                 string = string.replace("{css-prefix}", "../");
-                string = string.replace("{title}", escapeHtml4(info.defaultConfig.commChar + commInfo.commandName()));
-                string = string.replace("{header}", escapeHtml4(info.defaultConfig.commChar + commInfo.commandName()));
+                string = string.replace("{title}", escapeHtml4(Information.defaultCommChar + commInfo.commandName()));
+                string = string.replace("{header}", escapeHtml4(Information.defaultCommChar + commInfo.commandName()));
                 string = string.replace("{description}", escapeHtml4(commInfo.helpText()));
                 string = string.replace("{content}", htmlBody);
                 BufferedWriter writer = Files.newBufferedWriter(htmlFile.toPath());
@@ -90,7 +89,7 @@ public class GenHelpDocs {
             }
             commInfos.sort(comparing(CommandInfo::commandName));
             for (CommandInfo commInfo : commInfos) {
-                commandListText.append("<a href=\"commands").append(File.separator).append(commInfo.commandName()).append(".html").append("\"><li>").append(escapeHtml4(info.defaultConfig.commChar + commInfo.commandName())).append("</li></a>\n");
+                commandListText.append("<a href=\"commands").append(File.separator).append(commInfo.commandName()).append(".html").append("\"><li>").append(escapeHtml4(Information.defaultCommChar + commInfo.commandName())).append("</li></a>\n");
             }
             commandListText.append("<div style=\"clear:both\"></ul>");
             string = string.replace("{css-prefix}", "");

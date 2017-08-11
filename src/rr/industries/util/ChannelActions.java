@@ -177,9 +177,7 @@ public class ChannelActions {
         } catch (DiscordException | RateLimitException ex) {
             LOG.warn("Logout Failed, Forcing Shutdown", ex);
         }
-        LOG.info("\n------------------------------------------------------------------------\n"
-                + "Terminated\n"
-                + "------------------------------------------------------------------------");
+        LOG.info("Exiting with Status 0");
         System.exit(0);
     }
 
@@ -194,9 +192,5 @@ public class ChannelActions {
             successful = false;
         }
         return successful;
-    }
-
-    public Information getInfo() {
-        return info;
     }
 }

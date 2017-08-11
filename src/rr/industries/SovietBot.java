@@ -24,8 +24,6 @@ import sx.blah.discord.handle.impl.events.guild.channel.message.MessageReceivedE
 import sx.blah.discord.handle.impl.events.guild.member.UserJoinEvent;
 import sx.blah.discord.handle.impl.events.guild.member.UserLeaveEvent;
 import sx.blah.discord.modules.IModule;
-import sx.blah.discord.util.DiscordException;
-import sx.blah.discord.util.Image;
 import sx.blah.discord.util.MessageBuilder;
 
 import java.io.*;
@@ -61,7 +59,6 @@ public class SovietBot implements IModule {
     private static final File configFile = new File("configuration.json");
     public static Gson gson = new GsonBuilder().setPrettyPrinting().serializeNulls().create();
     private Configuration config;
-    private CommandList commandList;
     private volatile IDiscordClient client;
     private ITable[] tables;
     BotActions actions;
@@ -91,8 +88,8 @@ public class SovietBot implements IModule {
             for (String op : config.operators)
                 actions.getTable(PermTable.class).setPerms(e.getGuild(), client.getUserByID(Long.parseLong(op)), Permissions.BOTOPERATOR);
             LOG.info("Connected to Guild: {} ({})", e.getGuild().getName(), e.getGuild().getStringID());
-            PermWarning permTool = commandList.getCommand(PermWarning.class);
-            List<sx.blah.discord.handle.obj.Permissions> missingPerms = permTool.checkPerms(e.getGuild(), client.getOurUser(), info.neededPerms.stream().map(Entry::first).collect(Collectors.toCollection(ArrayList::new)));
+            PermWarning permTool = CommandList.getCommandList().getCommand(PermWarning.class);
+            List<sx.blah.discord.handle.obj.Permissions> missingPerms = permTool.checkPerms(e.getGuild(), client.getOurUser(), Information.neededPerms.stream().map(Entry::first).collect(Collectors.toCollection(ArrayList::new)));
             if (!missingPerms.isEmpty())
                 LOG.info("Missing Perms in guild() {} ({}): {}", e.getGuild().getName(), e.getGuild().getStringID(), permTool.formatPerms(missingPerms));
         } catch (BotException ex) {
@@ -133,9 +130,10 @@ public class SovietBot implements IModule {
     public void onReady(ReadyEvent e) {
         readyCalled = true;
         actions.enableModules();
-        LOG.info("*** " + info.botName + " armed ***");
-        if (!client.getOurUser().getName().equals(config.botName)) {
+        LOG.info("*** " + Information.botName + " armed ***");
+        if (!client.getOurUser().getName().equals(Information.botName)) {
             //todo: uncomment when not testing...
+            LOG.info("Changing Username...");
             /*try {
                 BotUtils.bufferRequest(() -> {
                     try {
@@ -149,20 +147,20 @@ public class SovietBot implements IModule {
             }*/
 
         }
-        String[] filename = config.botAvatar.split("[.]");
+        /*String[] filename = Information.botAvatar.split("[.]");
         try {
             BotUtils.bufferRequest(() -> {
                 try {
-                    client.changeAvatar(Image.forStream(filename[filename.length - 1], resourceLoader.getResourceAsStream(config.botAvatar)));
+                    client.changeAvatar(Image.forStream(filename[filename.length - 1], resourceLoader.getResourceAsStream(Information.botAvatar)));
                 } catch (DiscordException ex) {
                     throw BotException.returnException(ex);
                 }
             });
         } catch (BotException ex) {
             actions.channels().exception(ex);
-        }
+        }*/
         LOG.info("\n------------------------------------------------------------------------\n"
-                + "*** " + info.botName + " Ready ***\n"
+                + "*** " + Information.botName + " Ready ***\n"
                 + "------------------------------------------------------------------------");
         //actions.channels().messageOwner("Startup Successful", false);
     }
@@ -179,7 +177,7 @@ public class SovietBot implements IModule {
             CommContext cont = new CommContext(e, actions);
             try {
                 if (command) {
-                    Entry<Command, Method> commandSet = commandList.getSubCommand(cont.getArgs());
+                    Entry<Command, Method> commandSet = CommandList.getCommandList().getSubCommand(cont.getArgs());
                     if (commandSet.second() != null) {
                         SubCommand subComm = commandSet.second().getAnnotation(SubCommand.class);
                         CommandInfo commandInfo = commandSet.first().getClass().getAnnotation(CommandInfo.class);
@@ -226,7 +224,7 @@ public class SovietBot implements IModule {
                     }
                 } else {
                     try {
-                        invokeCommand(commandList.getCommand("info"), Info.class.getMethod("execute", CommContext.class), cont);
+                        invokeCommand(CommandList.getCommandList().getCommand("info"), Info.class.getMethod("execute", CommContext.class), cont);
                     } catch (NoSuchMethodException ex) {
                         throw new ServerError("Could not execute Info command for mention", ex);
                     }
@@ -277,10 +275,9 @@ public class SovietBot implements IModule {
 
     @Override
     public boolean enable(IDiscordClient client) {
-        info = new Information();
         this.client = client;
         Unirest.setTimeouts(1000, 1000);
-        config = loadConfig(configFile, gson.toJson(info.defaultConfig), Configuration.class).orElse(null);
+        config = loadConfig(configFile, gson.toJson(new Configuration()), Configuration.class).orElse(null);
         if (config == null) {
             LOG.info("One or more config files are empty, Exiting...");
             System.exit(1);
@@ -288,7 +285,7 @@ public class SovietBot implements IModule {
         for (Field f : config.getClass().getFields()) {
             try {
                 if (f.get(config) == null) {
-                    f.set(config, f.get(info.defaultConfig));
+                    f.set(config, f.get(new Configuration()));
                 }
             } catch (IllegalAccessException e) {
                 LOG.error("Error Defaulting Nulls");
@@ -296,7 +293,6 @@ public class SovietBot implements IModule {
         }
         Rebound r = new Rebound("rr.industries.commands", false, true);
         r.getSubClassesOf(Command.class).forEach(CommandList::addCommand);
-        commandList = new CommandList();
         try {
             try {
                 Class.forName("org.sqlite.JDBC");
@@ -311,7 +307,7 @@ public class SovietBot implements IModule {
         }
         LOG.info("Database Initialized");
         ChannelActions ca = new ChannelActions(client, config, info);
-        actions = new BotActions(client, commandList, tables, new Module[]{new Console(ca), new UTCStatus(client), new Webserver(ca)}, ca);
+        actions = new BotActions(client, CommandList.getCommandList(), tables, new Module[]{new Console(ca), new UTCStatus(client), new Webserver(ca)}, ca);
         return true;
     }
 

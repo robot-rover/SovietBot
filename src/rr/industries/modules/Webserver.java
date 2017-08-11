@@ -5,7 +5,9 @@ import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.commons.io.FilenameUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import rr.industries.Information;
 import rr.industries.SovietBot;
+import rr.industries.Website;
 import rr.industries.exceptions.BotException;
 import rr.industries.pojos.RestartPost;
 import rr.industries.pojos.travisciwebhooks.TravisWebhook;
@@ -20,6 +22,7 @@ import sx.blah.discord.util.MessageBuilder;
 import javax.servlet.http.HttpServletResponse;
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.IOException;
 import java.net.URLDecoder;
 import java.nio.file.Files;
 import java.time.ZoneId;
@@ -38,6 +41,7 @@ public class Webserver implements Module {
     private final Logger LOG = LoggerFactory.getLogger(Webserver.class);
     private static final File imageDirectory = new File("image");
     private boolean isEnabled;
+    private Website site;
 
     /**
      * Should be initalized in ReadyEvent
@@ -45,6 +49,11 @@ public class Webserver implements Module {
     public Webserver(ChannelActions actions) {
         isEnabled = false;
         this.actions = actions;
+        try {
+            site = new Website();
+        } catch (IOException e) {
+            LOG.error("Error initializing website sources", e);
+        }
     }
 
     @Override
@@ -54,13 +63,15 @@ public class Webserver implements Module {
 
     @Override
     public Module enable() {
-        Service apis = Service.ignite().port(actions.getConfig().webhooksPort);
-        Service http = Service.ignite().port(80);
+        Service apis = Service.ignite().port(Information.webhookAPIPort);
         apis.get("/ping", ((request, response) -> {
+            response.type("text/plain");
             response.status(418);
             return "I'm a Teapot!";
         }));
+
         apis.post("/command", (Request request, Response response) -> {
+            response.type("text/plain");
             try {
                 RestartPost restart = null;
                 try {
@@ -71,7 +82,7 @@ public class Webserver implements Module {
                     return "I'm a teapot and Have an ERROR!!!";
                 }
                 if (restart.command != null && restart.command.equals("restart")) {
-                    if (!restart.secret.equals(actions.getConfig().secret)) {
+                    if (!restart.secret.equals(actions.getConfig().webhookSecret)) {
                         response.status(401);
                         return "Incorrect Secret!";
                     }
@@ -109,7 +120,9 @@ public class Webserver implements Module {
                 return e.getMessage();
             }
         });
+
         apis.post("/travis", (Request request, Response response) -> {
+            response.type("text/plain");
             try {
                 LOG.info("Received Travis Post");
                 TravisWebhook payload = gson.fromJson(URLDecoder.decode(request.body(), "UTF-8").replace("payload=", ""), TravisWebhook.class);
@@ -137,9 +150,9 @@ public class Webserver implements Module {
                 response.status(500);
                 return e.getMessage();
             }
-            response.status(200);
             return "\uD83D\uDC4C OK";
         });
+
         apis.get("/procelio", (Request request, Response response) -> {
             File launcher = new File("launcher.json");
             response.type("application/json");
@@ -148,9 +161,34 @@ public class Webserver implements Module {
                 response.status(500);
                 return "{}";
             }
-            response.status(200);
+            response.type("application/json");
             return Files.readAllLines(launcher.toPath()).stream().collect(Collectors.joining("\n"));
         });
+
+        Service http = Service.ignite().port(80);
+
+        //http.before(((request, response) -> LOG.info("Http Request -> {}", request.pathInfo())));
+
+        http.redirect.get("/", "/index.html");
+
+        http.get("/index.html", ((request, response) -> site.index));
+
+        http.get("/commandList.html", ((request, response) -> site.help));
+
+        http.get("/avatar", ((request, response) -> {
+            byte[] bytes = IOUtils.toByteArray(SovietBot.class.getClassLoader().getResourceAsStream(Information.botAvatar));
+            if (bytes.length == 0) {
+                LOG.error("Unable to load Bot Avatar!");
+            }
+            HttpServletResponse raw = response.raw();
+            response.type("image/" + FilenameUtils.getExtension(Information.botAvatar));
+            raw.getOutputStream().write(bytes);
+            raw.getOutputStream().flush();
+            raw.getOutputStream().close();
+
+            return response.raw();
+        }));
+
         http.get("/image/*", (Request request, Response response) -> {
             File image = new File(request.pathInfo().substring(1));
             if (image.isDirectory() || !image.exists()) {
@@ -160,27 +198,68 @@ public class Webserver implements Module {
 
             byte[] bytes = Files.readAllBytes(image.toPath());
             HttpServletResponse raw = response.raw();
-            response.raw().setContentType("image/" + FilenameUtils.getExtension(image.getAbsolutePath()));
+            response.type("image/" + FilenameUtils.getExtension(image.getAbsolutePath()));
             raw.getOutputStream().write(bytes);
             raw.getOutputStream().flush();
             raw.getOutputStream().close();
 
             return response.raw();
         });
+
         http.get("/favicon.ico", ((Request request, Response response) -> {
-            LOG.info("Favicon Requested!");
-            byte[] bytes = IOUtils.toByteArray(SovietBot.class.getClassLoader().getResourceAsStream("icon.png"));
+            byte[] bytes = IOUtils.toByteArray(SovietBot.class.getClassLoader().getResourceAsStream(Information.botIcon));
             if (bytes.length == 0) {
                 LOG.error("Unable to load favicon!");
             }
             HttpServletResponse raw = response.raw();
-            response.raw().setContentType("image/png");
+            response.type("image/" + FilenameUtils.getExtension(Information.botIcon));
             raw.getOutputStream().write(bytes);
             raw.getOutputStream().flush();
             raw.getOutputStream().close();
 
             return response.raw();
         }));
+
+        http.get("/stylesheets/*", ((request, response) -> {
+            response.type("text/css");
+            return site.styleSheets.get(request.pathInfo().substring(1));
+        }));
+
+        http.get("/commands/*", ((request, response) -> {
+            String content = site.commands.get(request.pathInfo().substring("/commands/".length()));
+            if (content == null) {
+                response.status(404);
+                return "404 Error";
+            }
+            return content;
+        }));
+
+        http.get("/images/*", ((request, response) -> {
+            try {
+                byte[] bytes = site.images.get(request.pathInfo().substring(1));
+                if (bytes == null) {
+                    LOG.warn("Unable to load site image " + request.pathInfo());
+                    response.status(404);
+                    return "Image Not Found";
+                }
+                HttpServletResponse raw = response.raw();
+                response.type("image/" + FilenameUtils.getExtension(request.pathInfo().substring(1)));
+                raw.getOutputStream().write(bytes);
+                raw.getOutputStream().flush();
+                raw.getOutputStream().close();
+
+                return response.raw();
+            } catch (Exception e) {
+                e.printStackTrace();
+                return "";
+            }
+        }));
+
+        http.get("/javascripts/main.js", ((request, response) -> {
+            response.type("application/javascript");
+            return site.javascript;
+        }));
+
         apis.init();
         http.init();
         LOG.info("Initialized webhooks on port " + apis.port());
