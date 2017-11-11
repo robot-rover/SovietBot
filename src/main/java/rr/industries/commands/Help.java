@@ -157,7 +157,7 @@ public class Help implements Command {
                 try {
                     MessageBuilder message2 = new MessageBuilder(cont.getClient()).withChannel(cont.getClient().getOrCreatePMChannel(cont.getMessage().getAuthor()));
                     embed.withAuthorName(Information.botName + " - \"" + cont.getCommChar() + "\"");
-                    embed.withAuthorIcon("http://i.imgur.com/djeMU8C.jpg");
+                    embed.withAuthorIcon(cont.getActions().getConfig().url + "/avatar.png");
                     embed.withTitle("For more help type >help <command>");
                     embed.withDescription("Or visit " + cont.getActions().getConfig().url);
                     boolean userIsOp = cont.getActions().getTable(PermTable.class).getPerms(cont.getMessage().getAuthor(), cont.getMessage()).equals(Permissions.BOTOPERATOR);

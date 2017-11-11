@@ -27,11 +27,17 @@ public class GreetingTable extends Table implements ITable {
     }
 
     public Optional<String> getJoinMessage(IGuild guild) throws BotException {
-        return Optional.ofNullable(database.select(GREETINGTABLE.JOINMESSAGE).from(table).where(GREETINGTABLE.GUILDID.eq(guild.getStringID())).fetchAny().component1());
+        Record1<String> message = database.select(GREETINGTABLE.JOINMESSAGE).from(table).where(GREETINGTABLE.GUILDID.eq(guild.getStringID())).fetchAny();
+        if(message != null)
+            return Optional.of(message.component1());
+        return Optional.empty();
     }
 
     public Optional<String> getLeaveMessage(IGuild guild) throws BotException {
-        return Optional.ofNullable(database.select(GREETINGTABLE.LEAVEMESSAGE).from(table).where(GREETINGTABLE.GUILDID.eq(guild.getStringID())).fetchAny().component1());
+        Record1<String> message = database.select(GREETINGTABLE.LEAVEMESSAGE).from(table).where(GREETINGTABLE.GUILDID.eq(guild.getStringID())).fetchAny();
+        if(message != null)
+            return Optional.of(message.component1());
+        return Optional.empty();
     }
 
     public void setJoinMessage(IGuild guild, String message) throws BotException {

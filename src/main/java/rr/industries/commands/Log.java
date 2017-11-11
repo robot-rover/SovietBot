@@ -42,7 +42,7 @@ public class Log implements Command {
             String log = Files.readAllLines(path).stream().collect(Collectors.joining("\n"));
             LOG.info("{} chars found found", log.length());
             LOG.info("Posting to Hastebin");
-            HttpResponse<String> response = Unirest.post("http://hastebin.com/documents").header("Content-Type", "text/plain").body(log).asString();
+            HttpResponse<String> response = Unirest.post("http://www.hastebin.com/documents").header("Content-Type", "text/plain").body(log).asString();
             LOG.info("Response - \n{}", response.getBody());
             LOG.info("Adding Message Content");
             message.withContent("**Log** -  http://hastebin.com/" + gson.fromJson(response.getBody(), Hastebin.class).getKey());
