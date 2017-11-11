@@ -293,7 +293,7 @@ public class Webserver implements Module {
 
     private void sendMessageToChannels(String event, String content) {
         LOG.info("Sent a webhook message to channels for event " + event);
-        actions.sendMessage(new MessageBuilder(actions.getClient()).withContent(content).withChannel(actions.getClient().getChannelByID(170685308273164288L)));
+        actions.messageOwner(content, false);
     }
 
 }

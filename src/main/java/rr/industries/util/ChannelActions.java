@@ -92,7 +92,6 @@ public class ChannelActions {
             }
         });
     }
-
     public void messageOwner(String message, boolean notify) {
         MessageBuilder messageBuilder = new MessageBuilder(client).withContent(message);
         if (!notify) {
@@ -100,7 +99,7 @@ public class ChannelActions {
                 if (guild.getLongID() == 161155978199302144L)
                     messageBuilder.withChannel(161155978199302144L);
                 if (guild.getLongID() == 141313424880566272L)
-                    messageBuilder.withChannel(170685308273164288L);
+                    messageBuilder.withChannel(378748067358179328L);
             }
         }
         if (messageBuilder.getChannel() == null) {
