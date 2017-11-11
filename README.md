@@ -9,4 +9,4 @@ Invite: <https://discordapp.com/oauth2/authorize?&client_id=184445488093724672&s
 
 Website: <https://robot-rover.github.io/SovietBot/>
 
-Tons of imformation can be found on the website!
+Tons of information can be found on the website!
