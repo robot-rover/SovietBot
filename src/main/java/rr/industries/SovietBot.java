@@ -14,7 +14,6 @@ import rr.industries.commands.Info;
 import rr.industries.commands.PermWarning;
 import rr.industries.exceptions.*;
 import rr.industries.modules.Console;
-import rr.industries.modules.UTCStatus;
 import rr.industries.modules.Webserver;
 import rr.industries.util.*;
 import rr.industries.util.sql.*;
@@ -29,6 +28,7 @@ import sx.blah.discord.handle.impl.events.shard.ShardReadyEvent;
 import sx.blah.discord.modules.IModule;
 import sx.blah.discord.util.MessageBuilder;
 import rr.industries.modules.Module;
+import sx.blah.discord.util.RequestBuffer;
 
 import java.io.*;
 import java.lang.reflect.Field;
@@ -62,6 +62,7 @@ public class SovietBot implements IModule {
     private static final Logger LOG = LoggerFactory.getLogger(SovietBot.class);
     private static final File configFile = new File("configuration.json");
     public static Gson gson = new GsonBuilder().setPrettyPrinting().serializeNulls().create();
+    private int guildNumber = 0;
     private Configuration config;
     private volatile IDiscordClient client;
     private ITable[] tables;
@@ -87,6 +88,10 @@ public class SovietBot implements IModule {
 
     @EventSubscriber
     public void onGuildJoin(GuildCreateEvent e) {
+        guildNumber++;
+        if(readyCalled){
+           RequestBuffer.request(() -> client.changePlayingText(guildNumber + " servers"));
+        }
         try {
             actions.getTable(PermTable.class).setPerms(e.getGuild(), e.getGuild().getOwner(), Permissions.ADMIN);
             for (String op : config.operators)
@@ -152,22 +157,10 @@ public class SovietBot implements IModule {
             }*/
 
         }
-        /*String[] filename = Information.botAvatar.split("[.]");
-        try {
-            BotUtils.bufferRequest(() -> {
-                try {
-                    client.changeAvatar(Image.forStream(filename[filename.length - 1], resourceLoader.getResourceAsStream(Information.botAvatar)));
-                } catch (DiscordException ex) {
-                    throw BotException.returnException(ex);
-                }
-            });
-        } catch (BotException ex) {
-            actions.channels().exception(ex);
-        }*/
         LOG.info("\n------------------------------------------------------------------------\n"
                 + "*** " + Information.botName + " Ready ***\n"
                 + "------------------------------------------------------------------------");
-        //actions.channels().messageOwner("Startup Successful", false);
+        RequestBuffer.request(() -> client.changePlayingText(guildNumber + (guildNumber > 1 ? " Servers" : " Server")));
     }
 
     @EventSubscriber
@@ -313,7 +306,7 @@ public class SovietBot implements IModule {
         }
         LOG.info("Database Initialized");
         ChannelActions ca = new ChannelActions(client, config, info);
-        actions = new BotActions(client, CommandList.getCommandList(), tables, new Module[]{new Console(), new UTCStatus(client), new Webserver()}, ca);
+        actions = new BotActions(client, CommandList.getCommandList(), tables, new Module[]{new Console(), new Webserver()}, ca);
         return true;
     }
 
