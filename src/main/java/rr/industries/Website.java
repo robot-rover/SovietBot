@@ -319,16 +319,18 @@ public class Website {
 
     private Token authenticate(Request request, Response response) throws OAuthException, UnirestException, JSONException {
         Token token;
-        if(request.cookie("sovietBot") == null){
-            String code = request.queryParams("code");
-            if(code == null)
-                throw new OAuthException("Not Authenticated...", 401);
+        String code = request.queryParams("code");
+        if(code == null){
+            code = request.cookie("sovietBot");
+            if(code == null){
+                throw new OAuthException("Not Authenticated", 401);
+            }
+            LOG.info("Creating return user from cookie");
             token = manager.getToken(code);
-            response.cookie("sovietBot", token.getAccessToken()/*, token.getExpiresIn()*/);
-            LOG.info("Created new User and Cookie");
         } else {
-            token = new Token(request.cookie("sovietBot"), null, null, null, "identify guilds");
-            LOG.info("Created return user from Cookie");
+            LOG.info("Creating new User from Code");
+            token = manager.getToken(code);
+            response.cookie("sovietBot", token.getAccessToken());
         }
         if(!token.getScopes().contains(Scope.Routes.IDENTIFY) || !token.getScopes().contains(Scope.Routes.GUILDS)){
             throw new OAuthException("Missing Required Scope", 401);
