@@ -212,7 +212,6 @@ public class Website {
             response.type("text/html");
             Token token = authenticate(request, response);
             List<Guild> guilds = manager.getUserGuilds(token);
-            LOG.info(guilds.stream().map(Guild::getName).collect(Collectors.joining(", ", "[", "]")));
             StringBuilder content = new StringBuilder();
             content.append("<ul class=\"guilds\">");
             for(Guild guild : guilds){
@@ -326,7 +325,7 @@ public class Website {
                 }
             } catch (StringIndexOutOfBoundsException e){}
 
-            page.setTag("content", "<h2>Invite Link:</h2><p><a href=\"" + getInviteLink() + "\">" + getInviteLink() + "</a></p>");
+            page.setTag("content", "<h2>SovietBot isn't currently in your server</h2><h3>Invite it here:</h3><p><a href=\"" + getInviteLink() + "\">" + getInviteLink() + "</a></p>");
             return page.generate();
         } catch(OAuthException e){
             if (e.getErrorCode() == 401){
