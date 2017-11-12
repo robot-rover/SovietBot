@@ -14,6 +14,7 @@ import org.json.JSONException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import rr.industries.commands.Command;
+import rr.industries.pageengine.MarkdownEngine;
 import rr.industries.pageengine.Page;
 import rr.industries.pageengine.PageEngine;
 import rr.industries.util.*;
@@ -43,7 +44,6 @@ import static org.apache.commons.lang3.StringEscapeUtils.escapeHtml4;
 public class Website {
     public String index;
     public String help;
-    public Page dashboardPage;
     public HashMap<String, String> commands = new HashMap<>();
     public HashMap<String, String> styleSheets = new HashMap<>();
     public String javascript;
@@ -113,7 +113,7 @@ public class Website {
         engine.addEnvTag("oauth-link", getOAuthLink());
         engine.addEnvTag("main-icon", "/avatar.png");
         OAuthSettings oAuthSettings = new OAuthSettings("SovietBot", actions.getConfig().url, actions.getConfig().url + "/dashboard", "1.0 BETA");
-        BotSettings botSettings = new BotSettings(actions.getClient().getApplicationClientID(), actions.getConfig().discordSecret, actions.getClient().getToken());
+        BotSettings botSettings = new BotSettings(actions.getClient().getApplicationClientID(), actions.getConfig().discordSecret, actions.getClient().getToken().substring(4));
         manager = new OAuthManager(oAuthSettings, botSettings);
         LOG.info("OAuth Link: {}", getOAuthLink());
         Page indexPage = engine.newPage();
@@ -179,11 +179,6 @@ public class Website {
             commandPage.setTag("content", htmlBody);
             commands.put(commInfo.commandName() + ".html", commandPage.generate());
         }
-
-        dashboardPage = engine.newPage();
-        dashboardPage.setTag("title", "SovietBot - Dashboard");
-        dashboardPage.setTag("header", "Dashboard");
-        dashboardPage.setTag("description", "Select a server to continue...");
     }
 
     private String getOAuthLink(){
@@ -211,9 +206,6 @@ public class Website {
             Token token = authenticate(request, response);
             List<Guild> guilds = manager.getUserGuilds(token);
             LOG.info(guilds.stream().map(Guild::getName).collect(Collectors.joining(", ", "[", "]")));
-            if(token.getExpiresIn() != null){
-                LOG.info("Token Expires in " + token.getExpiresIn() + " seconds.");
-            }
             StringBuilder content = new StringBuilder();
             content.append("<ul class=\"guilds\">");
             for(Guild guild : guilds){
@@ -223,6 +215,10 @@ public class Website {
                 content.append("<p>").append(guild.getName()).append("</p></li></a>");
             }
             content.append("</ul>");
+            Page dashboardPage = engine.newPage();
+            dashboardPage.setTag("title", "SovietBot - Dashboard");
+            dashboardPage.setTag("header", "Dashboard");
+            dashboardPage.setTag("description", "Select a server to continue...");
             dashboardPage.setTag("content", content.toString());
             return dashboardPage.generate();
 
@@ -258,21 +254,20 @@ public class Website {
             content.append("<button class=\"accordion\" onclick=\"toggleAccordion(this)\">").append("Tags").append("</button><div class=\"panel\"><ul>");
             List<TagData> tags = actions.getTable(TagTable.class).getAllTags(guild);
             for(TagData tag : tags){
-                content.append("<li><b>").append(tag.getName()).append("</b> - ").append(tag.getContent()).append("</li>\n");
+                content.append("<li><b>").append(escapeHtml4(tag.getName())).append("</b> - ").append(MarkdownEngine.generate(tag.getContent())).append("</li>\n");
             }
             content.append("</ul></div>");
             content.append("<button class=\"accordion\" onclick=\"toggleAccordion(this)\">").append("Global Tags").append("</button><div class=\"panel\"><ul>");
             List<TagData> globalTags = actions.getTable(TagTable.class).getGlobalTags();
             for(TagData tag : globalTags){
-                content.append("<li><b>").append(tag.getName()).append("</b> - ").append(tag.getContent()).append("</li>\n");
+                content.append("<li><b>").append(escapeHtml4(tag.getName())).append("</b> - ").append(MarkdownEngine.generate(tag.getContent())).append("</li>\n");
             }
             content.append("</ul></div>");
             page.setTag("content", content.toString());
             return page.generate();
         } catch(OAuthException e){
             if (e.getErrorCode() == 401){
-                response.redirect(getOAuthLink(), 401);
-                return "Redirecting...";
+                return "Please Reauthenticate <a href=" + getOAuthLink() + ">here</a>";
             }
             e.printStackTrace();
         } catch(NumberFormatException e){
@@ -303,8 +298,7 @@ public class Website {
             return page.generate();
         } catch(OAuthException e){
             if (e.getErrorCode() == 401){
-                response.redirect(getOAuthLink(), 401);
-                return "Redirecting...";
+                return "Please Reauthenticate <a href=" + getOAuthLink() + ">here</a>";
             }
             e.printStackTrace();
         } catch(NumberFormatException e){
@@ -321,14 +315,14 @@ public class Website {
         Token token;
         String code = request.queryParams("code");
         if(code == null){
-            code = request.cookie("sovietBot");
-            if(code == null){
+            String tokenString = request.cookie("sovietBot");
+            if(tokenString == null){
                 throw new OAuthException("Not Authenticated", 401);
             }
+            token = new Token(request.cookie("sovietBot"), null, null, null, "identify guilds");
             LOG.info("Creating return user from cookie");
-            token = manager.getToken(code);
         } else {
-            LOG.info("Creating new User from Code");
+            LOG.info("Creating new User from Code - code: {}", code);
             token = manager.getToken(code);
             response.cookie("sovietBot", token.getAccessToken());
         }
