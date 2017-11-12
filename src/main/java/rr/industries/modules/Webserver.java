@@ -181,6 +181,8 @@ public class Webserver implements Module {
 
         http.get("/invite", site::invite);
 
+        http.get("/redirect", site::redirectToOAuth);
+
         http.get("/avatar", ((request, response) -> {
             byte[] bytes = IOUtils.toByteArray(SovietBot.class.getClassLoader().getResourceAsStream(Information.botAvatar));
             if (bytes.length == 0) {

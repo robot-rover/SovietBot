@@ -185,6 +185,10 @@ public class Website {
         return "https://discordapp.com/oauth2/authorize?client_id=" + actions.getClient().getApplicationClientID() + "&scope=identify+guilds&redirect_uri=" + actions.getConfig().url + "/dashboard&response_type=code";
     }
 
+    public String redirectToOAuth(Request request, Response response){
+        return engine.newPage("redirect.txt").setTag("title", "Redirecting...").setTag("redirect-link", getOAuthLink()).generate();
+    }
+
     private String getInviteLink(){
         return Information.invite;
     }
@@ -224,7 +228,7 @@ public class Website {
 
         } catch(OAuthException e){
             if (e.getErrorCode() == 401){
-                return "Please Reauthenticate <a href=" + getOAuthLink() + ">here</a>";
+                return redirectToOAuth(request, response);
             }
             e.printStackTrace();
         } catch (Exception e){
@@ -267,7 +271,7 @@ public class Website {
             return page.generate();
         } catch(OAuthException e){
             if (e.getErrorCode() == 401){
-                return "Please Reauthenticate <a href=" + getOAuthLink() + ">here</a>";
+                return redirectToOAuth(request, response);
             }
             e.printStackTrace();
         } catch(NumberFormatException e){
@@ -282,23 +286,25 @@ public class Website {
 
     public String invite(Request request, Response response){
         try {
-            String guildIDString = request.pathInfo().substring("/invite/".length());
             Page page = engine.newPage();
             page.setTag("title", "SovietBot - Invite");
             page.setTag("header", "Invite");
             page.setTag("description", "Add SovietBot to your server");
             Token token = authenticate(request, response);
-            Guild guild = manager.getUserGuilds(token).stream().filter(v -> v.getId().equals(guildIDString)).findAny().orElse(null);
-            if(guild != null){
-                page.setTag("main-icon", getGuildIcon(guild.getId(), guild.getIcon()));
-                page.setTag("description", "Add SovietBot to " + guild.getName());
-            }
+            try {
+                String guildIDString = request.pathInfo().substring("/invite/".length());
+                Guild guild = manager.getUserGuilds(token).stream().filter(v -> v.getId().equals(guildIDString)).findAny().orElse(null);
+                if (guild != null) {
+                    page.setTag("main-icon", getGuildIcon(guild.getId(), guild.getIcon()));
+                    page.setTag("description", "Add SovietBot to " + guild.getName());
+                }
+            } catch (StringIndexOutOfBoundsException e){}
 
             page.setTag("content", "<h2>Invite Link:</h2><p><a href=\"" + getInviteLink() + "\">" + getInviteLink() + "</a></p>");
             return page.generate();
         } catch(OAuthException e){
             if (e.getErrorCode() == 401){
-                return "Please Reauthenticate <a href=" + getOAuthLink() + ">here</a>";
+                return redirectToOAuth(request, response);
             }
             e.printStackTrace();
         } catch(NumberFormatException e){

@@ -1,0 +1,13 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset='utf-8'>
+    <script>
+        window.location.href = "{redirect-link}";
+    </script>
+    <title>{title}</title>
+  </head>
+        <p>If you are not redirected in a few seconds click <a href="{redirect-link}">Here</a></p>
+  <body>
+  </body>
+</html>

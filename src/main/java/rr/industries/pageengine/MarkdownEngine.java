@@ -65,6 +65,6 @@ public class MarkdownEngine {
             return "";
         }
         
-        return linker.autoLinkURLs(page.toString());
+        return linker.autoLinkURLs(page.toString()).replace("<a ", "<a target=\"_blank\" ");
     }
 }
