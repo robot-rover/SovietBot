@@ -228,8 +228,7 @@ public class Website {
 
         } catch(OAuthException e){
             if (e.getErrorCode() == 401){
-                response.redirect(getOAuthLink(), 401);
-                return "Redirecting...";
+                return "Please Reauthenticate <a href=" + getOAuthLink() + ">here</a>";
             }
             e.printStackTrace();
         } catch (Exception e){
