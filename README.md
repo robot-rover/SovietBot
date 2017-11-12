@@ -7,6 +7,6 @@ Made by robot_rover using the Discord4J api.
 
 Invite: <https://discordapp.com/oauth2/authorize?&client_id=184445488093724672&scope=bot&permissions=19950624>
 
-Website: <https://robot-rover.github.io/SovietBot/>
+Website: <http://sovietbot.ddns.net/>
 
 Tons of information can be found on the website!
