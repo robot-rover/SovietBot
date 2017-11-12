@@ -112,7 +112,7 @@ public class Website {
         engine.addEnvTag("invite-link", getInviteLink());
         engine.addEnvTag("oauth-link", getOAuthLink());
         engine.addEnvTag("main-icon", "/avatar.png");
-        OAuthSettings oAuthSettings = new OAuthSettings("SovietBot", actions.getConfig().url, actions.getConfig().url + "/redirect", "1.0 BETA");
+        OAuthSettings oAuthSettings = new OAuthSettings("SovietBot", actions.getConfig().url, actions.getConfig().url + "/dashboard", "1.0 BETA");
         BotSettings botSettings = new BotSettings(actions.getClient().getApplicationClientID(), actions.getConfig().discordSecret, actions.getClient().getToken());
         manager = new OAuthManager(oAuthSettings, botSettings);
         LOG.info("OAuth Link: {}", getOAuthLink());
@@ -205,6 +205,7 @@ public class Website {
     }
 
     public String dashboard(Request request, Response response){
+        LOG.info(request.queryString());
         try {
             response.type("text/html");
             Token token = authenticate(request, response);
@@ -320,11 +321,11 @@ public class Website {
     private Token authenticate(Request request, Response response) throws OAuthException, UnirestException, JSONException {
         Token token;
         if(request.cookie("sovietBot") == null){
-            System.out.println(request.queryParams("code"));
-            if(request.queryParams("code") == null)
+            String code = request.queryParams("code");
+            if(code == null)
                 throw new OAuthException("Not Authenticated...", 401);
-            token = manager.getToken(request.queryParams("code"));
-            response.cookie("sovietBot", token.getAccessToken(), token.getExpiresIn());
+            token = manager.getToken(code);
+            response.cookie("sovietBot", token.getAccessToken()/*, token.getExpiresIn()*/);
             LOG.info("Created new User and Cookie");
         } else {
             token = new Token(request.cookie("sovietBot"), null, null, null, "identify guilds");

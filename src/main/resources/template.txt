@@ -48,7 +48,7 @@
                   <small>Discord OAuth</small>
                   Invite
                 </a>
-                <a href="/dashboard" class="button dashboard">
+                <a href="{oauth-link}" class="button dashboard">
                   <small>Server</small>
                   Dashboard
                 </a>
