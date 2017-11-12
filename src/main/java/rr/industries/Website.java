@@ -307,9 +307,9 @@ public class Website {
             content.append("<button class=\"accordion\" onclick=\"toggleAccordion(this)\">").append("Server Greetings").append("</button><div class=\"panel\"><ul>");
             length = content.length();
             actions.getTable(GreetingTable.class).getJoinMessage(guild).ifPresent(
-                    v -> content.append("<li>When a user joins: ").append(escapeHtml4(v).replace("%user", "<code>%user</code>")).append("</li>\n"));
+                    v -> content.append("<h2>Leave:</h2><li>").append(escapeHtml4(v).replace("%user", "<code>%user</code>")).append("</li>\n"));
             actions.getTable(GreetingTable.class).getLeaveMessage(guild).ifPresent(
-                    v -> content.append("<li>When a user leaves: ").append(escapeHtml4(v).replace("%user", "<code>%user</code>")).append("</li>\n"));
+                    v -> content.append("<h2>Join:</h2><li>").append(escapeHtml4(v).replace("%user", "<code>%user</code>")).append("</li>\n"));
             if(length == content.length())
                 content.append("<p><i>None</i><p>");
             content.append("</ul></div>");
