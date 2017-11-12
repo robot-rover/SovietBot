@@ -222,12 +222,13 @@ public class Website {
                 content.append("<p>").append(guild.getName()).append("</p></li></a>");
             }
             content.append("</ul>");
-            Page dashboardPage = engine.newPage();
-            dashboardPage.setTag("title", "SovietBot - Dashboard");
-            dashboardPage.setTag("header", "Dashboard");
-            dashboardPage.setTag("description", "Select a server to continue...");
-            dashboardPage.setTag("content", content.toString());
-            return dashboardPage.generate();
+            Page page = engine.newPage();
+            page.setTag("oauth-link", "/dashboard");
+            page.setTag("title", "SovietBot - Dashboard");
+            page.setTag("header", "Dashboard");
+            page.setTag("description", "Select a server to continue...");
+            page.setTag("content", content.toString());
+            return page.generate();
 
         } catch(OAuthException e){
             if (e.getErrorCode() == 401){
@@ -253,6 +254,7 @@ public class Website {
             }
             Token token = authenticate(request, response);
             Page page = engine.newPage();
+            page.setTag("oauth-link", "/dashboard");
             page.setTag("title", "SovietBot - " + guild.getName());
             page.setTag("header", "Dashboard");
             page.setTag("description", guild.getName());
@@ -311,6 +313,9 @@ public class Website {
             page.setTag("title", "SovietBot - Invite");
             page.setTag("header", "Invite");
             page.setTag("description", "Add SovietBot to your server");
+            if(request.cookie("sovietBot") != null){
+                page.setTag("oauth-link", "/dashboard");
+            }
             Token token = authenticate(request, response);
             try {
                 String guildIDString = request.pathInfo().substring("/invite/".length());
