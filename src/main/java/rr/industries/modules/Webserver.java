@@ -11,6 +11,7 @@ import rr.industries.Website;
 import rr.industries.exceptions.BotException;
 import rr.industries.pojos.RestartPost;
 import rr.industries.pojos.travisciwebhooks.TravisWebhook;
+import rr.industries.util.BotActions;
 import rr.industries.util.ChannelActions;
 import spark.Request;
 import spark.Response;
@@ -37,7 +38,7 @@ import java.util.stream.Collectors;
 public class Webserver implements Module {
 
     private final Gson gson = new Gson();
-    private final ChannelActions actions;
+    private BotActions actions;
     private final Logger LOG = LoggerFactory.getLogger(Webserver.class);
     private static final File imageDirectory = new File("image");
     private boolean isEnabled;
@@ -46,14 +47,8 @@ public class Webserver implements Module {
     /**
      * Should be initalized in ReadyEvent
      */
-    public Webserver(ChannelActions actions) {
+    public Webserver() {
         isEnabled = false;
-        this.actions = actions;
-        try {
-            site = new Website();
-        } catch (IOException e) {
-            LOG.error("Error initializing website sources", e);
-        }
     }
 
     @Override
@@ -62,7 +57,12 @@ public class Webserver implements Module {
     }
 
     @Override
-    public Module enable() {
+    public Module enable(BotActions actions) {
+        try {
+            site = new Website(actions);
+        } catch (IOException e) {
+            LOG.error("Error initializing website sources", e);
+        }
         Service apis = Service.ignite().port(Information.webhookAPIPort);
         apis.get("/ping", ((request, response) -> {
             response.type("text/plain");
@@ -103,7 +103,7 @@ public class Webserver implements Module {
                     LOG.info("Everything Looks good, Restarting...");
                     Thread thread = new Thread(() -> {
                         try {
-                            actions.terminate(true);
+                            actions.channels().terminate(true);
                         } catch (BotException ex) {
                             LOG.error("Could Not Restart", ex);
                         }
@@ -171,9 +171,15 @@ public class Webserver implements Module {
 
         http.redirect.get("/", "/index.html");
 
-        http.get("/index.html", ((request, response) -> site.index));
+        http.get("/index.html", (site::index));
 
-        http.get("/commandList.html", ((request, response) -> site.help));
+        http.get("/commandList.html", (site::help));
+
+        http.get("/dashboard", site::dashboard);
+
+        http.get("/invite/*", site::invite);
+
+        http.get("/invite", site::invite);
 
         http.get("/avatar", ((request, response) -> {
             byte[] bytes = IOUtils.toByteArray(SovietBot.class.getClassLoader().getResourceAsStream(Information.botAvatar));
@@ -236,45 +242,15 @@ public class Webserver implements Module {
             return response.raw();
         }));
 
-        http.get("/stylesheets/*", ((request, response) -> {
-            response.type("text/css");
-            return site.styleSheets.get(request.pathInfo().substring(1));
-        }));
+        http.get("/guilds/*", site::guild);
 
-        http.get("/commands/*", ((request, response) -> {
-            String content = site.commands.get(request.pathInfo().substring("/commands/".length()));
-            if (content == null) {
-                response.status(404);
-                return "404 Error";
-            }
-            return content;
-        }));
+        http.get("/stylesheets/*", (site::stylesheet));
 
-        http.get("/images/*", ((request, response) -> {
-            try {
-                byte[] bytes = site.images.get(request.pathInfo().substring(1));
-                if (bytes == null) {
-                    LOG.warn("Unable to load site image " + request.pathInfo());
-                    response.status(404);
-                    return "Image Not Found";
-                }
-                HttpServletResponse raw = response.raw();
-                response.type("image/" + FilenameUtils.getExtension(request.pathInfo().substring(1)));
-                raw.getOutputStream().write(bytes);
-                raw.getOutputStream().flush();
-                raw.getOutputStream().close();
+        http.get("/commands/*", (site::command));
 
-                return response.raw();
-            } catch (Exception e) {
-                e.printStackTrace();
-                return "";
-            }
-        }));
+        http.get("/images/*", site::images);
 
-        http.get("/javascripts/main.js", ((request, response) -> {
-            response.type("application/javascript");
-            return site.javascript;
-        }));
+        http.get("/javascripts/main.js", (site::javascript));
 
         apis.init();
         http.init();
@@ -293,7 +269,7 @@ public class Webserver implements Module {
 
     private void sendMessageToChannels(String event, String content) {
         LOG.info("Sent a webhook message to channels for event " + event);
-        actions.messageOwner(content, false);
+        actions.channels().messageOwner(content, false);
     }
 
 }

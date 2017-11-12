@@ -580,6 +580,10 @@ aside a.button.discord {
     background: transparent url('../images/download-button-discord.png') 0 0 no-repeat;
 }
 
+aside a.button.dashboard {
+    background: transparent url('../images/download-button-dashboard.png') 0 0 no-repeat;
+}
+
 code, pre {
     margin-bottom: 30px;
     font-family: Monaco, "Bitstream Vera Sans Mono", "Lucida Console", Terminal, monospace;
@@ -762,28 +766,24 @@ blockquote {
 }
 
 ul.container {
-    padding: 0;
-    margin: 0;
+    padding: 5px;
+    margin: 5px;
     list-style-type: none;
     align-self: center;
-    border-width: 2px;
-    border-color: #2e7bcf;
+    /*border: 10px #2e7bcf;*/
     clear: both;
 }
 
 ul.container li {
     width: 100px;
-    height: 50px;
     float: left;
-    text-align: center;
-    background-color: #dbe7f3;
-    border-style: groove;
-    border-width: 2px;
-    border-color: #2e7bcf;
-    border-radius: 15px;
-    margin: 15px;
-    display: flex;
-    align-items: center; /* Vertical center alignment */
+    text-align: left;
+    background: linear-gradient(to right, #e0e0f0, #fafafa);
+    border-left: 2px groove #2e7bcf;
+    margin: 5px;
+    padding: 5px 5px 5px 7px;
+    display: inline;
+    align-items: left; /* Vertical center alignment */
     justify-content: center; /* Horizontal center alignment */
     font-weight: bold;
 
@@ -797,6 +797,72 @@ img.avatar {
     width: 150px;
     border-color: transparent;
     border-radius: 75px;
+}
+
+ul.guilds{
+    list-style-type: none;
+    text-align: center;
+    margin: 0;
+}
+
+ul.guilds li {
+
+    vertical-align: top;
+    margin: 15px;
+    width: 100px;
+    display: inline-block;
+}
+
+ul.guilds li p {
+    text-align: center;
+    margin: 0;
+}
+
+ul.guilds a {
+    color: inherit;
+}
+ul.guilds li img {
+    display: block;
+    margin: 5px auto;
+    height: 100px;
+    width: 100px;
+    border-color: transparent;
+    border-radius: 50px;
+}
+
+button.accordion {
+    background-color: #eee;
+    color: #444;
+    cursor: pointer;
+    padding: 10px;
+    width: 100%;
+    text-align: left;
+    border: none;
+    outline: none;
+    transition: 0.4s;
+}
+
+/* Add a background color to the button if it is clicked on (add the .active class with JS), and when you move the mouse over it (hover) */
+button.accordion.active, button.accordion:hover {
+    background-color: #ccc;
+}
+
+/* Style the accordion panel. Note: hidden by default */
+div.panel {
+    padding: 0 18px;
+    background-color: white;
+    display: none;
+    word-wrap: break-word;
+}
+
+div.panel ul {
+    padding-left: 10px;
+    padding-right: 10px;
+}
+
+div.panel ul li {
+    padding-top: 6px;
+    padding-bottom: 6px;
 }
 
 div.header-content {

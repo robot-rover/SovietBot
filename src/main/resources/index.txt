@@ -10,7 +10,7 @@
 </p>
 <h2>Invite Link</h2>
 
-<p><strong><a href="https://discordapp.com/oauth2/authorize?&amp;client_id=184445488093724672&amp;scope=bot&amp;permissions=19950624">https://discordapp.com/oauth2/authorize?&amp;client_id=184445488093724672&amp;scope=bot&amp;permissions=19950624</a></strong></p>
+<p><strong><a href="{invite-link}">{invite-link}</a></strong></p>
 
 <p>Feel free to invite this bot to your server, it has many great features, such as</p>
 

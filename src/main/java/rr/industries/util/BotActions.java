@@ -42,7 +42,7 @@ public final class BotActions {
     public void enableModules() {
         for (Module m : modules) {
             if (!m.isEnabled())
-                m.enable();
+                m.enable(this);
         }
     }
 

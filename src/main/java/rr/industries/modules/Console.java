@@ -4,6 +4,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import rr.industries.SovietBot;
 import rr.industries.exceptions.BotException;
+import rr.industries.util.BotActions;
 import rr.industries.util.ChannelActions;
 
 import java.util.Scanner;
@@ -15,11 +16,10 @@ public class Console implements Module {
     private static Logger LOG = LoggerFactory.getLogger(Console.class);
     boolean isEnabled;
     Thread listner;
-    ChannelActions actions;
+    BotActions actions;
     Scanner input;
 
-    public Console(ChannelActions actions) {
-        this.actions = actions;
+    public Console() {
         isEnabled = false;
     }
 
@@ -29,8 +29,9 @@ public class Console implements Module {
     }
 
     @Override
-    public Module enable() {
+    public Module enable(BotActions actions) {
         isEnabled = true;
+        this.actions = actions;
         input = new Scanner(System.in);
         listner = new Thread(() -> {
 
@@ -40,7 +41,7 @@ public class Console implements Module {
                         case "stop":
                             System.out.println("Shutting Down...");
                             try {
-                                actions.terminate(false);
+                                actions.channels().terminate(false);
                             } catch (BotException e) {
                                 LOG.error("Could not Shutdown", e);
                             }
@@ -51,7 +52,7 @@ public class Console implements Module {
                             break;
                         case "spark start":
                             System.out.println("Starting Spark...");
-                            SovietBot.getBotActions().getModule(Webserver.class).enable();
+                            SovietBot.getBotActions().getModule(Webserver.class).enable(actions);
                             break;
                     }
                 } catch (IllegalStateException ex) {

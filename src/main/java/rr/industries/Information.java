@@ -12,6 +12,7 @@ import java.util.List;
  * @author Sam
  */
 public class Information {
+    private static String clientId;
     public static final String botName = "SovietBot";
     public static final String frameName = Discord4J.NAME;
     public static final String frameVersion = Discord4J.VERSION.split(" ")[0];
@@ -36,9 +37,13 @@ public class Information {
             perm(sx.blah.discord.handle.obj.Permissions.VOICE_MOVE_MEMBERS, "01000000"),
             perm(sx.blah.discord.handle.obj.Permissions.CHANGE_NICKNAME, "04000000")
     );
-    public static final String invite = "https://discordapp.com/oauth2/authorize?&client_id=184445488093724672&scope=bot&permissions=" + neededPerms.stream().mapToInt(Entry::second).sum();
+    public static String invite = "";
 
     private Information() {
+    }
+
+    public static void setClientID(String id){
+        invite = "https://discordapp.com/oauth2/authorize?&client_id=" + id + "&scope=bot&permissions=" + neededPerms.stream().mapToInt(Entry::second).sum();
     }
 
     private static Entry<sx.blah.discord.handle.obj.Permissions, Integer> perm(sx.blah.discord.handle.obj.Permissions perm, String hex) {

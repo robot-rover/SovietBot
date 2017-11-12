@@ -133,6 +133,7 @@ public class SovietBot implements IModule {
     @EventSubscriber
     public void onReady(ShardReadyEvent e) {
         readyCalled = true;
+        Information.setClientID(client.getApplicationClientID());
         actions.enableModules();
         LOG.info("*** " + Information.botName + " armed ***");
         if (!client.getOurUser().getName().equals(Information.botName)) {
@@ -312,7 +313,7 @@ public class SovietBot implements IModule {
         }
         LOG.info("Database Initialized");
         ChannelActions ca = new ChannelActions(client, config, info);
-        actions = new BotActions(client, CommandList.getCommandList(), tables, new Module[]{new Console(ca), new UTCStatus(client), new Webserver(ca)}, ca);
+        actions = new BotActions(client, CommandList.getCommandList(), tables, new Module[]{new Console(), new UTCStatus(client), new Webserver()}, ca);
         return true;
     }
 

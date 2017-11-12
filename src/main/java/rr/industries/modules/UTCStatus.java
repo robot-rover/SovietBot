@@ -2,6 +2,7 @@ package rr.industries.modules;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import rr.industries.util.BotActions;
 import sx.blah.discord.api.IDiscordClient;
 
 import java.time.LocalDateTime;
@@ -38,7 +39,7 @@ public class UTCStatus implements Module {
     }
 
     @Override
-    public Module enable() {
+    public Module enable(BotActions actions) {
         if (!isEnabled) {
             executor = new Timer(true);
             LocalDateTime now = LocalDateTime.now();
