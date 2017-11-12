@@ -10,6 +10,7 @@ import com.github.adamint.Settings.OAuthSettings;
 import com.mashape.unirest.http.exceptions.UnirestException;
 import com.sun.org.apache.regexp.internal.RE;
 import org.apache.commons.io.FilenameUtils;
+import org.jooq.Record2;
 import org.json.JSONException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -18,11 +19,13 @@ import rr.industries.pageengine.MarkdownEngine;
 import rr.industries.pageengine.Page;
 import rr.industries.pageengine.PageEngine;
 import rr.industries.util.*;
+import rr.industries.util.sql.PermTable;
 import rr.industries.util.sql.TagTable;
 import spark.Redirect;
 import spark.Request;
 import spark.Response;
 import sx.blah.discord.handle.obj.IGuild;
+import sx.blah.discord.handle.obj.IUser;
 
 import javax.servlet.http.HttpServletResponse;
 import java.io.File;
@@ -265,6 +268,17 @@ public class Website {
             List<TagData> globalTags = actions.getTable(TagTable.class).getGlobalTags();
             for(TagData tag : globalTags){
                 content.append("<li><b>").append(escapeHtml4(tag.getName())).append("</b> - ").append(MarkdownEngine.generate(tag.getContent())).append("</li>\n");
+            }
+            content.append("</ul></div>");
+            List<Record2<String, Integer>> perms = actions.getTable(PermTable.class).getAllPerms(guild);
+            content.append("<button class=\"accordion\" onclick=\"toggleAccordion(this)\">").append("User Permissions").append("</button><div class=\"panel\"><ul>");
+            for(int[] i = {Permissions.BOTOPERATOR.level}; i[0] >= Permissions.NORMAL.level; i[0]--){
+                content.append("<h2>").append(BotUtils.toPerms(i[0]).title).append("</h2>");
+                perms.stream().filter(v -> v.component2() == i[0]).forEach(v -> {
+                    IUser user = actions.getClient().getUserByID(Long.parseLong(v.component1()));
+                    if(user != null)
+                        content.append("<li>").append(escapeHtml4(user.getDisplayName(guild))).append("</li>\n");
+                });
             }
             content.append("</ul></div>");
             page.setTag("content", content.toString());

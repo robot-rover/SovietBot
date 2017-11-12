@@ -865,6 +865,10 @@ div.panel ul li {
     padding-bottom: 6px;
 }
 
+div.panel h2 {
+    padding-left: 10px;
+}
+
 div.header-content {
     display: inline-block;
 }
