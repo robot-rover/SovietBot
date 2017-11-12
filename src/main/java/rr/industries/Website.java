@@ -15,10 +15,12 @@ import org.json.JSONException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import rr.industries.commands.Command;
+import rr.industries.jooq.tables.Greetingtable;
 import rr.industries.pageengine.MarkdownEngine;
 import rr.industries.pageengine.Page;
 import rr.industries.pageengine.PageEngine;
 import rr.industries.util.*;
+import rr.industries.util.sql.GreetingTable;
 import rr.industries.util.sql.PermTable;
 import rr.industries.util.sql.TagTable;
 import spark.Redirect;
@@ -243,6 +245,7 @@ public class Website {
 
     public String guild(Request request, Response response){
         response.type("text/html");
+        int length;
         try {
             long guildID = Long.parseLong(request.pathInfo().substring("/guilds/".length()));
             LOG.info("Guild ID: {}", guildID);
@@ -251,6 +254,7 @@ public class Website {
                 response.redirect("/invite/" + guildID);
                 return "Redirecting...";
             }
+            //Page Setup
             Token token = authenticate(request, response);
             Page page = engine.newPage();
             page.setTag("oauth-link", "/dashboard");
@@ -259,18 +263,27 @@ public class Website {
             page.setTag("description", guild.getName());
             page.setTag("main-icon", getGuildIcon(guild.getStringID(), guild.getIcon()));
             StringBuilder content = new StringBuilder();
+            //Tags Section
             content.append("<button class=\"accordion\" onclick=\"toggleAccordion(this)\">").append("Tags").append("</button><div class=\"panel\"><ul>");
+            length = content.length();
             List<TagData> tags = actions.getTable(TagTable.class).getAllTags(guild);
             for(TagData tag : tags){
                 content.append("<li><b>").append(escapeHtml4(tag.getName())).append("</b> - ").append(MarkdownEngine.generate(tag.getContent())).append("</li>\n");
             }
+            if(length == content.length())
+                content.append("<p><i>None</i><p>");
             content.append("</ul></div>");
+            //Global Tags Section
             content.append("<button class=\"accordion\" onclick=\"toggleAccordion(this)\">").append("Global Tags").append("</button><div class=\"panel\"><ul>");
+            length = content.length();
             List<TagData> globalTags = actions.getTable(TagTable.class).getGlobalTags();
             for(TagData tag : globalTags){
                 content.append("<li><b>").append(escapeHtml4(tag.getName())).append("</b> - ").append(MarkdownEngine.generate(tag.getContent())).append("</li>\n");
             }
+            if(length == content.length())
+                content.append("<p><i>None</i><p>");
             content.append("</ul></div>");
+            //User Perms Section
             List<Record2<String, Integer>> perms = actions.getTable(PermTable.class).getAllPerms(guild);
             content.append("<button class=\"accordion\" onclick=\"toggleAccordion(this)\">").append("User Permissions").append("</button><div class=\"panel\"><ul>");
             content.append("<h2>").append(Permissions.SERVEROWNER.title).append("</h2>\n");
@@ -289,6 +302,18 @@ public class Website {
                 }
             }
             content.append("</ul></div>");
+            //Server Greeting Section
+
+            content.append("<button class=\"accordion\" onclick=\"toggleAccordion(this)\">").append("Server Greetings").append("</button><div class=\"panel\"><ul>");
+            length = content.length();
+            actions.getTable(GreetingTable.class).getJoinMessage(guild).ifPresent(
+                    v -> content.append("<li>When a user joins: ").append(escapeHtml4(v).replace("%user", "<code>%user</code>")).append("</li>\n"));
+            actions.getTable(GreetingTable.class).getLeaveMessage(guild).ifPresent(
+                    v -> content.append("<li>When a user leaves: ").append(escapeHtml4(v).replace("%user", "<code>%user</code>")).append("</li>\n"));
+            if(length == content.length())
+                content.append("<p><i>None</i><p>");
+            content.append("</ul></div>");
+
             page.setTag("content", content.toString());
             return page.generate();
         } catch(OAuthException e){

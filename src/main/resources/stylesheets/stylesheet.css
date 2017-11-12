@@ -834,12 +834,26 @@ button.accordion {
     background-color: #eee;
     color: #444;
     cursor: pointer;
-    padding: 10px;
+    padding: 10px 15px 10px;
     width: 100%;
     text-align: left;
     border: none;
     outline: none;
     transition: 0.4s;
+}
+
+button.accordion::after {
+    content: "+";
+    float: right;
+    padding-right: 3px;
+    color: #808080;
+}
+
+button.accordion.active::after {
+    content: "-";
+    float: right;
+    padding-right: 3px;
+    color: #808080;
 }
 
 /* Add a background color to the button if it is clicked on (add the .active class with JS), and when you move the mouse over it (hover) */
