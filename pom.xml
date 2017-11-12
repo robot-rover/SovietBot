@@ -134,6 +134,11 @@
             <artifactId>annotations</artifactId>
             <version>15.0</version>
         </dependency>
+        <dependency>
+            <groupId>com.twitter</groupId>
+            <artifactId>twitter-text</artifactId>
+            <version>1.14.3</version> <!-- or whatever the latest version is -->
+        </dependency>
         <!-- Discord4J local testing branch -->
         <!--<dependency>
             <groupId>sx.blah</groupId>

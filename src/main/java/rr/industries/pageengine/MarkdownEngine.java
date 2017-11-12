@@ -1,17 +1,22 @@
 package rr.industries.pageengine;
 
+import com.twitter.Autolink;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.*;
 import java.nio.charset.StandardCharsets;
 import java.util.Scanner;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import static org.apache.commons.lang3.StringEscapeUtils.escapeHtml4;
 
 public class MarkdownEngine {
+    private static final Autolink linker = new Autolink();
     private static final Logger LOG = LoggerFactory.getLogger(MarkdownEngine.class);
     private MarkdownEngine(){}
+
     public static String generate(String source) {
         source = escapeHtml4(source.replace("```", "`"));
         boolean isItalic = false;
@@ -59,6 +64,7 @@ public class MarkdownEngine {
             LOG.error("Exception opening PageEngine template", e);
             return "";
         }
-        return page.toString();
+        
+        return linker.autoLinkURLs(page.toString());
     }
 }
