@@ -272,13 +272,20 @@ public class Website {
             content.append("</ul></div>");
             List<Record2<String, Integer>> perms = actions.getTable(PermTable.class).getAllPerms(guild);
             content.append("<button class=\"accordion\" onclick=\"toggleAccordion(this)\">").append("User Permissions").append("</button><div class=\"panel\"><ul>");
-            for(int[] i = {Permissions.BOTOPERATOR.level}; i[0] >= Permissions.NORMAL.level; i[0]--){
-                content.append("<h2>").append(BotUtils.toPerms(i[0]).title).append("</h2>");
+            content.append("<h2>").append(Permissions.SERVEROWNER.title).append("</h2>\n");
+            IUser owner = guild.getOwner();
+            content.append("<li>").append(escapeHtml4(owner.getDisplayName(guild))).append("</li>\n");
+            for(int[] i = {Permissions.ADMIN.level}; i[0] >= Permissions.NORMAL.level; i[0]--){
+                StringBuilder level = new StringBuilder();
                 perms.stream().filter(v -> v.component2() == i[0]).forEach(v -> {
                     IUser user = actions.getClient().getUserByID(Long.parseLong(v.component1()));
-                    if(user != null)
-                        content.append("<li>").append(escapeHtml4(user.getDisplayName(guild))).append("</li>\n");
+                    if(user != null && user != owner)
+                        level.append("<li>").append(escapeHtml4(user.getDisplayName(guild))).append("</li>\n");
                 });
+                if(level.length() != 0){
+                    content.append("<h2>").append(BotUtils.toPerms(i[0]).title).append("</h2>");
+                    content.append(level);
+                }
             }
             content.append("</ul></div>");
             page.setTag("content", content.toString());
