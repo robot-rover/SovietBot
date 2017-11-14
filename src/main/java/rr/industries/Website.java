@@ -117,7 +117,7 @@ public class Website {
         engine.addEnvTag("invite-link", getInviteLink());
         engine.addEnvTag("oauth-link", getOAuthLink());
         engine.addEnvTag("main-icon", "/avatar.png");
-        OAuthSettings oAuthSettings = new OAuthSettings("SovietBot", actions.getConfig().url, actions.getConfig().url + "/dashboard", "1.0 BETA");
+        OAuthSettings oAuthSettings = new OAuthSettings("SovietBot", actions.getConfig().url, actions.getConfig().url + "dashboard", "1.0 BETA");
         BotSettings botSettings = new BotSettings(actions.getClient().getApplicationClientID(), actions.getConfig().discordSecret, actions.getClient().getToken().substring(4));
         manager = new OAuthManager(oAuthSettings, botSettings);
         LOG.info("OAuth Link: {}", getOAuthLink());
@@ -187,7 +187,7 @@ public class Website {
     }
 
     private String getOAuthLink(){
-        return "https://discordapp.com/oauth2/authorize?client_id=" + actions.getClient().getApplicationClientID() + "&scope=identify+guilds&redirect_uri=" + actions.getConfig().url + "/dashboard&response_type=code";
+        return "https://discordapp.com/oauth2/authorize?client_id=" + actions.getClient().getApplicationClientID() + "&scope=identify+guilds&redirect_uri=" + actions.getConfig().url + "dashboard&response_type=code";
     }
 
     public String redirectToOAuth(Request request, Response response){

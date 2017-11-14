@@ -60,7 +60,6 @@ public class SovietBot implements IModule {
     private static final Logger LOG = LoggerFactory.getLogger(SovietBot.class);
     private static final File configFile = new File("configuration.json");
     public static Gson gson = new GsonBuilder().setPrettyPrinting().serializeNulls().create();
-    private int guildNumber = 0;
     private Configuration config;
     private volatile IDiscordClient client;
     private ITable[] tables;
@@ -86,9 +85,8 @@ public class SovietBot implements IModule {
 
     @EventSubscriber
     public void onGuildJoin(GuildCreateEvent e) {
-        guildNumber++;
         if(readyCalled){
-           RequestBuffer.request(() -> client.changePlayingText(guildNumber + " servers"));
+           RequestBuffer.request(() -> client.changePlayingText(client.getGuilds().size() + " servers"));
         }
         try {
             actions.getTable(PermTable.class).setPerms(e.getGuild(), e.getGuild().getOwner(), Permissions.ADMIN);
@@ -157,7 +155,7 @@ public class SovietBot implements IModule {
         LOG.info("\n------------------------------------------------------------------------\n"
                 + "*** " + Information.botName + " Ready ***\n"
                 + "------------------------------------------------------------------------");
-        RequestBuffer.request(() -> client.changePlayingText(guildNumber + (guildNumber > 1 ? " Servers" : " Server")));
+        RequestBuffer.request(() -> client.changePlayingText(client.getGuilds().size() + " servers"));
     }
 
     @EventSubscriber
