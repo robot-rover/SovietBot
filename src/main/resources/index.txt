@@ -2,7 +2,7 @@
 
 <p>
     Is a <a href="https://discordapp.com/">Discord</a> Bot written in Java. It uses the API <a href="https://github.com/austinv11/Discord4J">Discord4J</a> for interfacing with Discord and <a href="https://github.com/DV8FromTheWorld/JDA-Player">JDA Player</a>.
-    SovietBot is under heavy constant development, but it is kept online almost all the time. expect about 5-10 minutes of downtime per day for maintenance and updating.
+    SovietBot is under heavy constant development, but it is kept online almost all the time. Expect about 5 minutes of downtime per day for maintenance and updating.
 </p>
 <h2>Need Help?</h2>
 <p>

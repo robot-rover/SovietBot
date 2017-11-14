@@ -24,7 +24,6 @@ import sx.blah.discord.handle.impl.events.guild.GuildCreateEvent;
 import sx.blah.discord.handle.impl.events.guild.channel.message.MessageReceivedEvent;
 import sx.blah.discord.handle.impl.events.guild.member.UserJoinEvent;
 import sx.blah.discord.handle.impl.events.guild.member.UserLeaveEvent;
-import sx.blah.discord.handle.impl.events.shard.ShardReadyEvent;
 import sx.blah.discord.modules.IModule;
 import sx.blah.discord.util.MessageBuilder;
 import rr.industries.modules.Module;
@@ -53,7 +52,6 @@ import java.util.stream.Collectors;
  * Command: Reminder
  * Command: voting
  * Command: search stuff
- * Command: Find in message history
  * Command: Repl
  */
 
@@ -136,15 +134,14 @@ public class SovietBot implements IModule {
     }
 
     @EventSubscriber
-    public void onReady(ShardReadyEvent e) {
+    public void onReady(ReadyEvent e) {
         readyCalled = true;
         Information.setClientID(client.getApplicationClientID());
         actions.enableModules();
         LOG.info("*** " + Information.botName + " armed ***");
         if (!client.getOurUser().getName().equals(Information.botName)) {
-            //todo: uncomment when not testing...
-            LOG.info("Changing Username...");
-            /*try {
+            /*LOG.info("Changing Username...");
+            try {
                 BotUtils.bufferRequest(() -> {
                     try {
                         client.changeUsername(config.botName);
