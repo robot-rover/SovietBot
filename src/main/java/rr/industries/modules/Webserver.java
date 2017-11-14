@@ -58,6 +58,7 @@ public class Webserver implements Module {
 
     @Override
     public Module enable(BotActions actions) {
+        this.actions = actions;
         try {
             site = new Website(actions);
         } catch (IOException e) {

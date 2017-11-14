@@ -13,6 +13,6 @@ public class Notifications {
 
     @SerializedName("webhooks")
     @Expose
-    public List<String> webhooks = new ArrayList<String>();
+    public String webhooks;
 
 }
