@@ -23,11 +23,16 @@ public class Xkcd implements Command {
 
     @SubCommand(name = "", Syntax = {
             @Syntax(helpText = "Searches for an XKCD that contains the search terms", args = {@Argument(Validate.LONGTEXT)}),
-            @Syntax(helpText = "Finds the numbered XKCD", args = {@Argument(Validate.NUMBER)})
+            @Syntax(helpText = "Finds the numbered XKCD", args = {@Argument(Validate.NUMBER)}),
+            @Syntax(helpText = "Shows the latest XKCD", args ={})
     })
     public void execute(CommContext cont) throws BotException {
         Integer number = null;
         EmbedBuilder embedBuilder = new EmbedBuilder();
+        if(cont.getArgs().size() == 1){
+            getAndSend("http://xkcd.com/info.0.json", cont);
+            return;
+        }
         try {
             number = Integer.parseInt(cont.getArgs().get(1));
         } catch (NumberFormatException ignored) {}
@@ -50,15 +55,19 @@ public class Xkcd implements Command {
             LOG.info(results.results.stream().map(v -> v.title).collect(Collectors.joining(", ", "[", "]")));
             number = results.results.get(rn.nextInt(results.results.size())).number;
         }
+        getAndSend("https://xkcd.com/" + number.toString() + "/info.0.json", cont);
+    }
 
+    public void getAndSend(String url, CommContext cont) throws ServerError {
+        EmbedBuilder embedBuilder = new EmbedBuilder();
         HttpResponse<String> response;
         try {
-            response = Unirest.get("https://xkcd.com/" + number.toString() + "/info.0.json").asString();
+            response = Unirest.get(url).asString();
         } catch (UnirestException e) {
             throw new ServerError("Bad response from XKC Server", e);
         }
         if(response.getStatus() == 404){
-            embedBuilder.withDescription("XKCD #" + number.toString() + " Does not exist...").withColor(Color.RED);
+            embedBuilder.withDescription("This XKC doesn't not exist...").withColor(Color.RED);
             cont.getActions().channels().sendMessage(cont.builder().withEmbed(embedBuilder.build()));
             return;
         }
