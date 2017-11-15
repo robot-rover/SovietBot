@@ -50,7 +50,6 @@ import java.util.stream.Collectors;
  *
  * todo: suppress @everyone and @here in tags, echo, and glitch
  * todo: >purge prune
- * todo: BotOut channel in config
  *  + when leave
  * Commands -
  * Command: twitch stream / video on interweb :-P
