@@ -9,8 +9,10 @@ public class Configuration {
     public String googleKey;
     public String dictKey;
     public String discordSecret;
+    public String outputServer;
+    public String outputChannel;
 
-    public Configuration(String commChar, String url, String secret, String[] operators, String owmKey, String googleKey, String dictKey, String discordSecret) {
+    public Configuration(String commChar, String url, String secret, String[] operators, String owmKey, String googleKey, String dictKey, String discordSecret, String outputServer, String outputChannel) {
         this.commChar = commChar;
         this.webhookSecret = secret;
         this.url = url;
@@ -19,10 +21,12 @@ public class Configuration {
         this.googleKey = googleKey;
         this.dictKey = dictKey;
         this.discordSecret = discordSecret;
+        this.outputServer = outputServer;
+        this.outputChannel = outputChannel;
     }
 
     public Configuration() {
-        this(">", "", "", new String[0], "", "", "", "");
+        this(">", "", "", new String[0], "", "", "", "", "", "");
     }
 
     @Override

@@ -8,6 +8,7 @@ import rr.industries.Configuration;
 import rr.industries.Information;
 import rr.industries.Launcher;
 import rr.industries.exceptions.BotException;
+import rr.industries.exceptions.ServerError;
 import sx.blah.discord.api.IDiscordClient;
 import sx.blah.discord.handle.obj.IGuild;
 import sx.blah.discord.handle.obj.IMessage;
@@ -95,17 +96,19 @@ public class ChannelActions {
     public void messageOwner(String message, boolean notify) {
         MessageBuilder messageBuilder = new MessageBuilder(client).withContent(message);
         if (!notify) {
-            for (IGuild guild : client.getGuilds()) {
-                if (guild.getLongID() == 161155978199302144L)
-                    messageBuilder.withChannel(161155978199302144L);
-                if (guild.getLongID() == 141313424880566272L)
-                    messageBuilder.withChannel(378748067358179328L);
-            }
+            client.getGuildByID(Long.parseLong(config.outputServer)).getChannelByID(Long.parseLong(config.outputChannel));
         }
+        if(config.operators.length == 0)
+            try {
+                throw new ServerError("No Bot Operators Defined...");
+            } catch (ServerError serverError) {
+                serverError.printStackTrace();
+                return;
+            }
         if (messageBuilder.getChannel() == null) {
             RequestBuffer.request(() -> {
                 try {
-                    messageBuilder.withChannel(client.getOrCreatePMChannel(client.getUserByID(141981833951838208L)));
+                    messageBuilder.withChannel(client.getOrCreatePMChannel(client.getUserByID(Long.parseLong(config.operators[0]))));
                 } catch (DiscordException ex) {
                     LOG.error("Error messaging bot owner", ex);
                 }

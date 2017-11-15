@@ -129,10 +129,10 @@ public class SovietBot implements IModule {
                         .withContent(s.replace("%user", "`" + e.getUser().getDisplayName(e.getGuild()) + "`"));
                 actions.channels().sendMessage(message);
             });
+            actions.getTable(PermTable.class).setPerms(e.getGuild(), e.getUser(), Permissions.NORMAL);
         } catch (BotException ex) {
             actions.channels().exception(ex, new MessageBuilder(client).withChannel(client.getChannelByID(e.getGuild().getLongID())));
         }
-
     }
 
     @EventSubscriber
