@@ -11,22 +11,24 @@ public class Configuration {
     public String discordSecret;
     public String outputServer;
     public String outputChannel;
-
-    public Configuration(String commChar, String url, String secret, String[] operators, String owmKey, String googleKey, String dictKey, String discordSecret, String outputServer, String outputChannel) {
-        this.commChar = commChar;
-        this.webhookSecret = secret;
-        this.url = url;
-        this.operators = (operators == null ? new String[0] : operators);
-        this.owmKey = owmKey;
-        this.googleKey = googleKey;
-        this.dictKey = dictKey;
-        this.discordSecret = discordSecret;
-        this.outputServer = outputServer;
-        this.outputChannel = outputChannel;
-    }
+    public int websitePort;
+    public int apiPort;
+    public String keystorePath;
+    public String keystorePassword;
 
     public Configuration() {
-        this(">", "", "", new String[0], "", "", "", "", "", "");
+        this.commChar = ">";
+        this.url = "";
+        this.webhookSecret = "";
+        this.operators = new String[0];
+        this.owmKey = "";
+        this.googleKey = "";
+        this.dictKey = "";
+        this.discordSecret = "";
+        this.outputServer = "";
+        this.outputChannel = "";
+        this.apiPort = 8080;
+        this.websitePort = 80;
     }
 
     @Override

@@ -21,7 +21,6 @@ public class Information {
     public static final String botAvatar = "avatars/person.jpeg";
     public static final String botIcon = "icon.png";
     public static final String defaultCommChar = ">";
-    public static final int webhookAPIPort = 1000;
     public static final List<Entry<sx.blah.discord.handle.obj.Permissions, Integer>> neededPerms = Arrays.asList(
             perm(sx.blah.discord.handle.obj.Permissions.CREATE_INVITE, "00000001"),
             perm(sx.blah.discord.handle.obj.Permissions.MANAGE_CHANNEL, "00000010"),

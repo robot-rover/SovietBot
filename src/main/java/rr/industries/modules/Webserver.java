@@ -58,13 +58,16 @@ public class Webserver implements Module {
 
     @Override
     public Module enable(BotActions actions) {
+        boolean useSSL = actions.getConfig().keystorePath != null && actions.getConfig().keystorePassword != null;
         this.actions = actions;
         try {
             site = new Website(actions);
         } catch (IOException e) {
             LOG.error("Error initializing website sources", e);
         }
-        Service apis = Service.ignite().port(Information.webhookAPIPort);
+        Service apis = Service.ignite().port(actions.getConfig().apiPort);
+        if(useSSL)
+            apis.secure(actions.getConfig().keystorePath, actions.getConfig().keystorePassword, null, null);
         apis.get("/ping", ((request, response) -> {
             response.type("text/plain");
             response.status(418);
@@ -166,25 +169,27 @@ public class Webserver implements Module {
             return Files.readAllLines(launcher.toPath()).stream().collect(Collectors.joining("\n"));
         });
 
-        Service http = Service.ignite().port(80);
+        Service website = Service.ignite().port(actions.getConfig().websitePort);
+        if(useSSL)
+            website.secure(actions.getConfig().keystorePath, actions.getConfig().keystorePassword, null, null);
 
         //http.before(((request, response) -> LOG.info("Http Request -> {}", request.pathInfo())));
 
-        http.redirect.get("/", "/index.html");
+        website.redirect.get("/", "/index.html");
 
-        http.get("/index.html", (site::index));
+        website.get("/index.html", (site::index));
 
-        http.get("/commandList.html", (site::help));
+        website.get("/commandList.html", (site::help));
 
-        http.get("/dashboard", site::dashboard);
+        website.get("/dashboard", site::dashboard);
 
-        http.get("/invite/*", site::invite);
+        website.get("/invite/*", site::invite);
 
-        http.get("/invite", site::invite);
+        website.get("/invite", site::invite);
 
-        http.get("/redirect", site::redirectToOAuth);
+        website.get("/redirect", site::redirectToOAuth);
 
-        http.get("/avatar", ((request, response) -> {
+        website.get("/avatar", ((request, response) -> {
             byte[] bytes = IOUtils.toByteArray(SovietBot.class.getClassLoader().getResourceAsStream(Information.botAvatar));
             if (bytes.length == 0) {
                 LOG.error("Unable to load Bot Avatar!");
@@ -200,7 +205,7 @@ public class Webserver implements Module {
             return response.raw();
         }));
 
-        http.get("/avatar.png", (((request, response) -> {
+        website.get("/avatar.png", (((request, response) -> {
             byte[] bytes = IOUtils.toByteArray(SovietBot.class.getClassLoader().getResourceAsStream(Information.botAvatar));
             if (bytes.length == 0) {
                 LOG.error("Unable to load Bot Avatar!");
@@ -214,7 +219,7 @@ public class Webserver implements Module {
             return response.raw();
         })));
 
-        http.get("/image/*", (Request request, Response response) -> {
+        website.get("/image/*", (Request request, Response response) -> {
             File image = new File(request.pathInfo().substring(1));
             if (image.isDirectory() || !image.exists()) {
                 response.status(404);
@@ -231,7 +236,7 @@ public class Webserver implements Module {
             return response.raw();
         });
 
-        http.get("/favicon.ico", ((Request request, Response response) -> {
+        website.get("/favicon.ico", ((Request request, Response response) -> {
             byte[] bytes = IOUtils.toByteArray(SovietBot.class.getClassLoader().getResourceAsStream(Information.botIcon));
             if (bytes.length == 0) {
                 LOG.error("Unable to load favicon!");
@@ -245,20 +250,20 @@ public class Webserver implements Module {
             return response.raw();
         }));
 
-        http.get("/guilds/*", site::guild);
+        website.get("/guilds/*", site::guild);
 
-        http.get("/stylesheets/*", (site::stylesheet));
+        website.get("/stylesheets/*", (site::stylesheet));
 
-        http.get("/commands/*", (site::command));
+        website.get("/commands/*", (site::command));
 
-        http.get("/images/*", site::images);
+        website.get("/images/*", site::images);
 
-        http.get("/javascripts/main.js", (site::javascript));
+        website.get("/javascripts/main.js", (site::javascript));
 
         apis.init();
-        http.init();
+        website.init();
         LOG.info("Initialized webhooks on port " + apis.port());
-        LOG.info("Initialized http server on port " + http.port());
+        LOG.info("Initialized http server on port " + website.port());
         isEnabled = true;
         return this;
     }
