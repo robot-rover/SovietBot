@@ -60,6 +60,10 @@ import java.util.stream.Collectors;
  */
 
 public class SovietBot implements IModule {
+
+    //gets rid of obnoxious jooq banner in logs
+    static {System.setProperty("org.jooq.no-logo", "true");}
+
     private boolean readyCalled = false;
     private static final Logger LOG = LoggerFactory.getLogger(SovietBot.class);
     private static final File configFile = new File("configuration.json");
