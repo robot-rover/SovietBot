@@ -3,4 +3,4 @@ jdk:
 - oraclejdk8
 notifications:
   webhooks:
-   - http://sovietbot.ddns.net:1000/travis
+   - https://www.sovietbot.xyz:2053/travis
