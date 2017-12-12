@@ -57,7 +57,7 @@ public class Webserver implements Module {
     }
 
     @Override
-    public Module enable(BotActions actions) {
+    public Module enableModule(BotActions actions) {
         boolean useSSL = actions.getConfig().keystorePath != null && actions.getConfig().keystorePassword != null;
         this.actions = actions;
         try {
@@ -269,7 +269,7 @@ public class Webserver implements Module {
     }
 
     @Override
-    public Module disable() {
+    public Module disableModule() {
         Spark.stop();
         isEnabled = false;
         return this;

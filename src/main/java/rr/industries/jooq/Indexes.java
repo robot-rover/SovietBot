@@ -10,6 +10,7 @@ import org.jooq.Index;
 import org.jooq.OrderField;
 import org.jooq.impl.AbstractKeys;
 
+import rr.industries.jooq.tables.Filtertable;
 import rr.industries.jooq.tables.Globaltags;
 import rr.industries.jooq.tables.Greetingtable;
 import rr.industries.jooq.tables.Perms;
@@ -35,6 +36,7 @@ public class Indexes {
     // INDEX definitions
     // -------------------------------------------------------------------------
 
+    public static final Index SQLITE_AUTOINDEX_FILTERTABLE_1 = Indexes0.SQLITE_AUTOINDEX_FILTERTABLE_1;
     public static final Index GLOBALTAGINDEX = Indexes0.GLOBALTAGINDEX;
     public static final Index GREETINGINDEX = Indexes0.GREETINGINDEX;
     public static final Index PERMSINDEX = Indexes0.PERMSINDEX;
@@ -47,6 +49,7 @@ public class Indexes {
     // -------------------------------------------------------------------------
 
     private static class Indexes0 extends AbstractKeys {
+        public static Index SQLITE_AUTOINDEX_FILTERTABLE_1 = createIndex("sqlite_autoindex_filtertable_1", Filtertable.FILTERTABLE, new OrderField[] { Filtertable.FILTERTABLE.GUILDID }, true);
         public static Index GLOBALTAGINDEX = createIndex("globaltagindex", Globaltags.GLOBALTAGS, new OrderField[] { Globaltags.GLOBALTAGS.TAGNAME }, true);
         public static Index GREETINGINDEX = createIndex("greetingindex", Greetingtable.GREETINGTABLE, new OrderField[] { Greetingtable.GREETINGTABLE.GUILDID }, true);
         public static Index PERMSINDEX = createIndex("permsindex", Perms.PERMS, new OrderField[] { Perms.PERMS.GUILDID, Perms.PERMS.USERID }, true);

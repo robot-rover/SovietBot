@@ -5,7 +5,7 @@ import rr.industries.util.BotActions;
 public interface Module {
     boolean isEnabled();
 
-    Module enable(BotActions actions);
+    Module enableModule(BotActions actions);
 
-    Module disable();
+    Module disableModule();
 }

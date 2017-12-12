@@ -151,7 +151,7 @@ public class ChannelActions {
     public void terminate(Boolean restart) throws BotException {
         File d4jJar = new File("Discord4J-combined.jar");
         File updatedJar = new File("sovietBot-update.jar");
-        File currentJar = new File((Launcher.isLauncherUsed() ? "sovietBot-master" : "modules" + File.separator + "sovietBot-master.jar"));
+        File currentJar = new File(config.jarPath);
         finalizeResources();
         if (restart) {
             Runtime.getRuntime().addShutdownHook(
@@ -169,6 +169,7 @@ public class ChannelActions {
                             new ProcessBuilder("java", "-jar", "-server", (Launcher.isLauncherUsed() ? currentJar : d4jJar).getPath(), client.getToken().substring("Bot ".length())).inheritIO().start();
                         } catch (IOException ex) {
                             LOG.error("Couldn't Start new Bot instance!", ex);
+                            return;
                         }
                         LOG.info("Process Started");
                     })

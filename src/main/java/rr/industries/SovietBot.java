@@ -14,6 +14,7 @@ import rr.industries.commands.Info;
 import rr.industries.commands.PermWarning;
 import rr.industries.exceptions.*;
 import rr.industries.modules.Console;
+import rr.industries.modules.SwearFilter;
 import rr.industries.modules.Webserver;
 import rr.industries.util.*;
 import rr.industries.util.sql.*;
@@ -302,14 +303,14 @@ public class SovietBot implements IModule {
             }
             Connection conn = DriverManager.getConnection("jdbc:sqlite:sovietBot.db");
             DSLContext connection = DSL.using(conn, SQLDialect.SQLITE);
-            tables = new ITable[]{new PermTable(connection, config), new TimeTable(connection), new TagTable(connection), new PrefixTable(connection, config), new GreetingTable(connection)};
+            tables = new ITable[]{new PermTable(connection, config), new TimeTable(connection), new TagTable(connection), new PrefixTable(connection, config), new GreetingTable(connection), new FilterTable(connection)};
         } catch (SQLException | BotException ex) {
             LOG.error("Unable to Initialize Database", ex);
             System.exit(1);
         }
         LOG.info("Database Initialized");
         ChannelActions ca = new ChannelActions(client, config, info);
-        actions = new BotActions(client, CommandList.getCommandList(), tables, new Module[]{new Console(), new Webserver()}, ca);
+        actions = new BotActions(client, CommandList.getCommandList(), tables, new Module[]{new Console(), new Webserver(), new SwearFilter()}, ca);
         return true;
     }
 

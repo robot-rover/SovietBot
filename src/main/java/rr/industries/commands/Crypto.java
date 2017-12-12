@@ -1,0 +1,101 @@
+package rr.industries.commands;
+
+import com.google.gson.reflect.TypeToken;
+import com.mashape.unirest.http.Unirest;
+import com.mashape.unirest.http.exceptions.UnirestException;
+import rr.industries.SovietBot;
+import rr.industries.exceptions.BotException;
+import rr.industries.exceptions.ServerError;
+import rr.industries.pojos.CryptoCurrency;
+import rr.industries.util.*;
+import sx.blah.discord.util.EmbedBuilder;
+import sx.blah.discord.util.MessageBuilder;
+
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.time.Instant;
+import java.time.LocalDateTime;
+import java.time.ZoneOffset;
+import java.time.ZonedDateTime;
+import java.time.format.DateTimeFormatter;
+import java.time.format.FormatStyle;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+
+@CommandInfo(commandName = "crypto", helpText = "Finds info on a crypto currency", pmSafe = true)
+public class Crypto implements Command {
+
+    List<CryptoCurrency> cache;
+    TypeToken<List<CryptoCurrency>> cacheTypeToken = new TypeToken<List<CryptoCurrency>>() {};
+    long lastRefresh = 0L;
+    long refreshDelay = 1000 * 60 * 60; // 1 hour
+
+    @SubCommand(name = "", Syntax = {@Syntax(helpText = "Finds the info on this cryptocurrency", args = @Argument(value = Validate.TEXT, description = "Name"))})
+    public void execute(CommContext cont) throws BotException{
+        String term = cont.getArgs().get(1);
+        CryptoCurrency find = searchCache(term);
+        if(find == null && updateCache()){
+            find = searchCache(term);
+        }
+        if(find == null){
+            cont.getActions().channels().sendMessage(cont.builder().withContent("The currency " + term + " cannot be found"));
+        } else {
+            try {
+                CryptoCurrency currency = getCurrency(find.id).get(0);
+                EmbedBuilder builder = new EmbedBuilder();
+                builder.withTitle(currency.name);
+                builder.withDescription("$" + currency.priceUsd);
+                StringBuilder percentChange = new StringBuilder();
+                percentChange.append("1 Hour: ").append(currency.percentChange1h).append("%\n");
+                percentChange.append("1 Day:  ").append(currency.percentChange24h).append("%\n");
+                percentChange.append("7 Days: ").append(currency.percentChange7d).append("%\n");
+                builder.appendField("Percent Change -", percentChange.toString(), false);
+                Instant instant = Instant.ofEpochSecond(Long.parseLong(currency.lastUpdated));
+                ZonedDateTime time = ZonedDateTime.ofInstant(instant, ZoneOffset.UTC);
+                builder.withFooterText(time.format(DateTimeFormatter.ofLocalizedTime(FormatStyle.FULL)));
+                cont.getActions().channels().sendMessage(cont.builder().withEmbed(builder.build()));
+            } catch (IndexOutOfBoundsException e){
+                cont.getActions().channels().sendMessage(cont.builder().withContent("The currency " + term + " cannot be found"));
+            }
+        }
+    }
+
+    private List<CryptoCurrency> getCurrency(String id) throws BotException {
+        InputStream in;
+        try {
+            in = Unirest.get("https://api.coinmarketcap.com/v1/ticker/" + id + "/").asBinary().getBody();
+        } catch (UnirestException e) {
+            throw new ServerError("Unable to connect to coinmarketcap", e);
+        }
+        return gson.fromJson(new InputStreamReader(in), cacheTypeToken.getType());
+    }
+
+    private boolean updateCache() throws BotException {
+        if(System.currentTimeMillis() < lastRefresh + refreshDelay)
+            return false;
+        InputStream in;
+        try {
+            in = Unirest.get("https://api.coinmarketcap.com/v1/ticker/").queryString("limit", "0").asBinary().getBody();
+        } catch (UnirestException e) {
+            throw new ServerError("Unable to connect to coinmarketcap", e);
+        }
+        long ramBefore = Runtime.getRuntime().freeMemory();
+        cache = Arrays.asList(gson.fromJson(new InputStreamReader(in), CryptoCurrency[].class));
+        long extraRam = ramBefore - Runtime.getRuntime().freeMemory();
+        LOG.info("Cache updated with {} currencies. Will not refresh again until {}, Extra memory used: {}/{}", cache.size(),System.currentTimeMillis() + refreshDelay, extraRam, Runtime.getRuntime().maxMemory());
+        lastRefresh = System.currentTimeMillis();
+        return true;
+    }
+
+    public CryptoCurrency searchCache(String term){
+        if(cache == null)
+            return null;
+        if(term.equals(term.toUpperCase())){
+            return cache.stream().filter(v -> v.symbol.equals(term)).findAny().orElse(null);
+        } else if(term.equals(term.toLowerCase())) {
+            return cache.stream().filter(v -> v.id.equals(term)).findAny().orElse(null);
+        }
+        return cache.stream().filter(v -> v.name.equals(term)).findAny().orElse(null);
+    }
+}

@@ -5,7 +5,6 @@ import org.slf4j.LoggerFactory;
 import rr.industries.SovietBot;
 import rr.industries.exceptions.BotException;
 import rr.industries.util.BotActions;
-import rr.industries.util.ChannelActions;
 
 import java.util.Scanner;
 
@@ -29,7 +28,7 @@ public class Console implements Module {
     }
 
     @Override
-    public Module enable(BotActions actions) {
+    public Module enableModule(BotActions actions) {
         isEnabled = true;
         this.actions = actions;
         input = new Scanner(System.in);
@@ -48,11 +47,11 @@ public class Console implements Module {
                             break;
                         case "spark stop":
                             System.out.println("Stopping Spark...");
-                            SovietBot.getBotActions().getModule(Webserver.class).disable();
+                            SovietBot.getBotActions().getModule(Webserver.class).disableModule();
                             break;
                         case "spark start":
                             System.out.println("Starting Spark...");
-                            SovietBot.getBotActions().getModule(Webserver.class).enable(actions);
+                            SovietBot.getBotActions().getModule(Webserver.class).enableModule(actions);
                             break;
                     }
                 } catch (IllegalStateException ex) {
@@ -66,7 +65,7 @@ public class Console implements Module {
     }
 
     @Override
-    public Module disable() {
+    public Module disableModule() {
         isEnabled = false;
         System.out.println();
         listner = null;

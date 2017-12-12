@@ -9,6 +9,7 @@ target/
 /ffprobe.exe
 /youtube-dl
 configuration.json
+filter.json
 /token.txt
 sovietBot.db
 SovietBot/

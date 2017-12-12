@@ -14,6 +14,7 @@ import org.jooq.Catalog;
 import org.jooq.Table;
 import org.jooq.impl.SchemaImpl;
 
+import rr.industries.jooq.tables.Filtertable;
 import rr.industries.jooq.tables.Globaltags;
 import rr.industries.jooq.tables.Greetingtable;
 import rr.industries.jooq.tables.Perms;
@@ -35,12 +36,17 @@ import rr.industries.jooq.tables.Users;
 @SuppressWarnings({ "all", "unchecked", "rawtypes" })
 public class DefaultSchema extends SchemaImpl {
 
-    private static final long serialVersionUID = -264004424;
+    private static final long serialVersionUID = -1063510263;
 
     /**
      * The reference instance of <code></code>
      */
     public static final DefaultSchema DEFAULT_SCHEMA = new DefaultSchema();
+
+    /**
+     * The table <code>filtertable</code>.
+     */
+    public final Filtertable FILTERTABLE = rr.industries.jooq.tables.Filtertable.FILTERTABLE;
 
     /**
      * The table <code>globaltags</code>.
@@ -97,6 +103,7 @@ public class DefaultSchema extends SchemaImpl {
 
     private final List<Table<?>> getTables0() {
         return Arrays.<Table<?>>asList(
+            Filtertable.FILTERTABLE,
             Globaltags.GLOBALTAGS,
             Greetingtable.GREETINGTABLE,
             Perms.PERMS,

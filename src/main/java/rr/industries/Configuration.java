@@ -15,6 +15,8 @@ public class Configuration {
     public int apiPort;
     public String keystorePath;
     public String keystorePassword;
+    public String filterConfigPath;
+    public String jarPath;
 
     public Configuration() {
         this.commChar = ">";
@@ -29,6 +31,7 @@ public class Configuration {
         this.outputChannel = "";
         this.apiPort = 8080;
         this.websitePort = 80;
+        this.filterConfigPath = "";
     }
 
     @Override

@@ -6,6 +6,7 @@ package rr.industries.jooq;
 
 import javax.annotation.Generated;
 
+import rr.industries.jooq.tables.Filtertable;
 import rr.industries.jooq.tables.Globaltags;
 import rr.industries.jooq.tables.Greetingtable;
 import rr.industries.jooq.tables.Perms;
@@ -26,6 +27,11 @@ import rr.industries.jooq.tables.Users;
 )
 @SuppressWarnings({ "all", "unchecked", "rawtypes" })
 public class Tables {
+
+    /**
+     * The table <code>filtertable</code>.
+     */
+    public static final Filtertable FILTERTABLE = rr.industries.jooq.tables.Filtertable.FILTERTABLE;
 
     /**
      * The table <code>globaltags</code>.
