@@ -56,7 +56,7 @@ public final class BotActions {
     @SuppressWarnings("unchecked")
     public <T extends Module> T getModule(Class<T> moduleType) {
         for (Module module : modules) {
-            if (module.getClass().equals(moduleType))
+            if (moduleType.isAssignableFrom(module.getClass()))
                 return (T) module;
         }
         throw new NoSuchElementException("Table of type: " + moduleType.getName() + " not found!");

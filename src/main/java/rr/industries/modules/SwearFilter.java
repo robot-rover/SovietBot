@@ -71,7 +71,7 @@ public class SwearFilter implements Module {
             List<WordTracker> toFilter = testWords(e.getMessage().getContent());
             if(toFilter.size() > 0){
                 actions.channels().sendMessage(new MessageBuilder(actions.getClient()).withChannel(e.getChannel())
-                        .withContent(e.getAuthor().getName()).appendContent("#").appendContent(e.getAuthor().getDiscriminator()).appendContent(": ").appendContent(filter(e.getMessage().getContent(), toFilter)));
+                        .withContent("**" + e.getAuthor().getName() + "**").appendContent("#").appendContent(e.getAuthor().getDiscriminator()).appendContent(": ").appendContent(filter(e.getMessage().getContent(), toFilter)));
                 e.getMessage().delete();
             }
         }
@@ -112,7 +112,7 @@ public class SwearFilter implements Module {
             char letter = Character.toLowerCase(input.charAt(i));
             for (String bad : filterConfig.bannedWords) {
                 // Add new bad words to list
-                if (letter == bad.charAt(0)) {
+                if (characterEquals(letter, bad.charAt(0))) {
                     if (!words.containsKey(bad))
                         words.put(bad, new LinkedList<>());
                     words.get(bad).add(new WordTracker(i, bad));
@@ -148,6 +148,10 @@ public class SwearFilter implements Module {
         return founds;
     }
 
+    private boolean characterEquals(char letter, char c) {
+        return characterEquals(String.valueOf(letter), String.valueOf(c));
+    }
+
     public String filter(String in, List<WordTracker> toFilter) {
 
         // This part reassembles everything into a display-ready String, replacing regions of bad words
@@ -169,8 +173,8 @@ public class SwearFilter implements Module {
 
     public static class FilterConfig {
         public Map<String, List<String>> letterReplacements;
-        public List<String> punctuation = Arrays.asList(",", ".", "\'");
-        public String[] bannedWords = {"aabc", "porwe", "khsd"};
+        public List<String> punctuation;
+        public String[] bannedWords;
     }
 
     private static class WordTracker {

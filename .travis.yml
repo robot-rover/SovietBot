@@ -4,3 +4,11 @@ jdk:
 notifications:
   webhooks:
    - https://www.sovietbot.xyz:2053/travis
+addons:
+  apt:
+    packages:
+    - sshpass
+deploy:
+  provider: script
+  script: travisDeploy.sh
+  skip_cleanup: true

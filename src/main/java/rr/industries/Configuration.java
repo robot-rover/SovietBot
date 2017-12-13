@@ -32,6 +32,7 @@ public class Configuration {
         this.apiPort = 8080;
         this.websitePort = 80;
         this.filterConfigPath = "";
+        this.jarPath = "";
     }
 
     @Override

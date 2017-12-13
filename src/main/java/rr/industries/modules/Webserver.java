@@ -1,6 +1,7 @@
 package rr.industries.modules;
 
 import com.google.gson.Gson;
+import com.google.gson.JsonSyntaxException;
 import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.commons.io.FilenameUtils;
 import org.slf4j.Logger;
@@ -80,10 +81,10 @@ public class Webserver implements Module {
                 RestartPost restart = null;
                 try {
                     restart = gson.fromJson(request.body(), RestartPost.class);
-                } catch (Exception e) {
+                } catch (JsonSyntaxException e) {
                     LOG.error("Spark Error: ", e);
-                    response.status(418);
-                    return "I'm a teapot and Have an ERROR!!!";
+                    response.status(400);
+                    return "Parse Error - " + e.getMessage();
                 }
                 if (restart.command != null && restart.command.equals("restart")) {
                     if (!restart.secret.equals(actions.getConfig().webhookSecret)) {
@@ -116,8 +117,8 @@ public class Webserver implements Module {
                     response.status(200);
                     return "Looks good: Restarting...";
                 }
-                response.status(418);
-                return "I'm a teapot";
+                response.status(400);
+                return "Unrecognized Command";
             } catch (Exception e) {
                 LOG.error("Spark Error: ", e);
                 response.status(500);
@@ -155,18 +156,6 @@ public class Webserver implements Module {
                 return e.getMessage();
             }
             return "\uD83D\uDC4C OK";
-        });
-
-        apis.get("/procelio", (Request request, Response response) -> {
-            File launcher = new File("launcher.json");
-            response.type("application/json");
-            if (!launcher.exists()) {
-                LOG.error("No Launcher File Found at {}", launcher.getAbsolutePath());
-                response.status(500);
-                return "{}";
-            }
-            response.type("application/json");
-            return Files.readAllLines(launcher.toPath()).stream().collect(Collectors.joining("\n"));
         });
 
         Service website = Service.ignite().port(actions.getConfig().websitePort);

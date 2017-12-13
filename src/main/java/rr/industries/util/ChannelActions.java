@@ -96,23 +96,17 @@ public class ChannelActions {
     public void messageOwner(String message, boolean notify) {
         MessageBuilder messageBuilder = new MessageBuilder(client).withContent(message);
         if (!notify) {
-            client.getGuildByID(Long.parseLong(config.outputServer)).getChannelByID(Long.parseLong(config.outputChannel));
-        }
-        if(config.operators.length == 0)
-            try {
-                throw new ServerError("No Bot Operators Defined...");
-            } catch (ServerError serverError) {
-                serverError.printStackTrace();
+            messageBuilder.withChannel(client.getGuildByID(Long.parseLong(config.outputServer)).getChannelByID(Long.parseLong(config.outputChannel)));
+        } else {
+            if (config.operators.length == 0) {
+                LOG.error("No Bot Operators present, unable to one");
                 return;
             }
-        if (messageBuilder.getChannel() == null) {
-            RequestBuffer.request(() -> {
-                try {
-                    messageBuilder.withChannel(client.getOrCreatePMChannel(client.getUserByID(Long.parseLong(config.operators[0]))));
-                } catch (DiscordException ex) {
-                    LOG.error("Error messaging bot owner", ex);
-                }
-            });
+            try {
+                messageBuilder.withChannel(client.getOrCreatePMChannel(client.getUserByID(Long.parseLong(config.operators[0]))));
+            } catch (DiscordException ex) {
+                LOG.error("Error messaging bot owner", ex);
+            }
         }
         sendMessage(messageBuilder);
     }
@@ -133,45 +127,34 @@ public class ChannelActions {
         guild.getClient().getConnectedVoiceChannels().stream().filter(v -> v.getGuild().equals(guild)).findAny().ifPresent(IVoiceChannel::leave);
     }
 
-    public void finalizeResources() {
-        LOG.info("Writing Config");
-        Gson gson = new GsonBuilder().setPrettyPrinting().create();
-        try (FileWriter writer = new FileWriter("configuration.json", false)) {
-            writer.write(gson.toJson(config));
-        } catch (IOException ex) {
-            LOG.error("Config file was not saved upon exit", ex);
-        }
+    public void terminate(Boolean restart) throws BotException {
+        File updatedJar = new File(config.jarPath);
+        File currentJar = new File("sovietBot-master.jar");
+
         LOG.info("Disabling Modules");
         BotActions.getActions(client).disableModules();
         LOG.info("\n------------------------------------------------------------------------\n"
-                + "SovietBot Terminated\n"
+                + "SovietBot Terminating\n"
                 + "------------------------------------------------------------------------");
-    }
 
-    public void terminate(Boolean restart) throws BotException {
-        File d4jJar = new File("Discord4J-combined.jar");
-        File updatedJar = new File("sovietBot-update.jar");
-        File currentJar = new File(config.jarPath);
-        finalizeResources();
         if (restart) {
             Runtime.getRuntime().addShutdownHook(
                     new Thread(() -> {
                         if (updatedJar.exists()) {
-                            LOG.info("Moving updated jar to overwrite current");
+                            LOG.info("Updating {} from {}", currentJar, updatedJar);
                             try {
                                 Files.move(updatedJar.toPath(), currentJar.toPath(), StandardCopyOption.ATOMIC_MOVE, StandardCopyOption.REPLACE_EXISTING);
                             } catch (IOException ex) {
-                                LOG.warn("Unable to Overwrite old jar!", ex);
+                                LOG.warn("Unable update jar!", ex);
                             }
                         }
-                        LOG.info("Starting process of {}", (Launcher.isLauncherUsed() ? currentJar : d4jJar).getPath());
+                        LOG.info("Starting {}", currentJar);
                         try {
-                            new ProcessBuilder("java", "-jar", "-server", (Launcher.isLauncherUsed() ? currentJar : d4jJar).getPath(), client.getToken().substring("Bot ".length())).inheritIO().start();
+                            new ProcessBuilder("java", "-jar", "-server", currentJar.getPath(), client.getToken().substring("Bot ".length())).inheritIO().start();
+                            LOG.info("Process Started");
                         } catch (IOException ex) {
-                            LOG.error("Couldn't Start new Bot instance!", ex);
-                            return;
+                            LOG.error("Couldn't start new jar!", ex);
                         }
-                        LOG.info("Process Started");
                     })
             );
         }
@@ -180,20 +163,18 @@ public class ChannelActions {
         } catch (DiscordException | RateLimitException ex) {
             LOG.warn("Logout Failed, Forcing Shutdown", ex);
         }
-        LOG.info("Exiting with Status 0");
         System.exit(0);
     }
 
-    public boolean saveLog() {
-        boolean successful = true;
+    public boolean archiveLog() {
         try {
             Files.copy(new File("events.log").toPath(), new File("events_" + Long.toString(System.currentTimeMillis()) + ".log").toPath(), StandardCopyOption.COPY_ATTRIBUTES);
             Files.copy(new File("debug.log").toPath(), new File("debug_" + Long.toString(System.currentTimeMillis()) + ".log").toPath(), StandardCopyOption.COPY_ATTRIBUTES);
 
         } catch (IOException ex) {
-            LOG.error("Error Archiving Disconnect Log", ex);
-            successful = false;
+            LOG.error("Error Archiving Log", ex);
+            return false;
         }
-        return successful;
+        return true;
     }
 }

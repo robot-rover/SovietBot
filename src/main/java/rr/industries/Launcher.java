@@ -17,12 +17,9 @@ Total:          19950624
  */
 package rr.industries;
 
-import gigadot.rebound.Rebound;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import rr.industries.commands.Command;
 import rr.industries.exceptions.BotException;
-import rr.industries.util.GenHelpDocs;
 import sx.blah.discord.api.ClientBuilder;
 import sx.blah.discord.api.IDiscordClient;
 import sx.blah.discord.modules.IModule;
@@ -31,17 +28,9 @@ import sx.blah.discord.util.DiscordException;
 public class Launcher {
     private static final Logger LOG = LoggerFactory.getLogger(Launcher.class);
     static SovietBot bot;
-    private static boolean launcherUsed = false;
 
     public static void main(String[] args) throws BotException {
-        launcherUsed = true;
         try {
-            if (args.length >= 1 && args[0].equals("generate")) {
-                Rebound r = new Rebound("rr.industries.commands", false, true);
-                r.getSubClassesOf(Command.class).forEach(CommandList::addCommand);
-                GenHelpDocs.generate(CommandList.getCommandList());
-                return;
-            }
             IDiscordClient client = new ClientBuilder().withToken(args[0]).setMaxReconnectAttempts(6).build();
                 try {
                     login(client);
@@ -61,13 +50,5 @@ public class Launcher {
         bot.enable(client);
         client.login();
 
-    }
-
-    public static IModule getModule() {
-        return bot;
-    }
-
-    public static boolean isLauncherUsed() {
-        return launcherUsed;
     }
 }

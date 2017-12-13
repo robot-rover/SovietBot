@@ -45,6 +45,12 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 
 /**
+ * SovietBot - the Youtube Streaming Discord Bot
+ * @author robot_rover
+ * Built on  Discord4J v2.9.2
+ */
+
+/*
  * todo: XP and Levels
  * todo: RSS feeds module
  * todo: [Long Term] Write unit tests
@@ -60,7 +66,7 @@ import java.util.stream.Collectors;
  * Command: Repl
  */
 
-public class SovietBot implements IModule {
+public class SovietBot {
 
     //gets rid of obnoxious jooq banner in logs
     static {System.setProperty("org.jooq.no-logo", "true");}
@@ -275,7 +281,6 @@ public class SovietBot implements IModule {
         return Optional.empty();
     }
 
-    @Override
     public boolean enable(IDiscordClient client) {
         this.client = client;
         Unirest.setTimeouts(1000, 1000);
@@ -312,29 +317,5 @@ public class SovietBot implements IModule {
         ChannelActions ca = new ChannelActions(client, config, info);
         actions = new BotActions(client, CommandList.getCommandList(), tables, new Module[]{new Console(), new Webserver(), new SwearFilter()}, ca);
         return true;
-    }
-
-    public void disable() {
-        actions.channels().finalizeResources();
-    }
-
-    @Override
-    public String getName() {
-        return "SovietBot";
-    }
-
-    @Override
-    public String getAuthor() {
-        return "robot_rover";
-    }
-
-    @Override
-    public String getVersion() {
-        return "2.0";
-    }
-
-    @Override
-    public String getMinimumDiscord4JVersion() {
-        return "2.6.2";
     }
 }
