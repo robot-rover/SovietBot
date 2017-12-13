@@ -10,5 +10,5 @@ addons:
     - sshpass
 deploy:
   provider: script
-  script: travisDeploy.sh
+  script: ./travisDeploy.sh
   skip_cleanup: true
