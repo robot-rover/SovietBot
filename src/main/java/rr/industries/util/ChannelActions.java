@@ -150,7 +150,10 @@ public class ChannelActions {
                         }
                         LOG.info("Starting {}", currentJar);
                         try {
-                            new ProcessBuilder("java", "-jar", "-server", currentJar.getPath(), client.getToken().substring("Bot ".length())).inheritIO().start();
+                            String token = client.getToken().substring("Bot ".length());
+                            //keep the token out of the logs
+                            System.out.println(token);
+                            new ProcessBuilder("java", "-server", "-jar", currentJar.getPath(), token).inheritIO().start();
                             LOG.info("Process Started");
                         } catch (IOException ex) {
                             LOG.error("Couldn't start new jar!", ex);
