@@ -15,7 +15,7 @@ deploy:
   script: "./travisDeploy.sh"
   skip_cleanup: true
 before_deploy:
-- openssl aes-256-cbc -K $encrypted_b924725bccf1_key -iv $encrypted_b924725bccf1_iv in deploy_rsa.enc -out deploy_rsa -d
+- openssl aes-256-cbc -K $encrypted_b924725bccf1_key -iv $encrypted_b924725bccf1_iv -in deploy_rsa.enc -out deploy_rsa -d
 - eval "$(ssh-agent -s)"
 - chmod 600 deploy_rsa
 - ssh-add deploy_rsa
