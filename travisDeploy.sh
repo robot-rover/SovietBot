@@ -4,11 +4,11 @@ then
     echo Build File Exists
 else
     echo Build File Missing!
-    exit 1
+    exit
 fi
 
 echo Uploading Jar
-sshpass -e sftp root@$SERVER << !
+sftp -o "IdentityFile=deploy_rsa" root@$SERVER << !
     rm /root/sovietBot/sovietBot-update.jar
     put $TRAVIS_BUILD_DIR/target/sovietBot-master.jar /root/sovietBot/sovietBot-update.jar
     bye
