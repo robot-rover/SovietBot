@@ -6,6 +6,8 @@ import sx.blah.discord.util.EmbedBuilder;
 
 import java.lang.management.ManagementFactory;
 import java.lang.management.OperatingSystemMXBean;
+import java.time.ZoneId;
+import java.time.ZoneOffset;
 import java.time.format.DateTimeFormatter;
 import java.time.format.FormatStyle;
 
@@ -25,12 +27,16 @@ public class Environment implements Command {
         OperatingSystemMXBean bean = ManagementFactory.getPlatformMXBean(OperatingSystemMXBean.class);
         embed.withTitle("SovietBot System Environment");
         embed.appendField("API", "Discord4J v" + Discord4J.VERSION + "", true);
-        embed.appendField("Memory", (double) runtime.totalMemory() / (double) byteToMegabyte + " MB / " + (double) runtime.maxMemory() / (double) byteToMegabyte + " MB", true);
+        embed.appendField("Memory", formatToMegabyte(runtime.totalMemory()) + " MB / " + formatToMegabyte(runtime.maxMemory()) + " MB", true);
         embed.appendField("CPU", bean.getAvailableProcessors() + " cpu(s) - " + ((int) (bean.getSystemLoadAverage() * 10000) / 100f) + "%", true);
         embed.appendField("OS", bean.getName() + " v" + bean.getVersion(), true);
         embed.appendField("Java", "Java v" + System.getProperty("java.version"), true);
-        embed.appendField("Launch", Discord4J.getLaunchTime().format(DateTimeFormatter.ofLocalizedTime(FormatStyle.MEDIUM)) + "\n", true);
+        embed.appendField("Launch", DateTimeFormatter.ofLocalizedDateTime(FormatStyle.MEDIUM).withZone(ZoneOffset.UTC).format(Discord4J.getLaunchTime()), true);
         embed.appendField("Bot_ID", cont.getClient().getOurUser().getStringID(), true);
         cont.getActions().channels().sendMessage(cont.builder().withEmbed(embed.build()));
+    }
+
+    private static String formatToMegabyte(long bytes) {
+        return String.format("%.2f", (double) bytes / (double) byteToMegabyte);
     }
 }

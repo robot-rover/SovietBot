@@ -13,7 +13,6 @@ import rr.industries.commands.Command;
 import rr.industries.commands.Info;
 import rr.industries.commands.PermWarning;
 import rr.industries.exceptions.*;
-import rr.industries.modules.Console;
 import rr.industries.modules.SwearFilter;
 import rr.industries.modules.Webserver;
 import rr.industries.util.*;
@@ -25,7 +24,8 @@ import sx.blah.discord.handle.impl.events.guild.GuildCreateEvent;
 import sx.blah.discord.handle.impl.events.guild.channel.message.MessageReceivedEvent;
 import sx.blah.discord.handle.impl.events.guild.member.UserJoinEvent;
 import sx.blah.discord.handle.impl.events.guild.member.UserLeaveEvent;
-import sx.blah.discord.modules.IModule;
+import sx.blah.discord.handle.obj.ActivityType;
+import sx.blah.discord.handle.obj.StatusType;
 import sx.blah.discord.util.MessageBuilder;
 import rr.industries.modules.Module;
 import sx.blah.discord.util.RequestBuffer;
@@ -101,7 +101,7 @@ public class SovietBot {
     @EventSubscriber
     public void onGuildJoin(GuildCreateEvent e) {
         if(readyCalled){
-           RequestBuffer.request(() -> client.changePlayingText(client.getGuilds().size() + " servers"));
+           RequestBuffer.request(() -> client.changePresence(StatusType.ONLINE, ActivityType.WATCHING, client.getGuilds().size() + " servers"));
         }
         try {
             actions.getTable(PermTable.class).setPerms(e.getGuild(), e.getGuild().getOwner(), Permissions.ADMIN);
@@ -170,7 +170,7 @@ public class SovietBot {
         LOG.info("\n------------------------------------------------------------------------\n"
                 + "*** " + Information.botName + " Ready ***\n"
                 + "------------------------------------------------------------------------");
-        RequestBuffer.request(() -> client.changePlayingText(client.getGuilds().size() + " servers"));
+        RequestBuffer.request(() -> client.changePresence(StatusType.ONLINE, ActivityType.WATCHING, client.getGuilds().size() + " servers"));
     }
 
     @EventSubscriber
@@ -315,7 +315,7 @@ public class SovietBot {
         }
         LOG.info("Database Initialized");
         ChannelActions ca = new ChannelActions(client, config, info);
-        actions = new BotActions(client, CommandList.getCommandList(), tables, new Module[]{new Console(), new Webserver(), new SwearFilter()}, ca);
+        actions = new BotActions(client, CommandList.getCommandList(), tables, new Module[]{new Webserver(), new SwearFilter()}, ca);
         return true;
     }
 }

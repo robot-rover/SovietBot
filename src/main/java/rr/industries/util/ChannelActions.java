@@ -127,40 +127,7 @@ public class ChannelActions {
         guild.getClient().getConnectedVoiceChannels().stream().filter(v -> v.getGuild().equals(guild)).findAny().ifPresent(IVoiceChannel::leave);
     }
 
-    public void terminate(Boolean restart) throws BotException {
-        File updatedJar = new File(config.jarPath);
-        File currentJar = new File("sovietBot-master.jar");
-
-        LOG.info("Disabling Modules");
-        BotActions.getActions(client).disableModules();
-        LOG.info("\n------------------------------------------------------------------------\n"
-                + "SovietBot Terminating\n"
-                + "------------------------------------------------------------------------");
-
-        if (restart) {
-            Runtime.getRuntime().addShutdownHook(
-                    new Thread(() -> {
-                        if (updatedJar.exists()) {
-                            LOG.info("Updating {} from {}", currentJar, updatedJar);
-                            try {
-                                Files.move(updatedJar.toPath(), currentJar.toPath(), StandardCopyOption.ATOMIC_MOVE, StandardCopyOption.REPLACE_EXISTING);
-                            } catch (IOException ex) {
-                                LOG.warn("Unable update jar!", ex);
-                            }
-                        }
-                        LOG.info("Starting {}", currentJar);
-                        try {
-                            String token = client.getToken().substring("Bot ".length());
-                            //keep the token out of the logs
-                            System.out.println(token);
-                            new ProcessBuilder("java", "-server", "-jar", currentJar.getPath(), token).inheritIO().start();
-                            LOG.info("Process Started");
-                        } catch (IOException ex) {
-                            LOG.error("Couldn't start new jar!", ex);
-                        }
-                    })
-            );
-        }
+    public void terminate() {
         try {
             client.logout();
         } catch (DiscordException | RateLimitException ex) {

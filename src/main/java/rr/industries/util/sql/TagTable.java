@@ -1,6 +1,5 @@
 package rr.industries.util.sql;
 
-import org.jetbrains.annotations.Nullable;
 import org.jooq.*;
 import org.jooq.impl.DSL;
 import org.slf4j.Logger;
@@ -66,7 +65,7 @@ public class TagTable implements ITable {
     /**
      * @return the tag changed, if it was found
      */
-    public Optional<TagData> setPermanent(@Nullable IGuild guild, String name, boolean permanent, Permissions perm) throws BotException {
+    public Optional<TagData> setPermanent(IGuild guild, String name, boolean permanent, Permissions perm) throws BotException {
         Optional<TagData> tag = getTag(guild, name);
         if (tag.isPresent()) {
             deleteTag(guild, name, perm);
@@ -79,7 +78,7 @@ public class TagTable implements ITable {
     /**
      * @return the previous tag, if it existed
      */
-    public Optional<TagData> makeTag(@Nullable IGuild guild, String name, String content, boolean permanent, Permissions perm) throws BotException {
+    public Optional<TagData> makeTag(IGuild guild, String name, String content, boolean permanent, Permissions perm) throws BotException {
         Optional<TagData> previous = getTag(guild, name);
         if (previous.isPresent()) {
             checkTag(previous.get(), perm);
@@ -100,7 +99,7 @@ public class TagTable implements ITable {
         return previous;
     }
 
-    public Optional<TagData> deleteTag(@Nullable IGuild guild, String name, Permissions perm) throws BotException {
+    public Optional<TagData> deleteTag(IGuild guild, String name, Permissions perm) throws BotException {
         Optional<TagData> tag = getTag(guild, name);
         if (tag.isPresent()) {
             checkTag(tag.get(), perm);
@@ -122,7 +121,7 @@ public class TagTable implements ITable {
     }
 
 
-    public Optional<TagData> getTag(@Nullable IGuild guild, String name) throws BotException {
+    public Optional<TagData> getTag(IGuild guild, String name) throws BotException {
         if (guild != null){
             Record4<String, String, Integer, String> record = database.select(TAGS.GUILDID, TAGS.TAGNAME, TAGS.ISPERMANENT, TAGS.TAGCONTENT).from(localTags.table).where(TAGS.GUILDID.eq(guild.getStringID()).and(TAGS.TAGNAME.eq(name))).fetchAny();
             if (record != null)

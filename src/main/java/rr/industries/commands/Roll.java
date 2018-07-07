@@ -1,5 +1,7 @@
 package rr.industries.commands;
 
+import rr.industries.exceptions.BotException;
+import rr.industries.exceptions.IncorrectArgumentsException;
 import rr.industries.util.*;
 import sx.blah.discord.util.MessageBuilder;
 
@@ -20,7 +22,7 @@ public class Roll implements Command {
             @Syntax(helpText = "Rolls a number 1-#", args = {@Argument(Validate.NUMBER)}),
             @Syntax(helpText = "Rolls the dice RP style. Rolls a number 1-Y, X times", args = {@Argument(Validate.DND)})
     })
-    public void execute(CommContext cont) {
+    public void execute(CommContext cont) throws BotException {
         MessageBuilder message = cont.builder();
         int roll;
         if (cont.getArgs().size() >= 2) {
@@ -28,6 +30,9 @@ public class Roll implements Command {
             if (dnd.find()) {
                 int reps = Integer.parseInt(dnd.group(1));
                 int value = Integer.parseInt(dnd.group(2));
+                if(value < 1) {
+                    throw new IncorrectArgumentsException("Cannot roll to the number " + value);
+                }
                 List<Integer> rolls = new ArrayList<>();
                 message.withContent("**Rolling: **" + cont.getArgs().get(1) + "\n");
                 for (int i = 0; i < reps; i++) {
@@ -38,7 +43,10 @@ public class Roll implements Command {
 
             } else {
                 roll = Integer.parseInt(cont.getArgs().get(1));
-                message.withContent("Rolling 1 to " + Integer.toString(roll) + ": " + (rn.nextInt(roll) + Math.signum(roll)));
+                if(roll < 1) {
+                    throw new IncorrectArgumentsException("Cannot roll to the number " + roll);
+                }
+                message.withContent("Rolling 1 to " + Integer.toString(roll) + ": " + (rn.nextInt(roll) + 1));
             }
         } else {
             message.withContent("Rolling 1 to 100: " + (rn.nextInt(100) + 1));

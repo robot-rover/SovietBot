@@ -6,8 +6,10 @@ import rr.industries.util.SubCommand;
 import rr.industries.util.Syntax;
 import sx.blah.discord.Discord4J;
 
+import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
+import java.time.temporal.TemporalUnit;
 
 @CommandInfo(
         commandName = "uptime",
@@ -16,14 +18,14 @@ import java.time.temporal.ChronoUnit;
 public class Uptime implements Command {
     @SubCommand(name = "", Syntax = {@Syntax(helpText = "Displays the hours, minutes, and seconds since the bot was started", args = {})})
     public void execute(CommContext cont) {
-        LocalDateTime launchTime = Discord4J.getLaunchTime();
-        LocalDateTime current = LocalDateTime.now();
+        Instant launchTime = Discord4J.getLaunchTime();
+        Instant current = Instant.now();
         long days = launchTime.until(current, ChronoUnit.DAYS);
-        launchTime = launchTime.plusDays(days);
+        launchTime = launchTime.plus(days, ChronoUnit.DAYS);
         long hours = launchTime.until(current, ChronoUnit.HOURS);
-        launchTime = launchTime.plusHours(hours);
+        launchTime = launchTime.plus(hours, ChronoUnit.HOURS);
         long minutes = launchTime.until(current, ChronoUnit.MINUTES);
-        launchTime = launchTime.plusMinutes(minutes);
+        launchTime = launchTime.plus(minutes, ChronoUnit.MINUTES);
         long seconds = launchTime.until(current, ChronoUnit.SECONDS);
         boolean multipleTerms = false;
         StringBuilder messageBuild = new StringBuilder("`SovietBot has been running for ");

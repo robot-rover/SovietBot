@@ -11,6 +11,8 @@ import sx.blah.discord.util.MessageBuilder;
 
 import java.util.stream.Collectors;
 
+//todo: better api (eg google)
+
 /**
  * @author Sam
  */

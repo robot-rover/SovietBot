@@ -12,6 +12,6 @@ import rr.industries.util.*;
 public class Stop implements Command {
     @SubCommand(name = "", Syntax = {@Syntax(helpText = "Stops the process running the bot", args = {})})
     public void execute(CommContext cont) throws BotException {
-        cont.getActions().channels().terminate(false);
+        cont.getActions().channels().terminate();
     }
 }

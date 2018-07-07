@@ -44,7 +44,7 @@ public class Launcher {
     }
 
     public static void login(IDiscordClient client) throws DiscordException {
-        LOG.info("\n------------------------------------------------------------------------\n### SovietBot ###\n------------------------------------------------------------------------");
+        LOG.info("Starting SovietBot");
         bot = new SovietBot();
         client.getDispatcher().registerListener(bot);
         bot.enable(client);

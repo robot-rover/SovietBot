@@ -4,6 +4,7 @@ import com.mashape.unirest.http.HttpResponse;
 import com.mashape.unirest.http.Unirest;
 import com.mashape.unirest.http.exceptions.UnirestException;
 import rr.industries.exceptions.BotException;
+import rr.industries.exceptions.IncorrectArgumentsException;
 import rr.industries.exceptions.ServerError;
 import rr.industries.pojos.xkcd.XkcdComic;
 import rr.industries.pojos.xkcd.XkcdSearch;
@@ -37,23 +38,7 @@ public class Xkcd implements Command {
             number = Integer.parseInt(cont.getArgs().get(1));
         } catch (NumberFormatException ignored) {}
         if(number == null) {
-            HttpResponse<String> response;
-            try {
-                response = Unirest.post("http://adtac.pw:8000/search").field("search", cont.getConcatArgs(1)).asString();
-
-            } catch (UnirestException e) {
-                throw new ServerError("Bad response from XKC Server", e);
-            }
-            XkcdSearch results = gson.fromJson(response.getBody(), XkcdSearch.class);
-            if (!results.success)
-                throw new ServerError("Faliure from XKCD Server", new UnirestException(response.getBody()));
-            if(results.results.size() == 0){
-                embedBuilder.withDescription("No results...").withColor(Color.RED);
-                cont.getActions().channels().sendMessage(cont.builder().withEmbed(embedBuilder.build()));
-                return;
-            }
-            LOG.info(results.results.stream().map(v -> v.title).collect(Collectors.joining(", ", "[", "]")));
-            number = results.results.get(rn.nextInt(results.results.size())).number;
+            throw new IncorrectArgumentsException(cont.getArgs().get(1) + " is not a number");
         }
         getAndSend("https://xkcd.com/" + number.toString() + "/info.0.json", cont);
     }

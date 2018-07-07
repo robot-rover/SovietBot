@@ -1,32 +1,29 @@
 package rr.industries.commands;
 
-import com.google.gson.JsonSyntaxException;
 import com.mashape.unirest.http.HttpResponse;
 import com.mashape.unirest.http.Unirest;
 import com.mashape.unirest.http.exceptions.UnirestException;
-import net.dv8tion.d4j.player.MusicPlayer;
-import net.dv8tion.jda.player.Playlist;
-import net.dv8tion.jda.player.source.AudioInfo;
-import net.dv8tion.jda.player.source.AudioSource;
+import com.sedmelluq.discord.lavaplayer.demo.d4j.GuildMusicManager;
+import com.sedmelluq.discord.lavaplayer.player.AudioLoadResultHandler;
+import com.sedmelluq.discord.lavaplayer.player.AudioPlayerManager;
+import com.sedmelluq.discord.lavaplayer.player.DefaultAudioPlayerManager;
+import com.sedmelluq.discord.lavaplayer.source.AudioSourceManagers;
+import com.sedmelluq.discord.lavaplayer.tools.FriendlyException;
+import com.sedmelluq.discord.lavaplayer.track.AudioPlaylist;
+import com.sedmelluq.discord.lavaplayer.track.AudioTrack;
+import rr.industries.SovietBot;
 import rr.industries.exceptions.BotException;
 import rr.industries.exceptions.IncorrectArgumentsException;
 import rr.industries.exceptions.ServerError;
 import rr.industries.pojos.youtube.YoutubeSearch;
 import rr.industries.util.*;
-import sx.blah.discord.handle.audio.IAudioManager;
-import sx.blah.discord.handle.audio.IAudioProvider;
-import sx.blah.discord.handle.obj.IMessage;
-import sx.blah.discord.util.MessageBuilder;
-import sx.blah.discord.util.MessageOutputStream;
+import sx.blah.discord.handle.obj.IGuild;
+import sx.blah.discord.util.EmbedBuilder;
+import sx.blah.discord.util.audio.AudioPlayer;
 
-import java.io.BufferedWriter;
-import java.io.IOException;
-import java.io.OutputStreamWriter;
-import java.io.UnsupportedEncodingException;
-import java.net.MalformedURLException;
-import java.net.URL;
-import java.net.URLEncoder;
-import java.util.*;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Queue;
 
 @CommandInfo(
         commandName = "music",
@@ -34,182 +31,176 @@ import java.util.*;
 )
 //todo: Music Loading Progress Bar
 public class Music implements Command {
-    static float DEFAULT_VOLUME = 0.4f;
+    final static int DEFAULT_VOLUME = 200;
 
-    //todo: save volume
+    @SubCommand(name = "search", Syntax = {@Syntax(helpText = "Searches youtube for a video to play", args = {@Argument(description = "Search Terms", value = Validate.LONGTEXT)})})
+    public void search(CommContext cont) throws BotException {
+        try {
+            HttpResponse<String> response = Unirest.get("https://www.googleapis.com/youtube/v3/search")
+                    .queryString("key", cont.getActions().getConfig().googleKey)
+                    .queryString("part", "snippet")
+                    .queryString("maxResults", "1")
+                    .queryString("q", cont.getConcatArgs(1))
+                    .asString();
+            YoutubeSearch search = SovietBot.gson.fromJson(response.getBody(), YoutubeSearch.class);
+            if(search.items.size() == 0) {
+                cont.getActions().channels().sendMessage(cont.builder().withContent("Could not find anything for " + cont.getConcatArgs(1)));
+                return;
+            }
+            String link = "https://www.youtube.com/watch?v=" + search.items.get(0).id.videoId;
+            GuildMusicManager musicManager = getGuildAudioPlayer(cont.getMessage().getGuild());
+            playerManager.loadItemOrdered(musicManager, link, new CustomResultHandler(cont, musicManager, link));
+        } catch (UnirestException e) {
+            throw new ServerError("Error querying youtube", e);
+        }
+    }
 
     @SubCommand(name = "list", Syntax = {@Syntax(helpText = "Shows you what tracks are queued up", args = {})})
     public void playlist(CommContext cont) throws BotException {
-        IAudioManager manager = cont.getMessage().getGuild().getAudioManager();
-        ArrayList<String> messageLines = new ArrayList<>();
-        int i = 1;
-        if (manager.getAudioProvider() instanceof MusicPlayer) {
-            MusicPlayer player = (MusicPlayer) manager.getAudioProvider();
-            AudioSource currentSource = player.getCurrentAudioSource();
-            if (currentSource != null) {
-                messageLines.add(":speaker: `[" + currentSource.getInfo().getDuration().getTimestamp() + "]` - " + currentSource.getInfo().getTitle());
-                for (AudioSource source : player.getAudioQueue()) {
-                    messageLines.add(String.format("%3s", i) + " -  `[" + source.getInfo().getDuration().getTimestamp() + "]` - " + source.getInfo().getTitle());
-                    i++;
-                }
-            }
-        }
-        int characters = 0;
-        int line = 0;
-        StringBuilder messageBuild = new StringBuilder();
-        for (String s : messageLines) {
-            characters += s.length();
-            if (characters >= 1970 || line > 11) {
-                messageBuild.append("            + ").append(messageLines.size() - line).append(" more...");
-                break;
-            } else {
-                messageBuild.append(s).append("\n");
-            }
-            line++;
+        GuildMusicManager musicManager = getGuildAudioPlayer(cont.getMessage().getGuild());
+        Queue<AudioTrack> queue = musicManager.scheduler.getQueue();
+        EmbedBuilder embed = new EmbedBuilder();
+        embed.withAuthorIcon(cont.getMessage().getGuild().getIconURL());
+        embed.withAuthorName("Current Music Queue");
+        AudioTrack currentTrack = musicManager.player.getPlayingTrack();
+        if(currentTrack != null)
+            embed.appendDescription("\uD83D\uDD0A - [" + msToMinutesAndSeconds(currentTrack.getInfo().length) + "] - **[" + currentTrack.getInfo().title + "](" + currentTrack.getInfo().uri + ")**\n");
 
+        int previewed = 0;
+        final int previewLength = 5;
+        long totalDuration = 0;
+        boolean lengthUnknown = false;
+        for(AudioTrack track : queue) {
+            if(previewed < previewLength) {
+                embed.appendDescription((previewed + 1) + ". - [" + msToMinutesAndSeconds(track.getInfo().length) + "] - **[" + track.getInfo().title + "](" + track.getInfo().uri + ")**\n");
+                previewed++;
+            }
         }
-        String message;
-        if (messageBuild.toString().equals("")) {
-            message = "Queue is Empty";
-        } else {
-            message = messageBuild.toString();
-        }
-        Optional<IMessage> delete = cont.getActions().channels().sendMessage(new MessageBuilder(cont.getClient()).withContent(message).withChannel(cont.getMessage().getChannel()));
-        if (delete.isPresent())
-            cont.getActions().channels().delayDelete(delete.get(), 45000);
+        if(queue.size() > previewLength)
+            embed.appendDescription("and " + (queue.size() - previewLength) + " more...\n");
+        cont.getActions().channels().sendMessage(cont.builder().withEmbed(embed.build()));
+
     }
 
-    @SubCommand(name = "volume", Syntax = {@Syntax(helpText = "Sets the Volume for the bot (0-100)", args = {@Argument(description = "Volume", value = Validate.NUMBER)})}, permLevel = Permissions.REGULAR)
+    @SubCommand(name = "volume", Syntax = {@Syntax(helpText = "Sets the Volume for the bot (0-100)%", args = {@Argument(description = "Volume", value = Validate.NUMBER)})}, permLevel = Permissions.REGULAR)
     public void volume(CommContext cont) throws BotException {
-        Float volume = Float.parseFloat(cont.getArgs().get(2));
-        if (volume > 100 || volume < 0)
-            throw new IncorrectArgumentsException("Volume must be between 100 and 0");
-        IAudioProvider provider = cont.getMessage().getGuild().getAudioManager().getAudioProvider();
-        if (provider instanceof MusicPlayer) {
-            ((MusicPlayer) provider).setVolume(volume / 100F);
+        GuildMusicManager musicManager = getGuildAudioPlayer(cont.getMessage().getGuild());
+        try {
+            musicManager.player.setVolume(Integer.parseInt(cont.getArgs().get(1))/10);
+        } catch (NumberFormatException e) {
+            throw new IncorrectArgumentsException(cont.getArgs().get(1) + " is not a number");
         }
-        cont.getActions().channels().sendMessage(cont.builder().withContent("Setting volume to " + volume + "%"));
     }
 
     @SubCommand(name = "skip", Syntax = {
             @Syntax(helpText = "Skips the currently playing track", args = {})}, permLevel = Permissions.MOD)
     public void skip(CommContext cont) {
-        IAudioManager manager = cont.getMessage().getGuild().getAudioManager();
-        MusicPlayer player = ((MusicPlayer) manager.getAudioProvider());
-        cont.getActions().channels().sendMessage(cont.builder().withContent("Skipping " + (player.getCurrentAudioSource().getInfo() != null ? player.getCurrentAudioSource().getInfo().getTitle() : "Current Source")));
-        if (manager.getAudioProvider() instanceof MusicPlayer) {
-            player.skipToNext();
-        }
-    }
-
-    @SubCommand(name = "stop", Syntax = {@Syntax(helpText = "Stops the bot playing music and clears the queue", args = {})}, permLevel = Permissions.MOD)
-    public void stop(CommContext cont) {
-        MusicPlayer player = new MusicPlayer();
-        IAudioManager manager = cont.getMessage().getGuild().getAudioManager();
-        player.setVolume(DEFAULT_VOLUME);
-        manager.setAudioProvider(player);
-        manager.setAudioProvider(player);
-        cont.getActions().channels().sendMessage(cont.builder().withContent("Music Player Successfully Stopped"));
+        GuildMusicManager musicManager = getGuildAudioPlayer(cont.getMessage().getGuild());
+        musicManager.scheduler.nextTrack();
     }
 
     @SubCommand(name = "", Syntax = {
             @Syntax(helpText = "Queues the video the link is for", args = {@Argument(description = "Video Link", value = Validate.LINK)}),
-            @Syntax(helpText = "Queues the first video in a search the phrase", args = {@Argument(description = "Search Phrase", value = Validate.LONGTEXT)})
     })
     public void execute(CommContext cont) throws BotException {
-        String link;
-        String id = null;
-        try {
-            link = new URL(cont.getArgs().get(1)).toString();
-        } catch (MalformedURLException e) {
-            id = searchYoutube(cont.getConcatArgs(1), cont.getActions().getConfig().googleKey);
-            link = "https://www.youtube.com/watch?v=" + id;
+        GuildMusicManager musicManager = getGuildAudioPlayer(cont.getMessage().getGuild());
+        playerManager.loadItemOrdered(musicManager, cont.getArgs().get(1), new CustomResultHandler(cont, musicManager, cont.getArgs().get(1)));
+    }
+
+    private String msToMinutesAndSeconds(long ms) {
+        long seconds = ms / 1000L;
+        return seconds / 60 + ":" + String.format("%02d", seconds % 60);
+    }
+
+    private final AudioPlayerManager playerManager;
+    private final Map<Long, GuildMusicManager> musicManagers = new HashMap<>();
+
+    public Music() {
+        playerManager = new DefaultAudioPlayerManager();
+        AudioSourceManagers.registerLocalSource(playerManager);
+        AudioSourceManagers.registerRemoteSources(playerManager);
+    }
+
+    private synchronized GuildMusicManager getGuildAudioPlayer(IGuild guild) {
+        long guildId = guild.getLongID();
+        GuildMusicManager musicManager = musicManagers.get(guildId);
+
+        if (musicManager == null) {
+            musicManager = new GuildMusicManager(playerManager);
+            musicManager.player.setVolume(DEFAULT_VOLUME);
+            musicManagers.put(guildId, musicManager);
         }
-        cont.getActions().channels().delayDelete(cont.getMessage(), 2000);
-        BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(new MessageOutputStream(cont.getMessage().getChannel())));
-        if (id != null) {
-            Entry<String, String> data = getYoutubeData(id, cont.getActions().getConfig().googleKey);
-            writeChars(writer, data.first() + " - `" + data.second() + "`");
+
+        guild.getAudioManager().setAudioProvider(musicManager.getAudioProvider());
+
+        return musicManager;
+    }
+
+    class CustomResultHandler implements AudioLoadResultHandler {
+        CommContext cont;
+        GuildMusicManager musicManager;
+        String url;
+
+        public CustomResultHandler(CommContext cont, GuildMusicManager musicManager, String url) {
+            this.cont = cont;
+            this.musicManager = musicManager;
+            this.url = url;
         }
-        writeChars(writer, (id != null ? "\n" : "") + "Processing Queue |");
-        IAudioManager manager = cont.getMessage().getGuild().getAudioManager();
-        MusicPlayer player;
-        if (manager.getAudioProvider() instanceof MusicPlayer) {
-            player = (MusicPlayer) manager.getAudioProvider();
-        } else {
-            player = new MusicPlayer();
-            player.setVolume(DEFAULT_VOLUME);
-            manager.setAudioProvider(player);
+        @Override
+        public void trackLoaded(AudioTrack track) {
+            EmbedBuilder embed = new EmbedBuilder();
+            embed.withAuthorName(cont.getMessage().getAuthor().getDisplayName(cont.getMessage().getGuild()) + " added to queue");
+            embed.withAuthorIcon(cont.getMessage().getAuthor().getAvatarURL());
+            embed.withDescription("**[" + track.getInfo().title + "](" + track.getInfo().uri + ")**");
+            embed.appendField("Channel", track.getInfo().author, true);
+            if(track.getInfo().length < Long.MAX_VALUE) {
+                embed.appendField("Length", msToMinutesAndSeconds(track.getInfo().length), true);
+            }
+            embed.withFooterText("Position in Queue: " + (musicManager.scheduler.getQueueLength() + 1));
+            cont.getActions().channels().sendMessage(cont.builder().withEmbed(embed.build()));
+            musicManager.scheduler.queue(track);
         }
-        try {
-            Playlist playlist = Playlist.getPlaylist(link);
-            List<AudioSource> sources = new LinkedList<>(playlist.getSources());
-            for (Iterator<AudioSource> it = sources.iterator(); it.hasNext(); ) {
-                AudioSource source = it.next();
-                AudioInfo info = source.getInfo();
-                List<AudioSource> queue = player.getAudioQueue();
-                if (info.getError() == null) {
-                    queue.add(source);
-                    writeChars(writer, " :musical_note:");
-                    if (player.isStopped())
-                        player.play();
+
+        @Override
+        public void playlistLoaded(AudioPlaylist playlist) {
+            EmbedBuilder embed = new EmbedBuilder();
+            embed.withAuthorName(cont.getMessage().getAuthor().getDisplayName(cont.getMessage().getGuild()) + " added " + playlist.getTracks().size() + " songs to the queue");
+            embed.withAuthorIcon(cont.getMessage().getAuthor().getAvatarURL());
+            embed.withDescription("**[" + playlist.getName() + "](" + url + ")**\n");
+            embed.appendDescription("------\n");
+            embed.withFooterText("Position in Queue: " + (musicManager.scheduler.getQueueLength() + 1));
+            int previewed = 0;
+            final int previewLength = 5;
+            long totalDuration = 0;
+            boolean lengthUnknown = false;
+            for(AudioTrack track : playlist.getTracks()) {
+                long trackLength = track.getInfo().length;
+                if(trackLength < Long.MAX_VALUE) {
+                    totalDuration += trackLength;
                 } else {
-                    writeChars(writer, " :warning:");
-                    LOG.info(info.getError());
-                    it.remove();
+                    lengthUnknown = true;
+                }
+
+                if(previewed < previewLength) {
+                    embed.appendDescription("[" + msToMinutesAndSeconds(trackLength) + "] - **[" + track.getInfo().title + "](" + track.getInfo().uri + ")**\n");
+                    previewed++;
                 }
             }
-            writeChars(writer, "| Done!");
-        } catch (NullPointerException ex) {
-            writeChars(writer, " - `Invalid Link!` - |");
-        }
-        try {
-            writer.close();
-        } catch (IOException e) {
-            LOG.error(IOException.class.getName(), e);
-        }
-    }
+            if(playlist.getTracks().size() > previewLength)
+                embed.appendDescription("and " + (playlist.getTracks().size() - previewLength) + " more...\n");
+            cont.getActions().channels().sendMessage(cont.builder().withEmbed(embed.build()));
 
-    private void writeChars(BufferedWriter writer, String chars) {
-        try {
-            writer.write(chars);
-            writer.flush();
-        } catch (IOException ex2) {
-            LOG.warn("Error with Message Output Stream", ex2);
+            musicManager.scheduler.queue(playlist);
         }
-    }
 
-    private String searchYoutube(String params, String apiKey) throws BotException {
-        try {
-            HttpResponse<String> response = Unirest.get("https://www.googleapis.com/youtube/v3/search").queryString("key", apiKey).queryString("part", "id")
-                    .queryString("maxResults", 1).queryString("type", "video").queryString("q", URLEncoder.encode(params, "UTF-8")).asString();
-            YoutubeSearch link = gson.fromJson(response.getBody(), YoutubeSearch.class);
-            if (link == null || link.items.size() == 0) {
-                throw new IncorrectArgumentsException("No youtube video found from search terms: " + params);
-            }
-            return link.items.get(0).id.videoId;
-        } catch (UnsupportedEncodingException ex) {
-            throw new ServerError("Unsupported Encoding hardcoded in Youtube Search", ex);
-        } catch (UnirestException ex) {
-            throw BotException.returnException(ex);
+        @Override
+        public void noMatches() {
+            cont.getActions().channels().sendMessage(cont.builder().withContent("Nothing found by " + url));
         }
-    }
 
-    private Entry<String, String> getYoutubeData(String videoID, String apiKey) throws BotException {
-        try {
-            HttpResponse<java.lang.String> response = Unirest.get("https://www.googleapis.com/youtube/v3/videos").queryString("key", apiKey).queryString("part", "snippet")
-                    .queryString("maxResults", 1).queryString("id", videoID).asString();
-            YoutubeSearch video;
-            try {
-                video = gson.fromJson(response.getBody(), YoutubeSearch.class);
-            } catch (JsonSyntaxException ex) {
-                throw new InternalError("Malformed Json Recieved:\n" + response.getBody(), ex);
-            }
-            if (video.items.size() == 0)
-                throw new ServerError("Youtube API couldn't find Video" + videoID);
-            return new Entry<>(video.items.get(0).snippet.title, video.items.get(0).snippet.channelTitle);
-        } catch (UnirestException ex) {
-            throw BotException.returnException(ex);
+        @Override
+        public void loadFailed(FriendlyException exception) {
+            cont.getActions().channels().sendMessage(cont.builder().withContent("Could not play: " + exception.getMessage()));
         }
     }
 }

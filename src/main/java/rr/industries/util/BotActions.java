@@ -23,11 +23,6 @@ public final class BotActions {
     private final ITable[] tables;
     private final Module[] modules;
     private final ChannelActions message;
-    private static List<BotActions> cache = new ArrayList<>();
-
-    public static BotActions getActions(IDiscordClient client) {
-        return cache.stream().filter((v) -> v.getClient().equals(client)).findAny().orElse(null);
-    }
 
     public BotActions(IDiscordClient client, CommandList commands, ITable[] tables, Module[] modules, ChannelActions message) {
         this.client = client;
@@ -36,7 +31,6 @@ public final class BotActions {
         this.commands = commands;
         this.modules = modules;
         this.message = message;
-        cache.add(this);
     }
 
     public void enableModules() {

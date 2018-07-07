@@ -60,6 +60,7 @@ public class Webserver implements Module {
     @Override
     public Module enableModule(BotActions actions) {
         boolean useSSL = actions.getConfig().keystorePath != null && actions.getConfig().keystorePassword != null;
+        System.out.println("Using SSL? " + useSSL);
         this.actions = actions;
         try {
             site = new Website(actions);
@@ -74,57 +75,6 @@ public class Webserver implements Module {
             response.status(418);
             return "I'm a Teapot!";
         }));
-
-        apis.post("/command", (Request request, Response response) -> {
-            response.type("text/plain");
-            try {
-                RestartPost restart = null;
-                try {
-                    restart = gson.fromJson(request.body(), RestartPost.class);
-                } catch (JsonSyntaxException e) {
-                    LOG.error("Spark Error: ", e);
-                    response.status(400);
-                    return "Parse Error - " + e.getMessage();
-                }
-                if (restart.command != null && restart.command.equals("restart")) {
-                    if (!restart.secret.equals(actions.getConfig().webhookSecret)) {
-                        response.status(401);
-                        return "Incorrect Secret!";
-                    }
-                    if (restart.name == null) {
-                        response.status(400);
-                        return "Missing MD5 hash in field \"name\"";
-                    }
-                    File updated = new File("sovietBot-update.jar");
-                    if (!updated.exists()) {
-                        response.status(400);
-                        return "Missing Uploaded Jar";
-                    }
-                    String fileHash = DigestUtils.md5Hex(new FileInputStream(new File("sovietBot-update.jar")));
-                    if (!restart.name.equals(fileHash)) {
-                        response.status(400);
-                        return "MD5 hashes do not match! Post:(" + restart.name + "), File:(" + fileHash + ")";
-                    }
-                    LOG.info("Everything Looks good, Restarting...");
-                    Thread thread = new Thread(() -> {
-                        try {
-                            actions.channels().terminate(true);
-                        } catch (BotException ex) {
-                            LOG.error("Could Not Restart", ex);
-                        }
-                    });
-                    thread.start();
-                    response.status(200);
-                    return "Looks good: Restarting...";
-                }
-                response.status(400);
-                return "Unrecognized Command";
-            } catch (Exception e) {
-                LOG.error("Spark Error: ", e);
-                response.status(500);
-                return e.getMessage();
-            }
-        });
 
         apis.post("/travis", (Request request, Response response) -> {
             response.type("text/plain");
@@ -162,7 +112,7 @@ public class Webserver implements Module {
         if(useSSL)
             website.secure(actions.getConfig().keystorePath, actions.getConfig().keystorePassword, null, null);
 
-        //http.before(((request, response) -> LOG.info("Http Request -> {}", request.pathInfo())));
+        //website.before(((request, response) -> LOG.info("Http Request -> {}", request.pathInfo())));
 
         website.redirect.get("/", "/index.html");
 

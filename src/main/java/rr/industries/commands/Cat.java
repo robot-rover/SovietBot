@@ -1,5 +1,8 @@
 package rr.industries.commands;
 
+import com.mashape.unirest.http.HttpResponse;
+import com.mashape.unirest.http.Unirest;
+import com.mashape.unirest.http.exceptions.UnirestException;
 import org.apache.commons.io.IOUtils;
 import rr.industries.exceptions.BotException;
 import rr.industries.exceptions.ServerError;
@@ -14,6 +17,8 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 @CommandInfo(
         commandName = "cat",
@@ -21,15 +26,20 @@ import java.net.URL;
         pmSafe = true
 )
 public class Cat implements Command {
+    Pattern link = Pattern.compile("<url>(.*)</url>");
+
     @SubCommand(name = "", Syntax = {@Syntax(helpText = "Sends a random picture of a cat in a text channel", args = {})})
     public void execute(CommContext cont) throws BotException {
-        try (BufferedReader br = new BufferedReader(new InputStreamReader(new URL("http://random.cat/meow").openConnection().getInputStream()))) {
-            CatRequest cat = gson.fromJson(IOUtils.toString(br), CatRequest.class);
-            cont.getActions().channels().sendMessage(cont.builder().withContent(cont.getMessage().getAuthor().mention() + " " + cat.file));
-        } catch (MalformedURLException ex) {
-            throw new ServerError("The cat api URL is Malformed", ex);
+        try {
+            HttpResponse<String> response = Unirest.get("http://thecatapi.com/api/images/get").queryString("format", "xml").asString();
+            Matcher m = link.matcher(response.getBody());
+            if(!m.find())
+                throw new IOException("Could not find link in XML");
+            cont.getActions().channels().sendMessage(cont.builder().withContent(cont.getMessage().getAuthor().mention() + " " + m.group(1)));
         } catch (IOException ex) {
             throw new ServerError("IOException in Cat command", ex);
+        } catch (UnirestException e) {
+            e.printStackTrace();
         }
     }
 }

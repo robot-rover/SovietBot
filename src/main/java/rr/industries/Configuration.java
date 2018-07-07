@@ -3,9 +3,7 @@ package rr.industries;
 public class Configuration {
     public String commChar;
     public String url;
-    public String webhookSecret;
     public String[] operators;
-    public String owmKey;
     public String googleKey;
     public String dictKey;
     public String discordSecret;
@@ -16,14 +14,11 @@ public class Configuration {
     public String keystorePath;
     public String keystorePassword;
     public String filterConfigPath;
-    public String jarPath;
 
     public Configuration() {
         this.commChar = ">";
         this.url = "";
-        this.webhookSecret = "";
         this.operators = new String[0];
-        this.owmKey = "";
         this.googleKey = "";
         this.dictKey = "";
         this.discordSecret = "";
@@ -32,7 +27,6 @@ public class Configuration {
         this.apiPort = 8080;
         this.websitePort = 80;
         this.filterConfigPath = "";
-        this.jarPath = "";
     }
 
     @Override
