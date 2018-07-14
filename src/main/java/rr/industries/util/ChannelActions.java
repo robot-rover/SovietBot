@@ -15,9 +15,7 @@ import sx.blah.discord.handle.obj.IMessage;
 import sx.blah.discord.handle.obj.IVoiceChannel;
 import sx.blah.discord.util.*;
 
-import java.io.File;
-import java.io.FileWriter;
-import java.io.IOException;
+import java.io.*;
 import java.nio.file.Files;
 import java.nio.file.StandardCopyOption;
 import java.util.Optional;
@@ -58,7 +56,11 @@ public class ChannelActions {
 
     public <T extends BotException> void exception(T exception) {
         if (exception.criticalMessage().isPresent()) {
-            messageOwner("[Critical Error] - " + exception.criticalMessage().get(), true);
+            StringWriter sw = new StringWriter();
+            PrintWriter pw = new PrintWriter(sw);
+            exception.printStackTrace(pw);
+            String sStackTrace = sw.toString();
+            messageOwner("[Critical Error] - " + exception.criticalMessage().get() + "\n```" + sStackTrace + "```", true);
         }
     }
 

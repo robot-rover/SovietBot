@@ -18,3 +18,6 @@ SovietBot/
 /image
 /databaseWork
 deploy.sh
+/.gradle
+/build
+/out
