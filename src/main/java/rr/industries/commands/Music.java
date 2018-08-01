@@ -84,11 +84,15 @@ public class Music implements Command {
     @SubCommand(name = "volume", Syntax = {@Syntax(helpText = "Sets the Volume for the bot (0-100)%", args = {@Argument(description = "Volume", value = Validate.NUMBER)})}, permLevel = Permissions.REGULAR)
     public void volume(CommContext cont) throws BotException {
         GuildMusicManager musicManager = getGuildAudioPlayer(cont.getMessage().getGuild());
+        int volume = 0;
         try {
-            musicManager.player.setVolume(Integer.parseInt(cont.getArgs().get(1))/10);
+            volume = Integer.parseInt(cont.getArgs().get(2));
+            volume = Math.min(100, Math.max(0, volume));
+            musicManager.player.setVolume(volume * 10);
         } catch (NumberFormatException e) {
             throw new IncorrectArgumentsException(cont.getArgs().get(1) + " is not a number");
         }
+        cont.getActions().channels().sendMessage(cont.builder().withContent("Setting volume to " + volume + "%"));
     }
 
     @SubCommand(name = "skip", Syntax = {
@@ -96,6 +100,13 @@ public class Music implements Command {
     public void skip(CommContext cont) {
         GuildMusicManager musicManager = getGuildAudioPlayer(cont.getMessage().getGuild());
         musicManager.scheduler.nextTrack();
+    }
+
+    @SubCommand(name = "stop", Syntax = {
+            @Syntax(helpText = "Skips all queued tracks", args = {})}, permLevel = Permissions.MOD)
+    public void stop(CommContext cont) {
+        GuildMusicManager musicManager = newGuildAUdioPlayer(cont.getMessage().getGuild());
+        cont.getActions().channels().sendMessage(cont.builder().withContent("Music Stopped..."));
     }
 
     @SubCommand(name = "", Syntax = {
@@ -129,6 +140,19 @@ public class Music implements Command {
             musicManager.player.setVolume(DEFAULT_VOLUME);
             musicManagers.put(guildId, musicManager);
         }
+
+        guild.getAudioManager().setAudioProvider(musicManager.getAudioProvider());
+
+        return musicManager;
+    }
+
+    private synchronized GuildMusicManager newGuildAUdioPlayer(IGuild guild) {
+        long guildId = guild.getLongID();
+        GuildMusicManager musicManager = null;
+        musicManagers.remove(guildId);
+        musicManager = new GuildMusicManager(playerManager);
+        musicManager.player.setVolume(DEFAULT_VOLUME);
+        musicManagers.put(guildId, musicManager);
 
         guild.getAudioManager().setAudioProvider(musicManager.getAudioProvider());
 

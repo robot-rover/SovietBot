@@ -61,6 +61,7 @@ dependencies {
 }
 
 task copyToLib(type: Copy) {
+    jar.dependsOn copyToLib
     into "$buildDir/output/lib"
     from configurations.runtime
 }
