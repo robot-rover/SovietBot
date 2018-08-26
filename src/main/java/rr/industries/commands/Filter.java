@@ -1,5 +1,6 @@
 package rr.industries.commands;
 
+import rr.industries.exceptions.BotException;
 import rr.industries.modules.SwearFilter;
 import rr.industries.util.*;
 import rr.industries.util.sql.FilterTable;
@@ -8,7 +9,7 @@ import rr.industries.util.sql.FilterTable;
 public class Filter implements Command {
 
     @SubCommand(name = "", Syntax = {@Syntax(helpText = "Toggles the filter", args = {}), @Syntax(helpText = "Sets the filter on or off", args = @Argument(Validate.BOOLEAN))})
-    public void execute(CommContext cont){
+    public void execute(CommContext cont) throws BotException {
         FilterTable table = cont.getActions().getTable(FilterTable.class);
         boolean setFilter;
         if(cont.getArgs().size() < 2){
@@ -22,7 +23,7 @@ public class Filter implements Command {
     }
 
     @SubCommand(name = "reload", Syntax = {@Syntax(helpText = "Toggles the filter", args = {}), @Syntax(helpText = "Sets the filter on or off", args = @Argument(Validate.BOOLEAN))}, permLevel = Permissions.BOTOPERATOR)
-    public void reload(CommContext cont){
+    public void reload(CommContext cont) throws BotException {
         cont.getActions().getModule(SwearFilter.class).loadConfig();
         cont.getActions().channels().sendMessage(cont.builder().withContent("Reloaded config!"));
     }

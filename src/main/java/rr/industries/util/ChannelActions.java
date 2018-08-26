@@ -1,14 +1,10 @@
 package rr.industries.util;
 
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import rr.industries.Configuration;
 import rr.industries.Information;
-import rr.industries.Launcher;
 import rr.industries.exceptions.BotException;
-import rr.industries.exceptions.ServerError;
 import sx.blah.discord.api.IDiscordClient;
 import sx.blah.discord.handle.obj.IGuild;
 import sx.blah.discord.handle.obj.IMessage;
@@ -18,7 +14,6 @@ import sx.blah.discord.util.*;
 import java.io.*;
 import java.nio.file.Files;
 import java.nio.file.StandardCopyOption;
-import java.util.Optional;
 
 /**
  * @author Sam
@@ -51,7 +46,11 @@ public class ChannelActions {
      */
     public <T extends BotException> void exception(T exception, MessageBuilder builder) {
         exception(exception);
-        sendMessage(builder.withContent(exception.getMessage()));
+        try {
+            sendMessage(builder.withContent(exception.getMessage()));
+        } catch (BotException e) {
+            exception(e);
+        }
     }
 
     public <T extends BotException> void exception(T exception) {
@@ -110,19 +109,16 @@ public class ChannelActions {
                 LOG.error("Error messaging bot owner", ex);
             }
         }
-        sendMessage(messageBuilder);
+        try {
+            sendMessage(messageBuilder);
+        } catch (BotException e) {
+            LOG.error("Error when reporting error?!?", e);
+        }
     }
 
-    public Optional<IMessage> sendMessage(MessageBuilder builder) {
-        RequestBuffer.IRequest<Optional<IMessage>> request = () -> {
-            try {
-                return Optional.of(builder.send());
-            } catch (DiscordException | MissingPermissionsException ex) {
-                exception(BotException.returnException(ex));
-            }
-            return Optional.empty();
-        };
-        return RequestBuffer.request(request).get();
+    public IMessage sendMessage(MessageBuilder builder) throws BotException {
+        BotUtils.IExRequest<IMessage> request = builder::send;
+        return BotUtils.bufferRequest(request);
     }
 
     public void disconnectFromChannel(IGuild guild) {

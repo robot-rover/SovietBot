@@ -1,5 +1,6 @@
 package rr.industries.commands;
 
+import rr.industries.exceptions.BotException;
 import rr.industries.util.*;
 import sx.blah.discord.util.MessageBuilder;
 
@@ -10,7 +11,7 @@ import sx.blah.discord.util.MessageBuilder;
 )
 public class Echo implements Command {
     @SubCommand(name = "", Syntax = {@Syntax(helpText = "Echos the text that you specify", args = {@Argument(value = Validate.LONGTEXT)})})
-    public void execute(CommContext cont) {
+    public void execute(CommContext cont) throws BotException {
         MessageBuilder message = cont.builder().withContent(cont.getConcatArgs(1));
         if (message.getContent().length() > 0) {
             cont.getActions().channels().sendMessage(message);

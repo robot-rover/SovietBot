@@ -121,11 +121,11 @@ public class SovietBot {
     public void onUserJoin(UserJoinEvent e) {
         try {
             Optional<String> messageContent = actions.getTable(GreetingTable.class).getJoinMessage(e.getGuild());
-            messageContent.ifPresent(s -> {
+            if(messageContent.isPresent()) {
                 MessageBuilder message = new MessageBuilder(client).withChannel(client.getChannelByID(e.getGuild().getLongID()))
-                        .withContent(s.replace("%user", e.getUser().mention()));
+                        .withContent(messageContent.get().replace("%user", e.getUser().mention()));
                 actions.channels().sendMessage(message);
-            });
+            }
         } catch (BotException ex) {
             actions.channels().exception(ex, new MessageBuilder(client).withChannel(client.getChannelByID(e.getGuild().getLongID())));
         }
@@ -135,11 +135,11 @@ public class SovietBot {
     public void onUserLeave(UserLeaveEvent e) {
         try {
             Optional<String> messageContent = actions.getTable(GreetingTable.class).getLeaveMessage(e.getGuild());
-            messageContent.ifPresent(s -> {
+            if(messageContent.isPresent()) {
                 MessageBuilder message = new MessageBuilder(client).withChannel(client.getChannelByID(e.getGuild().getLongID()))
-                        .withContent(s.replace("%user", "`" + e.getUser().getDisplayName(e.getGuild()) + "`"));
+                        .withContent(messageContent.get().replace("%user", "`" + e.getUser().getDisplayName(e.getGuild()) + "`"));
                 actions.channels().sendMessage(message);
-            });
+            }
             actions.getTable(PermTable.class).setPerms(e.getGuild(), e.getUser(), Permissions.NORMAL);
         } catch (BotException ex) {
             actions.channels().exception(ex, new MessageBuilder(client).withChannel(client.getChannelByID(e.getGuild().getLongID())));

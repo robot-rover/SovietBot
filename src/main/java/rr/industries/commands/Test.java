@@ -4,6 +4,8 @@ import org.apache.http.HttpResponse;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.impl.client.HttpClients;
+import rr.industries.exceptions.BotException;
+import rr.industries.exceptions.ServerError;
 import rr.industries.util.*;
 import sx.blah.discord.handle.impl.obj.Embed;
 import sx.blah.discord.util.*;
@@ -22,7 +24,7 @@ import java.util.function.Predicate;
 public class Test implements Command {
 
     @SubCommand(name = "", Syntax = {@Syntax(helpText = "nothing", args = {@Argument(description = "no comment", value = Validate.LONGTEXT)})})
-    public void execute(CommContext cont) {
+    public void execute(CommContext cont) throws BotException {
         EmbedBuilder embed = new EmbedBuilder();
         embed.appendDescription("is Description");
 
@@ -62,9 +64,14 @@ public class Test implements Command {
     }
 
     @SubCommand(name = "repeat", Syntax = {})
-    public void repeat(CommContext cont) {
+    public void repeat(CommContext cont) throws BotException {
         cont.getActions().channels().sendMessage(new MessageBuilder(cont.getClient()).withChannel(cont.getMessage().getChannel())
                 .withContent("```" + cont.getMessage().getContent() + "```"));
+    }
+
+    @SubCommand(name = "error", Syntax = {})
+    public void error(CommContext cont) throws BotException {
+        throw new ServerError("Testing out error handling");
     }
 
     @SubCommand(name = "invite", Syntax = {})
@@ -72,7 +79,7 @@ public class Test implements Command {
     }
 
     @SubCommand(name = "ping", Syntax = {})
-    public void ping(CommContext cont) {
+    public void ping(CommContext cont) throws BotException {
         MessageBuilder message = new MessageBuilder(cont.getClient()).withChannel(cont.getMessage().getChannel()).withContent("**Pinged Webhook**\n");
         HttpClient client = HttpClients.createDefault();
         HttpPost post = new HttpPost("https://api.github.com/repos/robot-rover/SovietBot/hooks/1/pings");

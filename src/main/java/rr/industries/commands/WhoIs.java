@@ -1,6 +1,7 @@
 package rr.industries.commands;
 
 import org.apache.commons.lang3.text.WordUtils;
+import rr.industries.exceptions.BotException;
 import rr.industries.util.*;
 import sx.blah.discord.handle.obj.IRole;
 import sx.blah.discord.handle.obj.IUser;
@@ -22,7 +23,7 @@ public class WhoIs implements Command {
             @Syntax(helpText = "Tells you information about yourself", args = {}),
             @Syntax(helpText = "Tells you information about the mentioned user", args = {@Argument(Validate.MENTION)})
     })
-    public void execute(CommContext cont) {
+    public void execute(CommContext cont) throws BotException {
         IUser examine;
         if (cont.getMessage().getMentions().size() > 0) {
             examine = cont.getMessage().getMentions().get(0);

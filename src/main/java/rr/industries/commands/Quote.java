@@ -1,5 +1,6 @@
 package rr.industries.commands;
 
+import rr.industries.exceptions.BotException;
 import rr.industries.util.CommContext;
 import rr.industries.util.CommandInfo;
 import rr.industries.util.SubCommand;
@@ -34,7 +35,7 @@ public class Quote implements Command {
     }
 
     @SubCommand(name = "", Syntax = {@Syntax(helpText = "Danger, this command is very dank", args = {})})
-    public void execute(CommContext cont) {
+    public void execute(CommContext cont) throws BotException {
         cont.getActions().channels().sendMessage(cont.builder().withContent(quotes[rn.nextInt(quotes.length)]));
     }
 }

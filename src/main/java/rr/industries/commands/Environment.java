@@ -1,5 +1,6 @@
 package rr.industries.commands;
 
+import rr.industries.exceptions.BotException;
 import rr.industries.util.*;
 import sx.blah.discord.Discord4J;
 import sx.blah.discord.util.EmbedBuilder;
@@ -21,7 +22,7 @@ public class Environment implements Command {
     private static final int byteToMegabyte = 1048576;
 
     @SubCommand(name = "", Syntax = {@Syntax(helpText = "Display's statistics about the bots operating environment", args = {})})
-    public void execute(CommContext cont) {
+    public void execute(CommContext cont) throws BotException {
         EmbedBuilder embed = new EmbedBuilder();
         Runtime runtime = Runtime.getRuntime();
         OperatingSystemMXBean bean = ManagementFactory.getPlatformMXBean(OperatingSystemMXBean.class);

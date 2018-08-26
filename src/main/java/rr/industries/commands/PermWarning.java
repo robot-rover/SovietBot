@@ -1,6 +1,7 @@
 package rr.industries.commands;
 
 import rr.industries.Information;
+import rr.industries.exceptions.BotException;
 import rr.industries.exceptions.BotMissingPermsException;
 import rr.industries.util.*;
 import sx.blah.discord.handle.obj.IGuild;
@@ -24,7 +25,7 @@ public class PermWarning implements Command {
     public static List<Permissions> BLANK_LIST = new ArrayList<>(0);
 
     @SubCommand(name = "", Syntax = {@Syntax(helpText = "sends the warning", args = {})})
-    public void execute(CommContext cont) {
+    public void execute(CommContext cont) throws BotException {
         cont.getActions().channels().sendMessage(cont.builder().withContent("Sending Perm Warning Message out to Guilds..."));
         Collection<Permissions> allPerms = Information.neededPerms.stream().map(Entry::first).collect(Collectors.toList());
         for (IGuild guild : cont.getClient().getGuilds()) {

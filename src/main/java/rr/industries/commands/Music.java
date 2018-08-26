@@ -104,8 +104,8 @@ public class Music implements Command {
 
     @SubCommand(name = "stop", Syntax = {
             @Syntax(helpText = "Skips all queued tracks", args = {})}, permLevel = Permissions.MOD)
-    public void stop(CommContext cont) {
-        GuildMusicManager musicManager = newGuildAUdioPlayer(cont.getMessage().getGuild());
+    public void stop(CommContext cont) throws BotException {
+        GuildMusicManager musicManager = newGuildAudioPlayer(cont.getMessage().getGuild());
         cont.getActions().channels().sendMessage(cont.builder().withContent("Music Stopped..."));
     }
 
@@ -146,7 +146,7 @@ public class Music implements Command {
         return musicManager;
     }
 
-    private synchronized GuildMusicManager newGuildAUdioPlayer(IGuild guild) {
+    private synchronized GuildMusicManager newGuildAudioPlayer(IGuild guild) {
         long guildId = guild.getLongID();
         GuildMusicManager musicManager = null;
         musicManagers.remove(guildId);
@@ -180,7 +180,11 @@ public class Music implements Command {
                 embed.appendField("Length", msToMinutesAndSeconds(track.getInfo().length), true);
             }
             embed.withFooterText("Position in Queue: " + (musicManager.scheduler.getQueueLength() + 1));
-            cont.getActions().channels().sendMessage(cont.builder().withEmbed(embed.build()));
+            try {
+                cont.getActions().channels().sendMessage(cont.builder().withEmbed(embed.build()));
+            } catch (BotException e) {
+                cont.getActions().channels().exception(e);
+            }
             musicManager.scheduler.queue(track);
         }
 
@@ -211,19 +215,31 @@ public class Music implements Command {
             }
             if(playlist.getTracks().size() > previewLength)
                 embed.appendDescription("and " + (playlist.getTracks().size() - previewLength) + " more...\n");
-            cont.getActions().channels().sendMessage(cont.builder().withEmbed(embed.build()));
+            try {
+                cont.getActions().channels().sendMessage(cont.builder().withEmbed(embed.build()));
+            } catch (BotException e) {
+                cont.getActions().channels().exception(e);
+            }
 
             musicManager.scheduler.queue(playlist);
         }
 
         @Override
         public void noMatches() {
-            cont.getActions().channels().sendMessage(cont.builder().withContent("Nothing found by " + url));
+            try {
+                cont.getActions().channels().sendMessage(cont.builder().withContent("Nothing found by " + url));
+            } catch (BotException e) {
+                cont.getActions().channels().exception(e);
+            }
         }
 
         @Override
         public void loadFailed(FriendlyException exception) {
-            cont.getActions().channels().sendMessage(cont.builder().withContent("Could not play: " + exception.getMessage()));
+            try {
+                cont.getActions().channels().sendMessage(cont.builder().withContent("Could not play: " + exception.getMessage()));
+            } catch (BotException e) {
+                cont.getActions().channels().exception(e);
+            }
         }
     }
 }

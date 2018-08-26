@@ -1,5 +1,6 @@
 package rr.industries.commands;
 
+import rr.industries.exceptions.BotException;
 import rr.industries.util.*;
 import sx.blah.discord.util.MessageBuilder;
 
@@ -60,7 +61,7 @@ public class Glitch implements Command {
     }
 
     @SubCommand(name = "", Syntax = {@Syntax(helpText = "Creates normal Glitch Text using your input", args = {@Argument(description = "Text", value = Validate.LONGTEXT)})})
-    public void execute(CommContext cont) {
+    public void execute(CommContext cont) throws BotException {
         String txt = cont.getConcatArgs(1);
         MessageBuilder message = cont.builder();
         Matcher mention = Pattern.compile("<@!?([0-9]{18})>").matcher(txt);

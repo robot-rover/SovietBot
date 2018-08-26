@@ -1,6 +1,7 @@
 package rr.industries.commands;
 
 import rr.industries.Information;
+import rr.industries.exceptions.BotException;
 import rr.industries.util.CommContext;
 import rr.industries.util.CommandInfo;
 import rr.industries.util.SubCommand;
@@ -14,7 +15,7 @@ import sx.blah.discord.util.EmbedBuilder;
 )
 public class Info implements Command {
     @SubCommand(name = "", Syntax = {@Syntax(helpText = "Shows you interesting things such as the bots author and invite link", args = {})})
-    public void execute(CommContext cont) {
+    public void execute(CommContext cont) throws BotException {
         EmbedBuilder embed = new EmbedBuilder();
         embed.withAuthorIcon(cont.getActions().getConfig().url + "avatar.png");
         embed.withAuthorName(Information.botName);

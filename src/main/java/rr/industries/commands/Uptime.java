@@ -1,5 +1,6 @@
 package rr.industries.commands;
 
+import rr.industries.exceptions.BotException;
 import rr.industries.util.CommContext;
 import rr.industries.util.CommandInfo;
 import rr.industries.util.SubCommand;
@@ -17,7 +18,7 @@ import java.time.temporal.TemporalUnit;
 )
 public class Uptime implements Command {
     @SubCommand(name = "", Syntax = {@Syntax(helpText = "Displays the hours, minutes, and seconds since the bot was started", args = {})})
-    public void execute(CommContext cont) {
+    public void execute(CommContext cont) throws BotException {
         Instant launchTime = Discord4J.getLaunchTime();
         Instant current = Instant.now();
         long days = launchTime.until(current, ChronoUnit.DAYS);

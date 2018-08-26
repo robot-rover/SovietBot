@@ -43,7 +43,7 @@ public class Xkcd implements Command {
         getAndSend("https://xkcd.com/" + number.toString() + "/info.0.json", cont);
     }
 
-    public void getAndSend(String url, CommContext cont) throws ServerError {
+    public void getAndSend(String url, CommContext cont) throws BotException {
         EmbedBuilder embedBuilder = new EmbedBuilder();
         HttpResponse<String> response;
         try {

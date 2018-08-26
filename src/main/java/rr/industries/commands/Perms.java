@@ -22,7 +22,7 @@ import java.util.function.Predicate;
         helpText = "Gets and Sets permissions for users of a server")
 public class Perms implements Command {
     @SubCommand(name = "", Syntax = {@Syntax(helpText = "Shows your permission level", args = {})})
-    public void execute(CommContext cont) {
+    public void execute(CommContext cont) throws BotException {
         cont.getActions().channels().sendMessage(new MessageBuilder(cont.getClient()).withChannel(cont.getMessage().getChannel())
                 .withContent(cont.getMessage().getAuthor().mention() + " is a" + BotUtils.startsWithVowel(cont.getCallerPerms().title, "n ", " ", false) + cont.getCallerPerms().formatted));
     }

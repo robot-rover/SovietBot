@@ -3,6 +3,7 @@ package rr.industries.modules;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import rr.industries.SovietBot;
+import rr.industries.exceptions.BotException;
 import rr.industries.util.BotActions;
 import rr.industries.util.sql.FilterTable;
 import sx.blah.discord.api.IDiscordClient;
@@ -66,12 +67,16 @@ public class SwearFilter implements Module {
     }
 
     @EventSubscriber
-    public void OnMessage(MessageReceivedEvent e){
+    public void OnMessage(MessageReceivedEvent e) {
         if(actions.getTable(FilterTable.class).shouldFilter(e.getGuild().getLongID())){
             List<WordTracker> toFilter = testWords(e.getMessage().getContent());
             if(toFilter.size() > 0){
-                actions.channels().sendMessage(new MessageBuilder(actions.getClient()).withChannel(e.getChannel())
-                        .withContent("**" + e.getAuthor().getName() + "**").appendContent("#").appendContent(e.getAuthor().getDiscriminator()).appendContent(": ").appendContent(filter(e.getMessage().getContent(), toFilter)));
+                try {
+                    actions.channels().sendMessage(new MessageBuilder(actions.getClient()).withChannel(e.getChannel())
+                            .withContent("**" + e.getAuthor().getName() + "**").appendContent("#").appendContent(e.getAuthor().getDiscriminator()).appendContent(": ").appendContent(filter(e.getMessage().getContent(), toFilter)));
+                } catch (BotException e1) {
+                    actions.channels().exception(e1);
+                }
                 e.getMessage().delete();
             }
         }
