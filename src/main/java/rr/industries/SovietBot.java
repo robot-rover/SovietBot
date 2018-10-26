@@ -121,7 +121,7 @@ public class SovietBot {
     public void onUserJoin(UserJoinEvent e) {
         try {
             Optional<String> messageContent = actions.getTable(GreetingTable.class).getJoinMessage(e.getGuild());
-            if(messageContent.isPresent()) {
+            if(messageContent.isPresent() && messageContent.get().length() > 0) {
                 MessageBuilder message = new MessageBuilder(client).withChannel(client.getChannelByID(e.getGuild().getLongID()))
                         .withContent(messageContent.get().replace("%user", e.getUser().mention()));
                 actions.channels().sendMessage(message);
@@ -135,7 +135,7 @@ public class SovietBot {
     public void onUserLeave(UserLeaveEvent e) {
         try {
             Optional<String> messageContent = actions.getTable(GreetingTable.class).getLeaveMessage(e.getGuild());
-            if(messageContent.isPresent()) {
+            if(messageContent.isPresent() && messageContent.get().length() > 0) {
                 MessageBuilder message = new MessageBuilder(client).withChannel(client.getChannelByID(e.getGuild().getLongID()))
                         .withContent(messageContent.get().replace("%user", "`" + e.getUser().getDisplayName(e.getGuild()) + "`"));
                 actions.channels().sendMessage(message);
