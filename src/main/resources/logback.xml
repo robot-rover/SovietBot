@@ -40,9 +40,24 @@
         </encoder>
     </appender>
 
+    <appender name="ERROR_FILE" class="ch.qos.logback.core.FileAppender">
+        <param name="Append" value="true"/>
+        <file>errors.log</file>
+        <filter class="ch.qos.logback.classic.filter.ThresholdFilter">
+            <level>ERROR</level>
+        </filter>
+        <encoder>
+            <charset>UTF-8</charset>
+            <Pattern>
+                %d{HH:mm:ss.SSS} [%thread] %-5level %logger{36} – %msg%n
+            </Pattern>
+        </encoder>
+    </appender>
+
     <root level="DEBUG">
         <appender-ref ref="DEBUG_FILE"/>
         <appender-ref ref="EVENT_FILE"/>
+        <appender-ref ref="ERROR_FILE"/>
         <appender-ref ref="STDOUT"/>
     </root>
 
