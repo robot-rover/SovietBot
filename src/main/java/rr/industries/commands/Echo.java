@@ -1,8 +1,8 @@
 package rr.industries.commands;
 
+import reactor.core.publisher.Mono;
 import rr.industries.exceptions.BotException;
 import rr.industries.util.*;
-import sx.blah.discord.util.MessageBuilder;
 
 @CommandInfo(
         commandName = "echo",
@@ -11,10 +11,7 @@ import sx.blah.discord.util.MessageBuilder;
 )
 public class Echo implements Command {
     @SubCommand(name = "", Syntax = {@Syntax(helpText = "Echos the text that you specify", args = {@Argument(value = Validate.LONGTEXT)})})
-    public void execute(CommContext cont) throws BotException {
-        MessageBuilder message = cont.builder().withContent(cont.getConcatArgs(1));
-        if (message.getContent().length() > 0) {
-            cont.getActions().channels().sendMessage(message);
-        }
+    public Mono<Void> execute(CommContext cont) throws BotException {
+        return cont.getMessage().getMessage().getChannel().flatMap(v -> v.createMessage(cont.getConcatArgs(1))).then();
     }
 }

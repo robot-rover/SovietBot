@@ -2,15 +2,16 @@ package com.sedmelluq.discord.lavaplayer.demo.d4j;
 
 import com.sedmelluq.discord.lavaplayer.player.AudioPlayer;
 import com.sedmelluq.discord.lavaplayer.track.playback.AudioFrame;
-import sx.blah.discord.handle.audio.AudioEncodingType;
-import sx.blah.discord.handle.audio.IAudioProvider;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * This is a wrapper around AudioPlayer which makes it behave as an IAudioProvider for D4J. As D4J calls canProvide
  * before every call to provide(), we pull the frame in canProvide() and use the frame we already pulled in
  * provide().
  */
-public class AudioProvider implements IAudioProvider {
+public class AudioProvider extends discord4j.voice.AudioProvider {
+  private static final Logger LOG = LoggerFactory.getLogger(AudioProvider.class);
   private final AudioPlayer audioPlayer;
   private AudioFrame lastFrame;
 
@@ -22,33 +23,19 @@ public class AudioProvider implements IAudioProvider {
   }
 
   @Override
-  public boolean isReady() {
-    if (lastFrame == null) {
-      lastFrame = audioPlayer.provide();
-    }
-
-    return lastFrame != null;
-  }
-
-  @Override
-  public byte[] provide() {
+  public boolean provide() {
     if (lastFrame == null) {
       lastFrame = audioPlayer.provide();
     }
 
     byte[] data = lastFrame != null ? lastFrame.getData() : null;
     lastFrame = null;
-
-    return data;
-  }
-
-  @Override
-  public int getChannels() {
-    return 2;
-  }
-
-  @Override
-  public AudioEncodingType getAudioEncodingType() {
-    return AudioEncodingType.OPUS;
+    getBuffer().rewind();
+    if(data != null) {
+      getBuffer().limit(data.length);
+      getBuffer().put(data);
+      getBuffer().rewind();
+    }
+    return data != null;
   }
 }

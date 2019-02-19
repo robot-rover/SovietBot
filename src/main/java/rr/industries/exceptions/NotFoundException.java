@@ -2,8 +2,6 @@ package rr.industries.exceptions;
 
 import rr.industries.util.BotUtils;
 
-import java.util.Optional;
-
 /**
  * @author Sam
  */
@@ -17,7 +15,7 @@ public class NotFoundException extends BotException {
     }
 
     @Override
-    public Optional<String> criticalMessage() {
-        return Optional.empty();
+    public boolean shouldLog() {
+        return false;
     }
 }

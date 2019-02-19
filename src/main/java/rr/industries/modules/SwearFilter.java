@@ -1,16 +1,15 @@
 package rr.industries.modules;
 
+import discord4j.core.event.domain.message.MessageCreateEvent;
+import discord4j.core.object.entity.Member;
+import discord4j.core.object.util.Snowflake;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import reactor.core.Disposable;
+import reactor.core.publisher.Mono;
 import rr.industries.SovietBot;
-import rr.industries.exceptions.BotException;
 import rr.industries.util.BotActions;
-import rr.industries.util.sql.FilterTable;
-import sx.blah.discord.api.IDiscordClient;
-import sx.blah.discord.api.events.EventSubscriber;
-import sx.blah.discord.handle.impl.events.guild.channel.message.MessageReceivedEvent;
-import sx.blah.discord.modules.IModule;
-import sx.blah.discord.util.MessageBuilder;
+import rr.industries.util.sql.GreetingTable;
 
 import java.io.FileNotFoundException;
 import java.io.FileReader;
@@ -25,6 +24,7 @@ public class SwearFilter implements Module {
     public boolean enabled = false;
     public FilterConfig filterConfig;
     public BotActions actions;
+    public Disposable dispose;
 
    /*@SuppressWarnings("serial")
    public static Map<String, List<String>> letterReplacements = new HashMap<String, List<String>>() {
@@ -54,32 +54,42 @@ public class SwearFilter implements Module {
     public Module enableModule(BotActions actions) {
         this.actions = actions;
         loadConfig();
-        actions.getClient().getDispatcher().registerListener(this);
+        actions.getClient().getEventDispatcher().on(MessageCreateEvent.class).flatMap(this::onMessage).subscribe();
         enabled = true;
         return this;
     }
 
     @Override
     public Module disableModule() {
-        actions.getClient().getDispatcher().unregisterListener(this);
+        if(dispose != null) {
+            dispose.dispose();
+        }
         enabled = false;
         return this;
     }
 
-    @EventSubscriber
-    public void OnMessage(MessageReceivedEvent e) {
-        if(actions.getTable(FilterTable.class).shouldFilter(e.getGuild().getLongID())){
-            List<WordTracker> toFilter = testWords(e.getMessage().getContent());
+    public Mono<Void> onMessage(MessageCreateEvent e) {
+        if(e.getGuildId().isEmpty()) {
+            LOG.warn("SwearFilter received message without guild");
+            return Mono.empty();
+        }
+                                          // \/ Hint doesn't show up here
+        Snowflake guildId = e.getGuildId().get();
+                                                                        // \/ Hint shows up here
+        if(actions.getTable(GreetingTable.class).shouldFilter(e.getGuildId().get())){
+            List<WordTracker> toFilter = testWords(e.getMessage().getContent().orElse(""));
             if(toFilter.size() > 0){
-                try {
-                    actions.channels().sendMessage(new MessageBuilder(actions.getClient()).withChannel(e.getChannel())
-                            .withContent("**" + e.getAuthor().getName() + "**").appendContent("#").appendContent(e.getAuthor().getDiscriminator()).appendContent(": ").appendContent(filter(e.getMessage().getContent(), toFilter)));
-                } catch (BotException e1) {
-                    actions.channels().exception(e1);
+                if(e.getMember().isEmpty()) {
+                    LOG.warn("SwearFilter received message without guild");
+                    return Mono.empty();
                 }
-                e.getMessage().delete();
+
+                Member author = e.getMember().get();
+                String content = "**" + author.getUsername() + "**" + "#" + author.getDiscriminator() + ": " + filter(e.getMessage().getContent().orElse(""), toFilter);
+                return e.getMessage().delete().then(e.getMessage().getChannel().flatMap(v -> v.createMessage(content))).then();
             }
         }
+        return Mono.empty();
     }
 
     // Are input characters equivalent (per rules in letterReplacements)

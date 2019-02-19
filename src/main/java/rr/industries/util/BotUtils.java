@@ -5,13 +5,10 @@
  */
 package rr.industries.util;
 
-import org.apache.commons.lang3.StringEscapeUtils;
-import rr.industries.exceptions.BotException;
-import rr.industries.exceptions.IncorrectArgumentsException;
-import sx.blah.discord.util.RateLimitException;
-import sx.blah.discord.util.RequestBuffer;
 
 import java.util.regex.Pattern;
+
+import static org.apache.commons.text.StringEscapeUtils.unescapeHtml4;
 
 public class BotUtils {
     public static boolean tryInt(String i) {
@@ -19,7 +16,7 @@ public class BotUtils {
     }
 
     public static String htmlToDiscord(String input) {
-        return StringEscapeUtils.unescapeHtml4(input).replace("<b>", "**").replace("</b>", "**").replace("<i>", "*").replace("</i>", "*");
+        return unescapeHtml4(input).replace("<b>", "**").replace("</b>", "**").replace("<i>", "*").replace("</i>", "*");
     }
 
     public static boolean tryDouble(String i) {
@@ -37,13 +34,13 @@ public class BotUtils {
         return (vowel.matcher(input).find() ? ifYes : ifNo) + (addInput ? input : "");
     }
 
-    public static Permissions toPerms(int level) throws BotException {
+    public static Permissions toPerms(int level) {
         for (Permissions perm : Permissions.values()) {
             if (level == perm.level) {
                 return perm;
             }
         }
-        throw new IncorrectArgumentsException(level + " is not a valid perm level");
+        throw new RuntimeException("Illegal bot perm tried to be parsed: " + level);
     }
 
     public static String numberExtension(int number) {
@@ -64,62 +61,5 @@ public class BotUtils {
                 break;
         }
         return result.toString();
-    }
-
-    public static <T> T bufferRequest(IExRequest<T> exRequest) throws BotException {
-        RequestBuffer.IRequest<Entry<T, BotException>> request = () -> {
-            try {
-                return new Entry<>(exRequest.request(), null);
-            } catch (BotException ex) {
-                return new Entry<>(null, ex);
-            }
-        };
-        Entry<T, BotException> returnEntry = RequestBuffer.request(request).get();
-        if (returnEntry.second() != null)
-            throw returnEntry.second();
-        else
-            return returnEntry.first();
-
-    }
-
-    public static void bufferRequest(IVoidExRequest exRequest) throws BotException {
-        RequestBuffer.IRequest<BotException> request = () -> {
-            try {
-                exRequest.request();
-            } catch (BotException ex) {
-                return ex;
-            }
-            return null;
-        };
-        BotException returnEntry = RequestBuffer.request(request).get();
-        if (returnEntry != null)
-            throw returnEntry;
-
-    }
-
-    @FunctionalInterface
-    public interface IExRequest<T> {
-
-        /**
-         * This is called when the request is attempted.
-         *
-         * @return The result of this request, if any.
-         * @throws RateLimitException
-         * @throws BotException
-         */
-        T request() throws RateLimitException, BotException;
-    }
-
-    @FunctionalInterface
-    public interface IVoidExRequest<T> {
-
-        /**
-         * This is called when the request is attempted.
-         *
-         * @return The result of this request, if any.
-         * @throws RateLimitException
-         * @throws BotException
-         */
-        void request() throws RateLimitException, BotException;
     }
 }

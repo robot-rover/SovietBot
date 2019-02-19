@@ -1,7 +1,5 @@
 package rr.industries.exceptions;
 
-import java.util.Optional;
-
 /**
  * @author Sam
  */
@@ -21,8 +19,9 @@ public class IncorrectArgumentsException extends BotException {
         super("Your arguments are incorrect");
     }
 
+
     @Override
-    public Optional<String> criticalMessage() {
-        return Optional.empty();
+    public boolean shouldLog() {
+        return false;
     }
 }

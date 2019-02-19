@@ -1,16 +1,15 @@
 package rr.industries.commands;
 
+import reactor.core.publisher.Mono;
+import rr.industries.Information;
 import rr.industries.exceptions.BotException;
 import rr.industries.util.CommContext;
 import rr.industries.util.CommandInfo;
 import rr.industries.util.SubCommand;
 import rr.industries.util.Syntax;
-import sx.blah.discord.Discord4J;
 
 import java.time.Instant;
-import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
-import java.time.temporal.TemporalUnit;
 
 @CommandInfo(
         commandName = "uptime",
@@ -18,8 +17,8 @@ import java.time.temporal.TemporalUnit;
 )
 public class Uptime implements Command {
     @SubCommand(name = "", Syntax = {@Syntax(helpText = "Displays the hours, minutes, and seconds since the bot was started", args = {})})
-    public void execute(CommContext cont) throws BotException {
-        Instant launchTime = Discord4J.getLaunchTime();
+    public Mono<Void> execute(CommContext cont) throws BotException {
+        Instant launchTime = Information.launchTime;
         Instant current = Instant.now();
         long days = launchTime.until(current, ChronoUnit.DAYS);
         launchTime = launchTime.plus(days, ChronoUnit.DAYS);
@@ -31,20 +30,20 @@ public class Uptime implements Command {
         boolean multipleTerms = false;
         StringBuilder messageBuild = new StringBuilder("`SovietBot has been running for ");
         if (days > 0) {
-            messageBuild.append(Long.toString(days)).append(" days, ");
+            messageBuild.append(days).append(" days, ");
             multipleTerms = true;
         }
         if (hours > 0) {
-            messageBuild.append(Long.toString(hours)).append(" hours, ");
+            messageBuild.append(hours).append(" hours, ");
             multipleTerms = true;
         }
         if (minutes > 0) {
-            messageBuild.append(Long.toString(minutes)).append(" minutes, ");
+            messageBuild.append(minutes).append(" minutes, ");
             multipleTerms = true;
         }
         if (multipleTerms)
             messageBuild.append("and ");
-        messageBuild.append(Long.toString(seconds)).append(" seconds.`");
-        cont.getActions().channels().sendMessage(cont.builder().withContent(messageBuild.toString()));
+        messageBuild.append(seconds).append(" seconds.`");
+        return cont.getChannel().createMessage(messageBuild.toString()).then();
     }
 }

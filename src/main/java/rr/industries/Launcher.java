@@ -17,38 +17,27 @@ Total:          19950624
  */
 package rr.industries;
 
+import discord4j.core.DiscordClient;
+import discord4j.core.DiscordClientBuilder;
+import discord4j.gateway.retry.RetryOptions;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import rr.industries.exceptions.BotException;
-import sx.blah.discord.api.ClientBuilder;
-import sx.blah.discord.api.IDiscordClient;
-import sx.blah.discord.modules.IModule;
-import sx.blah.discord.util.DiscordException;
+import reactor.core.scheduler.Schedulers;
+
+import java.time.Duration;
 
 public class Launcher {
     private static final Logger LOG = LoggerFactory.getLogger(Launcher.class);
     static SovietBot bot;
+    public static String token;
 
-    public static void main(String[] args) throws BotException {
-        try {
-            IDiscordClient client = new ClientBuilder().withToken(args[0]).setMaxReconnectAttempts(6).build();
-                try {
-                    login(client);
-                } catch (DiscordException ex) {
-                    ex.printStackTrace();
-                    return;
-                }
-        } catch (DiscordException ex) {
-            LOG.error("The Bot could not start", ex);
-        }
-    }
-
-    public static void login(IDiscordClient client) throws DiscordException {
+    public static void main(String[] args) {
+        token = args[0];
+        DiscordClientBuilder builder = new DiscordClientBuilder(token);
+        builder.setRetryOptions(new RetryOptions(Duration.ofSeconds(10), Duration.ofSeconds(30), 6, Schedulers.elastic()));
+        DiscordClient client = builder.build();
         LOG.info("Starting SovietBot");
         bot = new SovietBot();
-        client.getDispatcher().registerListener(bot);
-        bot.enable(client);
-        client.login();
-
+        bot.enable(client).and(client.login()).block();
     }
 }

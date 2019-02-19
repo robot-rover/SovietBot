@@ -3,19 +3,18 @@ package rr.industries.commands;
 import com.mashape.unirest.http.HttpResponse;
 import com.mashape.unirest.http.Unirest;
 import com.mashape.unirest.http.exceptions.UnirestException;
+import discord4j.core.spec.EmbedCreateSpec;
+import reactor.core.publisher.Mono;
 import rr.industries.exceptions.BotException;
 import rr.industries.exceptions.IncorrectArgumentsException;
 import rr.industries.exceptions.ServerError;
 import rr.industries.pojos.xkcd.XkcdComic;
-import rr.industries.pojos.xkcd.XkcdSearch;
 import rr.industries.util.*;
-import sx.blah.discord.util.EmbedBuilder;
 
 import java.awt.*;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.time.format.FormatStyle;
-import java.util.stream.Collectors;
 
 @CommandInfo(commandName = "xkcd", helpText = "Searches for the \"Relevant XKCD\"", pmSafe = true)
 public class Xkcd implements Command {
@@ -27,12 +26,10 @@ public class Xkcd implements Command {
             @Syntax(helpText = "Finds the numbered XKCD", args = {@Argument(Validate.NUMBER)}),
             @Syntax(helpText = "Shows the latest XKCD", args ={})
     })
-    public void execute(CommContext cont) throws BotException {
+    public Mono<Void> execute(CommContext cont) throws BotException {
         Integer number = null;
-        EmbedBuilder embedBuilder = new EmbedBuilder();
         if(cont.getArgs().size() == 1){
-            getAndSend("http://xkcd.com/info.0.json", cont);
-            return;
+            return getAndSend("http://xkcd.com/info.0.json", cont);
         }
         try {
             number = Integer.parseInt(cont.getArgs().get(1));
@@ -40,11 +37,10 @@ public class Xkcd implements Command {
         if(number == null) {
             throw new IncorrectArgumentsException(cont.getArgs().get(1) + " is not a number");
         }
-        getAndSend("https://xkcd.com/" + number.toString() + "/info.0.json", cont);
+        return getAndSend("https://xkcd.com/" + number.toString() + "/info.0.json", cont);
     }
 
-    public void getAndSend(String url, CommContext cont) throws BotException {
-        EmbedBuilder embedBuilder = new EmbedBuilder();
+    public Mono<Void> getAndSend(String url, CommContext cont) throws BotException {
         HttpResponse<String> response;
         try {
             response = Unirest.get(url).asString();
@@ -52,20 +48,21 @@ public class Xkcd implements Command {
             throw new ServerError("Bad response from XKC Server", e);
         }
         if(response.getStatus() == 404){
-            embedBuilder.withDescription("This XKC doesn't not exist...").withColor(Color.RED);
-            cont.getActions().channels().sendMessage(cont.builder().withEmbed(embedBuilder.build()));
-            return;
+            return cont.getChannel().createMessage(messageSpec -> messageSpec.setEmbed(embedSpec -> embedSpec.setDescription("This XKC doesn't not exist...").setColor(Color.RED))).then();
         }
         XkcdComic result = gson.fromJson(response.getBody(), XkcdComic.class);
-        embedBuilder/*.withThumbnail(cont.getActions().getConfig().url + "/image/xkcd.png")*/.withAuthorName(result.title + " - XKCD#" + result.num)
-                .withAuthorUrl("https://xkcd.com/" + result.num + "/").withDescription(result.alt);
+
+        return cont.getChannel().createMessage(v -> v.setEmbed(embedSpec -> createEmbed(embedSpec, result))).then();
+    }
+
+    private void createEmbed(EmbedCreateSpec embedSpec, XkcdComic result) {
+        embedSpec/*.withThumbnail(cont.getActions().getConfig().url + "/image/xkcd.png")*/.setAuthor(result.title + " - XKCD#" + result.num, null, "https://xkcd.com/" + result.num + "/")
+                .setDescription(result.alt);
         try {
-            embedBuilder.withFooterText(LocalDate.of(Integer.parseInt(result.year), Integer.parseInt(result.month), Integer.parseInt(result.day)).format(dtf));
+            embedSpec.setFooter(LocalDate.of(Integer.parseInt(result.year), Integer.parseInt(result.month), Integer.parseInt(result.day)).format(dtf), null);
         } catch (NumberFormatException e) {
-            throw new ServerError("Unable to parse XKCD Date", e);
+            LOG.warn("Cannot parse date", e);
         }
-        embedBuilder.withImage(result.img);
-        LOG.info("Date: {}-{}-{}", result.month, result.day, result.year);
-        cont.getActions().channels().sendMessage(cont.builder().withEmbed(embedBuilder.build()));
+        embedSpec.setImage(result.img);
     }
 }

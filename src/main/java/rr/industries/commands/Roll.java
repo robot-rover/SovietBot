@@ -1,9 +1,9 @@
 package rr.industries.commands;
 
+import reactor.core.publisher.Mono;
 import rr.industries.exceptions.BotException;
 import rr.industries.exceptions.IncorrectArgumentsException;
 import rr.industries.util.*;
-import sx.blah.discord.util.MessageBuilder;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -22,8 +22,8 @@ public class Roll implements Command {
             @Syntax(helpText = "Rolls a number 1-#", args = {@Argument(Validate.NUMBER)}),
             @Syntax(helpText = "Rolls the dice RP style. Rolls a number 1-Y, X times", args = {@Argument(Validate.DND)})
     })
-    public void execute(CommContext cont) throws BotException {
-        MessageBuilder message = cont.builder();
+    public Mono<Void> execute(CommContext cont) throws BotException {
+        StringBuilder message = new StringBuilder();
         int roll;
         if (cont.getArgs().size() >= 2) {
             Matcher dnd = Pattern.compile("(\\d+)d(\\d+)").matcher(cont.getArgs().get(1));
@@ -34,23 +34,23 @@ public class Roll implements Command {
                     throw new IncorrectArgumentsException("Cannot roll to the number " + value);
                 }
                 List<Integer> rolls = new ArrayList<>();
-                message.withContent("**Rolling: **" + cont.getArgs().get(1) + "\n");
+                message.append("**Rolling: **" + cont.getArgs().get(1) + "\n");
                 for (int i = 0; i < reps; i++) {
                     rolls.add(rn.nextInt(value) + 1);
                 }
-                message.appendContent(rolls.stream().map(Object::toString).collect(Collectors.joining(", ")));
-                message.appendContent("\n**Total: **" + (Integer) rolls.stream().mapToInt(v -> v).sum());
+                message.append(rolls.stream().map(Object::toString).collect(Collectors.joining(", ")));
+                message.append("\n**Total: **" + (Integer) rolls.stream().mapToInt(v -> v).sum());
 
             } else {
                 roll = Integer.parseInt(cont.getArgs().get(1));
                 if(roll < 1) {
                     throw new IncorrectArgumentsException("Cannot roll to the number " + roll);
                 }
-                message.withContent("Rolling 1 to " + Integer.toString(roll) + ": " + (rn.nextInt(roll) + 1));
+                message.append("Rolling 1 to " + Integer.toString(roll) + ": " + (rn.nextInt(roll) + 1));
             }
         } else {
-            message.withContent("Rolling 1 to 100: " + (rn.nextInt(100) + 1));
+            message.append("Rolling 1 to 100: " + (rn.nextInt(100) + 1));
         }
-        cont.getActions().channels().sendMessage(message);
+        return cont.getChannel().createMessage(message.toString()).then();
     }
 }

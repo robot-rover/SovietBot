@@ -3,32 +3,32 @@ package rr.industries;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.mashape.unirest.http.Unirest;
+import discord4j.core.DiscordClient;
+import discord4j.core.event.domain.guild.GuildCreateEvent;
+import discord4j.core.event.domain.guild.MemberJoinEvent;
+import discord4j.core.event.domain.guild.MemberLeaveEvent;
+import discord4j.core.event.domain.lifecycle.ReadyEvent;
+import discord4j.core.event.domain.message.MessageCreateEvent;
+import discord4j.core.object.entity.Channel;
+import discord4j.core.object.entity.TextChannel;
+import discord4j.core.object.presence.Activity;
+import discord4j.core.object.presence.Presence;
+import discord4j.core.object.util.Snowflake;
 import gigadot.rebound.Rebound;
 import org.jooq.DSLContext;
 import org.jooq.SQLDialect;
 import org.jooq.impl.DSL;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import reactor.core.Exceptions;
+import reactor.core.publisher.Mono;
 import rr.industries.commands.Command;
 import rr.industries.commands.Info;
-import rr.industries.commands.PermWarning;
 import rr.industries.exceptions.*;
 import rr.industries.modules.SwearFilter;
 import rr.industries.modules.Webserver;
 import rr.industries.util.*;
 import rr.industries.util.sql.*;
-import sx.blah.discord.api.IDiscordClient;
-import sx.blah.discord.api.events.EventSubscriber;
-import sx.blah.discord.handle.impl.events.ReadyEvent;
-import sx.blah.discord.handle.impl.events.guild.GuildCreateEvent;
-import sx.blah.discord.handle.impl.events.guild.channel.message.MessageReceivedEvent;
-import sx.blah.discord.handle.impl.events.guild.member.UserJoinEvent;
-import sx.blah.discord.handle.impl.events.guild.member.UserLeaveEvent;
-import sx.blah.discord.handle.obj.ActivityType;
-import sx.blah.discord.handle.obj.StatusType;
-import sx.blah.discord.util.MessageBuilder;
-import rr.industries.modules.Module;
-import sx.blah.discord.util.RequestBuffer;
 
 import java.io.*;
 import java.lang.reflect.Field;
@@ -38,7 +38,6 @@ import java.nio.file.Files;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
@@ -47,23 +46,6 @@ import java.util.stream.Collectors;
 /**
  * SovietBot - the Youtube Streaming Discord Bot
  * @author robot_rover
- * Built on  Discord4J v2.9.2
- */
-
-/*
- * todo: XP and Levels
- * todo: RSS feeds module
- * todo: [Long Term] Write unit tests
- *
- * todo: suppress @everyone and @here in tags, echo, and glitch
- * todo: >purge prune
- *  + when leave
- * Commands -
- * Command: twitch stream / video on interweb :-P
- * Command: Reminder
- * Command: voting
- * Command: search stuff
- * Command: Repl
  */
 
 public class SovietBot {
@@ -76,8 +58,8 @@ public class SovietBot {
     private static final File configFile = new File("configuration.json");
     public static Gson gson = new GsonBuilder().setPrettyPrinting().serializeNulls().create();
     private Configuration config;
-    private volatile IDiscordClient client;
-    private ITable[] tables;
+    private volatile DiscordClient client;
+    private Table[] tables;
     BotActions actions;
     ClassLoader resourceLoader;
     Information info;
@@ -98,110 +80,82 @@ public class SovietBot {
         return singleton.actions;
     }
 
-    @EventSubscriber
-    public void onGuildJoin(GuildCreateEvent e) {
-        if(readyCalled){
-           RequestBuffer.request(() -> client.changePresence(StatusType.ONLINE, ActivityType.WATCHING, client.getGuilds().size() + " servers"));
-        }
-        try {
-            actions.getTable(PermTable.class).setPerms(e.getGuild(), e.getGuild().getOwner(), Permissions.ADMIN);
-            for (String op : config.operators)
-                actions.getTable(PermTable.class).setPerms(e.getGuild(), client.getUserByID(Long.parseLong(op)), Permissions.BOTOPERATOR);
-            LOG.info("Connected to Guild: {} ({})", e.getGuild().getName(), e.getGuild().getStringID());
-            PermWarning permTool = CommandList.getCommandList().getCommand(PermWarning.class);
-            List<sx.blah.discord.handle.obj.Permissions> missingPerms = permTool.checkPerms(e.getGuild(), client.getOurUser(), Information.neededPerms.stream().map(Entry::first).collect(Collectors.toCollection(ArrayList::new)));
-            if (!missingPerms.isEmpty())
-                LOG.info("Missing Perms in guild() {} ({}): {}", e.getGuild().getName(), e.getGuild().getStringID(), permTool.formatPerms(missingPerms));
-        } catch (BotException ex) {
-            actions.channels().exception(ex);
-        }
+    public Mono<Void> onUserJoin(MemberJoinEvent e) {
+        Entry<String, Long> messageContent = actions.getTable(GreetingTable.class).getJoinMessage(e.getGuildId());
+        if(messageContent.first() == null || messageContent.second() == null)
+            return Mono.empty();
+        String content = messageContent.first().replace("%user", e.getMember().getMention());
+        return e.getGuild().flatMap(v -> v.getChannelById(Snowflake.of(messageContent.second()))).cast(TextChannel.class).flatMap(v -> v.createMessage(content)).then();
     }
 
-    @EventSubscriber
-    public void onUserJoin(UserJoinEvent e) {
-        try {
-            Optional<String> messageContent = actions.getTable(GreetingTable.class).getJoinMessage(e.getGuild());
-            if(messageContent.isPresent() && messageContent.get().length() > 0) {
-                MessageBuilder message = new MessageBuilder(client).withChannel(client.getChannelByID(e.getGuild().getLongID()))
-                        .withContent(messageContent.get().replace("%user", e.getUser().mention()));
-                actions.channels().sendMessage(message);
-            }
-        } catch (BotException ex) {
-            actions.channels().exception(ex, new MessageBuilder(client).withChannel(client.getChannelByID(e.getGuild().getLongID())));
-        }
+    public Mono<Void> onUserLeave(MemberLeaveEvent e) {
+        Entry<String, Long> messageContent = actions.getTable(GreetingTable.class).getLeaveMessage(e.getGuildId());
+        if(messageContent.first() == null || messageContent.second() == null)
+            return Mono.empty();
+        actions.getTable(PermTable.class).setPerms(e.getGuildId(), e.getUser().getId(), Permissions.NORMAL);
+        String content = messageContent.first().replace("%user", "`" + e.getUser().getUsername() + "`");
+        return e.getGuild().flatMap(v -> v.getChannelById(Snowflake.of(messageContent.second()))).cast(TextChannel.class).flatMap(v -> v.createMessage(content)).then();
     }
 
-    @EventSubscriber
-    public void onUserLeave(UserLeaveEvent e) {
-        try {
-            Optional<String> messageContent = actions.getTable(GreetingTable.class).getLeaveMessage(e.getGuild());
-            if(messageContent.isPresent() && messageContent.get().length() > 0) {
-                MessageBuilder message = new MessageBuilder(client).withChannel(client.getChannelByID(e.getGuild().getLongID()))
-                        .withContent(messageContent.get().replace("%user", "`" + e.getUser().getDisplayName(e.getGuild()) + "`"));
-                actions.channels().sendMessage(message);
-            }
-            actions.getTable(PermTable.class).setPerms(e.getGuild(), e.getUser(), Permissions.NORMAL);
-        } catch (BotException ex) {
-            actions.channels().exception(ex, new MessageBuilder(client).withChannel(client.getChannelByID(e.getGuild().getLongID())));
+    private Mono<Void> handleBotException(BotException e, Channel channel) {
+        if(e.shouldLog()) {
+            LOG.error("Bot threw an error", e);
         }
+        if(channel != null) {
+            e.setChannel(channel);
+            return e.handle();
+        }
+        return Mono.empty();
     }
 
-    @EventSubscriber
-    public void onReady(ReadyEvent e) {
+    public Mono<Void> onReady(ReadyEvent e) {
         readyCalled = true;
-        Information.setClientID(client.getApplicationClientID());
-        actions.enableModules();
-        LOG.info("*** " + Information.botName + " armed ***");
-        if (!client.getOurUser().getName().equals(Information.botName)) {
-            /*LOG.info("Changing Username...");
-            try {
-                BotUtils.bufferRequest(() -> {
-                    try {
-                        client.changeUsername(config.botName);
-                    } catch (DiscordException ex) {
-                        throw BotException.returnException(ex);
-                    }
-                });
-            } catch (BotException ex) {
-                actions.channels().exception(ex);
-            }*/
-
+        if(client.getSelfId().isPresent()) {
+            Information.setClientID(client.getSelfId().get());
+        } else {
+            throw new RuntimeException("Client was not logged in when ready was called");
         }
+        actions.enableModules();
         LOG.info("\n------------------------------------------------------------------------\n"
                 + "*** " + Information.botName + " Ready ***\n"
                 + "------------------------------------------------------------------------");
-        RequestBuffer.request(() -> client.changePresence(StatusType.ONLINE, ActivityType.WATCHING, client.getGuilds().size() + " servers"));
+        return client.updatePresence(Presence.online(Activity.watching(e.getGuilds().size() + " servers")));
     }
 
-    @EventSubscriber
-    public void onMessage(MessageReceivedEvent e) {
-        if (e.getMessage().getAuthor().isBot()) {
-            return;
-        }
-        String message = e.getMessage().getContent();
-        boolean command = message.startsWith(e.getMessage().getChannel().isPrivate() ? actions.getConfig().commChar : actions.getTable(PrefixTable.class).getPrefix(e.getMessage()));
-        boolean mention = e.getMessage().getMentions().contains(client.getOurUser()) && !e.getMessage().mentionsEveryone();
-        if (command || mention) {
-            CommContext cont = new CommContext(e, actions);
+    public Mono<Void> onGuildJoin(GuildCreateEvent e) {
+        return client.getGuilds().count().flatMap(v -> client.updatePresence(Presence.online(Activity.watching(v + " servers"))));
+    }
+
+    public Mono<Void> onMessage(MessageCreateEvent e) {
+        String message = e.getMessage().getContent().orElse(null);
+        if(message == null)
+            return Mono.empty();
+        Mono<Boolean> isCommand = e.getMessage().getChannel().map(Channel::getType)
+                .map(v -> v.equals(Channel.Type.GUILD_TEXT))
+                .flatMap(v -> v ? actions.getTable(GreetingTable.class).getPrefix(e.getMessage()) : Mono.just(actions.getConfig().commChar))
+                .map(message::startsWith);
+        boolean isMentionUs = client.getSelfId().map(v -> e.getMessage().getUserMentionIds().contains(v)).orElse(false);
+        Mono<CommContext> cont = CommContext.getCommContext(e, actions);
+        return Mono.zip(isCommand, e.getMessage().getGuild().hasElement(), cont).flatMap(data -> {
             try {
-                if (command) {
-                    Entry<Command, Method> commandSet = CommandList.getCommandList().getSubCommand(cont.getArgs());
+                if (data.getT1()) {
+                    Entry<Command, Method> commandSet = CommandList.getCommandList().getSubCommand(data.getT3().getArgs());
                     if (commandSet.second() != null) {
                         SubCommand subComm = commandSet.second().getAnnotation(SubCommand.class);
                         CommandInfo commandInfo = commandSet.first().getClass().getAnnotation(CommandInfo.class);
-                        if (e.getMessage().getChannel().isPrivate() && (!commandInfo.pmSafe() || !subComm.pmSafe())) {
+                        if (!data.getT2() && (!commandInfo.pmSafe() || !subComm.pmSafe())) {
                             throw new PMNotSupportedException();
                         }
-                        if (subComm.permLevel().level > cont.getCallerPerms().level || commandInfo.permLevel().level > cont.getCallerPerms().level) {
+                        if (subComm.permLevel().level > data.getT3().getCallerPerms().level || commandInfo.permLevel().level > data.getT3().getCallerPerms().level) {
                             throw new MissingPermsException("use the " + commandInfo.commandName() + " command", subComm.permLevel().level > commandInfo.permLevel().level ? subComm.permLevel() : commandInfo.permLevel());
                         } else {
                             final int iteratorConstant = (subComm.name().equals("") ? 1 : 2);
                             List<Syntax> syntax = Arrays.stream(subComm.Syntax()).filter(
-                                    v -> v.args().length + iteratorConstant == cont.getArgs().size() ||
-                                            v.args().length + iteratorConstant <= cont.getArgs().size() && Arrays.stream(v.args()).anyMatch(w -> w.value() == Validate.LONGTEXT))
+                                    v -> v.args().length + iteratorConstant == data.getT3().getArgs().size() ||
+                                            v.args().length + iteratorConstant <= data.getT3().getArgs().size() && Arrays.stream(v.args()).anyMatch(w -> w.value() == Validate.LONGTEXT))
                                     .collect(Collectors.toList());
                             if (commandSet.first().getValiddityOverride() != null) {
-                                if (!commandSet.first().getValiddityOverride().test(cont.getArgs())) {
+                                if (!commandSet.first().getValiddityOverride().test(data.getT3().getArgs())) {
                                     throw new IncorrectArgumentsException();
                                 }
                             } else if (!syntax.isEmpty()) {
@@ -210,10 +164,10 @@ public class SovietBot {
                                 for (Syntax syntax1 : syntax) {
                                     found = true;
                                     for (int i = 0; i < syntax1.args().length; i++) {
-                                        if (syntax1.args()[i].equals(Validate.LONGTEXT) && Validate.LONGTEXT.isValid.test(cont.getArgs().get(i + iteratorConstant))) {
+                                        if (syntax1.args()[i].value().equals(Validate.LONGTEXT) && Validate.LONGTEXT.isValid.test(data.getT3().getArgs().get(i + iteratorConstant))) {
                                             break outerLoop;
                                         }
-                                        if (!syntax1.args()[i].value().isValid.test(cont.getArgs().get(i + iteratorConstant))) {
+                                        if (!syntax1.args()[i].value().isValid.test(data.getT3().getArgs().get(i + iteratorConstant))) {
                                             found = false;
                                             break;
                                         }
@@ -227,25 +181,29 @@ public class SovietBot {
                             } else {
                                 throw new IncorrectArgumentsException();
                             }
-                            invokeCommand(commandSet.first(), commandSet.second(), cont);
+                            return invokeCommand(commandSet.first(), commandSet.second(), data.getT3(), e);
                         }
                     }
-                } else {
+                } else if (isMentionUs) {
                     try {
-                        invokeCommand(CommandList.getCommandList().getCommand("info"), Info.class.getMethod("execute", CommContext.class), cont);
+                        return invokeCommand(CommandList.getCommandList().getCommand("info"), Info.class.getMethod("execute", CommContext.class), data.getT3(), e);
                     } catch (NoSuchMethodException ex) {
                         throw new ServerError("Could not execute Info command for mention", ex);
                     }
                 }
             } catch (BotException ex) {
-                cont.getActions().channels().exception(ex, cont.builder());
+                return handleBotException(ex, data.getT3().getChannel());
             }
-        }
+            return Mono.empty();
+        });
     }
 
-    private void invokeCommand(Command c, Method m, CommContext cont) throws BotException {
+    private Mono<Void> invokeCommand(Command c, Method m, CommContext cont, MessageCreateEvent e) throws BotException {
         try {
-            m.invoke(c, cont);
+            Mono<Void> ret = ((Mono<Void>) m.invoke(c, cont));
+            if(ret == null)
+                throw new ServerError("Command returned null");
+            return ret;
         } catch (IllegalAccessException ex) {
             throw new ServerError("Could not access subcommand", ex);
         } catch (InvocationTargetException ex) {
@@ -257,6 +215,7 @@ public class SovietBot {
                     throw new ServerError("The subcommand threw an uncaught " + cause.getClass().getName(), cause);
             }
         }
+        return Mono.empty();
     }
 
     private <T> Optional<T> loadConfig(File file, String defaultValue, Class<T> t) {
@@ -281,7 +240,7 @@ public class SovietBot {
         return Optional.empty();
     }
 
-    public boolean enable(IDiscordClient client) {
+    public Mono<Void> enable(DiscordClient client) {
         this.client = client;
         Unirest.setTimeouts(1000, 1000);
         config = loadConfig(configFile, gson.toJson(new Configuration()), Configuration.class).orElse(null);
@@ -308,14 +267,39 @@ public class SovietBot {
             }
             Connection conn = DriverManager.getConnection("jdbc:sqlite:sovietBot.db");
             DSLContext connection = DSL.using(conn, SQLDialect.SQLITE);
-            tables = new ITable[]{new PermTable(connection, config), new TimeTable(connection), new TagTable(connection), new PrefixTable(connection, config), new GreetingTable(connection), new FilterTable(connection)};
+            tables = new Table[]{new PermTable(connection, config), new TagTable(connection), new GreetingTable(connection, config)};
         } catch (SQLException | BotException ex) {
             LOG.error("Unable to Initialize Database", ex);
             System.exit(1);
         }
         LOG.info("Database Initialized");
-        ChannelActions ca = new ChannelActions(client, config, info);
-        actions = new BotActions(client, CommandList.getCommandList(), tables, new Module[]{new Webserver(), new SwearFilter()}, ca);
-        return true;
+        //ChannelActions ca = new ChannelActions(client, config, info);
+        actions = new BotActions(client, CommandList.getCommandList(), tables, new rr.industries.modules.Module[]{new Webserver(), new SwearFilter()}, config, info);
+
+        Mono<Void> userLeft = client.getEventDispatcher()
+                .on(MemberLeaveEvent.class)
+                .flatMap(this::onUserLeave)
+                .onErrorContinue(this::logError)
+                .then();
+        Mono<Void> userJoined = client.getEventDispatcher()
+                .on(MemberJoinEvent.class)
+                .flatMap(this::onUserJoin)
+                .onErrorContinue(this::logError)
+                .then();
+        Mono<Void> messageRecieved = client.getEventDispatcher()
+                .on(MessageCreateEvent.class)
+                .filter(event -> event.getMessage().getAuthor().map(user -> !user.isBot()).orElse(true))
+                .flatMap(this::onMessage)
+                .onErrorContinue(this::logError)
+                .then();
+        Mono<Void> onReady = client.getEventDispatcher()
+                .on(ReadyEvent.class)
+                .flatMap(this::onReady)
+                .then();
+        return messageRecieved.and(onReady).and(userJoined).and(userLeft);
+    }
+
+    private void logError(Throwable e, Object idk) {
+        LOG.error("Bot threw an uncaught exception - " + idk, new RuntimeException(e));
     }
 }

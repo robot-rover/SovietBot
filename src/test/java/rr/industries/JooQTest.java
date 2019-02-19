@@ -5,13 +5,10 @@ import org.jooq.SQLDialect;
 import org.jooq.impl.DSL;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import rr.industries.jooq.tables.Globaltags;
 
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
-
-import static rr.industries.jooq.tables.Globaltags.GLOBALTAGS;
 
 public class JooQTest {
     private final static Logger LOG = LoggerFactory.getLogger(JooQTest.class);
@@ -32,7 +29,5 @@ public class JooQTest {
             return;
         }
         LOG.info("Database Initialized");
-        int result = connection.update(GLOBALTAGS).set(GLOBALTAGS.TAGCONTENT, "it worked").where(GLOBALTAGS.TAGNAME.eq("d")).execute();
-        LOG.info("Result: {}", result);
     }
 }

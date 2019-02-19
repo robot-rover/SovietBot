@@ -1,6 +1,6 @@
 package rr.industries.exceptions;
 
-import org.apache.commons.lang3.text.WordUtils;
+import org.apache.commons.text.WordUtils;
 
 import java.util.Optional;
 
@@ -18,5 +18,10 @@ public class BotMissingPermsException extends BotException {
 
     public Optional<String> criticalMessage() {
         return Optional.empty();
+    }
+
+    @Override
+    public boolean shouldLog() {
+        return false;
     }
 }

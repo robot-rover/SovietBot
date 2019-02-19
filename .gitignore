@@ -21,3 +21,4 @@ deploy.sh
 /.gradle
 /build
 /out
+.attach_pid*

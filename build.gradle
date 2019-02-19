@@ -13,17 +13,18 @@ idea {
 group = 'rr.industries'
 version = 'master'
 
-sourceCompatibility = 1.8
-targetCompatibility = 1.8
+sourceCompatibility = 1.11
+targetCompatibility = 1.11
 tasks.withType(JavaCompile) {
 	options.encoding = 'UTF-8'
 }
 
 repositories {
      jcenter()
-     maven { url "https://jitpack.io" }
-     maven { url "https://oss.sonatype.org/content/groups/public/" }
-     maven { url "http://repo.maven.apache.org/maven2" }
+    repositories {
+        maven { url 'https://jitpack.io' }
+    }
+     mavenCentral()
 }
 
 dependencies {
@@ -40,10 +41,10 @@ dependencies {
     compile group: 'com.mashape.unirest', name: 'unirest-java', version:'1.4.9'
 
     // Discord API
-    compile group: 'com.github.austinv11', name: 'Discord4J', version:'2.10.1'
+    compile 'com.discord4j.discord4j:discord4j-core:3.0.0.M4'
 
     // File Download
-    compile group: 'commons-io', name: 'commons-io', version:'2.4'
+    compile group: 'commons-io', name: 'commons-io', version:'2.6'
 
     // Json Library
     compile group: 'com.google.code.gson', name: 'gson', version:'2.7'
@@ -53,11 +54,17 @@ dependencies {
 
     // Parsing Links
     compile group: 'com.twitter', name: 'twitter-text', version:'1.14.3'
+    
+    //Escape HTML
+    compile group: 'org.apache.commons', name:'commons-text', version:'1.6'
 
     // SQL Abstraction
     compile group: 'org.jooq', name: 'jooq', version:'3.10.1'
     compile group: 'org.jooq', name: 'jooq-meta', version:'3.10.1'
     compile group: 'org.jooq', name: 'jooq-codegen', version:'3.10.1'
+
+    compile group: 'javax.annotation', name: 'javax.annotation-api', version: '1.3.2'
+
 }
 
 task copyToLib(type: Copy) {

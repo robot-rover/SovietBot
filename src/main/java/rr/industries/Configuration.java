@@ -1,9 +1,11 @@
 package rr.industries;
 
+import discord4j.core.object.util.Snowflake;
+
 public class Configuration {
     public String commChar;
     public String url;
-    public String[] operators;
+    public long[] operators;
     public String googleKey;
     public String dictKey;
     public String discordSecret;
@@ -18,7 +20,7 @@ public class Configuration {
     public Configuration() {
         this.commChar = ">";
         this.url = "";
-        this.operators = new String[0];
+        this.operators = new long[0];
         this.googleKey = "";
         this.dictKey = "";
         this.discordSecret = "";
@@ -27,6 +29,16 @@ public class Configuration {
         this.apiPort = 8080;
         this.websitePort = 80;
         this.filterConfigPath = "";
+    }
+
+    public boolean isOperator(Snowflake id) {
+        long longId = id.asLong();
+        for(long op : operators) {
+            if(op == longId) {
+                return true;
+            }
+        }
+        return false;
     }
 
     @Override

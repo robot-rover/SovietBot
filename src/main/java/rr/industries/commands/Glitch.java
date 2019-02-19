@@ -1,8 +1,10 @@
 package rr.industries.commands;
 
+import discord4j.core.object.entity.Member;
+import discord4j.core.object.util.Snowflake;
+import reactor.core.publisher.Mono;
 import rr.industries.exceptions.BotException;
 import rr.industries.util.*;
-import sx.blah.discord.util.MessageBuilder;
 
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -61,36 +63,47 @@ public class Glitch implements Command {
     }
 
     @SubCommand(name = "", Syntax = {@Syntax(helpText = "Creates normal Glitch Text using your input", args = {@Argument(description = "Text", value = Validate.LONGTEXT)})})
-    public void execute(CommContext cont) throws BotException {
+    public Mono<Void> execute(CommContext cont) throws BotException {
         String txt = cont.getConcatArgs(1);
-        MessageBuilder message = cont.builder();
+        StringBuilder builder = new StringBuilder();
         Matcher mention = Pattern.compile("<@!?([0-9]{18})>").matcher(txt);
+        Mono<String> processText = Mono.just(txt);
         while (mention.find()) {
-            txt = txt.replace(mention.group(), cont.getClient().getUserByID(Long.parseLong(mention.group(1))).getDisplayName(cont.getMessage().getGuild()));
+            Mono<String> displayName = cont.getClient().getUserById(Snowflake.of(mention.group(1)))
+                    .zipWith(Mono.justOrEmpty(cont.getMessage().getGuildId()))
+                    .flatMap(v -> v.getT1().asMember(v.getT2()))
+                    .map(Member::getDisplayName);
+            processText = processText.zipWith(displayName)
+                    .map(v -> v.getT1().replace(mention.group(), v.getT2()));
         }
 
-        for (int i = 0; i < txt.length(); i++) {
-            int num_Up;
-            int numDown;
-            int numMid;
-            int charMult;
-            //add the normal character
-            message.appendContent(txt.substring(i, i + 1));
-            if (txt.substring(i, i + 1).equals("`") || txt.substring(i, i + 1).equals("*")) {
-                continue;
+        return processText.map(v -> {
+            for (int i = 0; i < v.length(); i++) {
+                int num_Up;
+                int numDown;
+                int numMid;
+                int charMult;
+                //add the normal character
+                builder.append(v.substring(i, i + 1));
+                if (v.substring(i, i + 1).equals("`") || v.substring(i, i + 1).equals("*")) {
+                    continue;
+                }
+                charMult = -1 * (8 / (v.length() / 2)) * Math.abs(i - (v.length() / 2)) + 8;
+                num_Up = (charMult > 0 ? rn.nextInt(charMult) : 0) + 1;
+                numDown = (charMult > 0 ? rn.nextInt(charMult) : 0) + 1;
+                numMid = rn.nextInt(1) + 1;
+
+                for (int j = 0; j < num_Up; j++)
+                    builder.append(zalgoUp[rn.nextInt(zalgoUp.length)]);
+                for (int j = 0; j < numDown; j++)
+                    builder.append(zalgoDown[rn.nextInt(zalgoDown.length)]);
+                for (int j = 0; j < numMid; j++)
+                    builder.append(zalgoMiddle[rn.nextInt(zalgoMiddle.length)]);
             }
-            charMult = -1 * (8 / (txt.length() / 2)) * Math.abs(i - (txt.length() / 2)) + 8;
-            num_Up = (charMult > 0 ? rn.nextInt(charMult) : 0) + 1;
-            numDown = (charMult > 0 ? rn.nextInt(charMult) : 0) + 1;
-            numMid = rn.nextInt(1) + 1;
-
-            for (int j = 0; j < num_Up; j++)
-                message.appendContent(zalgoUp[rn.nextInt(zalgoUp.length)]);
-            for (int j = 0; j < numDown; j++)
-                message.appendContent(zalgoDown[rn.nextInt(zalgoDown.length)]);
-            for (int j = 0; j < numMid; j++)
-                message.appendContent(zalgoMiddle[rn.nextInt(zalgoMiddle.length)]);
-        }
-        cont.getActions().channels().sendMessage(message);
+            return builder.toString();
+        })
+                .zipWith(cont.getMessage().getMessage().getChannel())
+                .flatMap(v -> v.getT2().createMessage(v.getT1()))
+                .then();
     }
 }

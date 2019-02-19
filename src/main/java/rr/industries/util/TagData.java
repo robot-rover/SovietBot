@@ -2,6 +2,7 @@ package rr.industries.util;
 
 import org.jooq.Record2;
 import org.jooq.Record4;
+import org.jooq.Record5;
 
 import java.util.Optional;
 
@@ -9,61 +10,43 @@ import java.util.Optional;
  * @author Sam
  */
 public class TagData {
-    private String guild;
+    private long guild;
     private String name;
     private String content;
     private boolean permanent;
+    private boolean global;
 
-    public TagData(String guild, String name, String content, boolean permanent) {
+    public TagData(long guild, String name, boolean permanent, boolean global, String content) {
         this.guild = guild;
         this.name = name;
         this.content = content;
         this.permanent = permanent;
-    }
-
-    public TagData(String name, String content) {
-        this.guild = null;
-        this.name = name;
-        this.content = content;
-        this.permanent = false;
+        this.global = global;
     }
 
     /**
-     *
-     * @param tagData must be in order GuildID, TagName, IsPermanent, TagContent
+     * Creates a new TagData from a database record
+     * @param tagData must be in order GuildID, TagName, IsPermanent, IsGlobal, TagContent
+     * @return The created instance, or null if the parameter was null
      */
-    public TagData(Record4<String, String, Integer, String> tagData){
-        this.guild = tagData.component1();
-        this.name = tagData.component2();
-        this.permanent = tagData.component3() == 1;
-        this.content = tagData.component4();
+    public static TagData of(Record5<Long, String, Integer, Integer, String> tagData) {
+        if(tagData == null)
+            return null;
+        return new TagData(
+                tagData.component1(),
+                tagData.component2(),
+                tagData.component3() == 1,
+                tagData.component4() == 1,
+                tagData.component5()
+        );
     }
 
-    /**
-     *
-     * @param tagData must be in order TagName, TagContent
-     */
-    public TagData(Record2<String, String> tagData){
-        this.guild = null;
-        this.name = tagData.component1();
-        this.content = tagData.component2();
-        this.permanent = false;
-    }
-
-    public Optional<String> getGuild() {
-        return Optional.ofNullable(guild);
-    }
-
-    public void setGuild(String guild) {
-        this.guild = guild;
+    public long getGuild() {
+        return guild;
     }
 
     public String getName() {
         return name;
-    }
-
-    public void setName(String name) {
-        this.name = name;
     }
 
     public String getContent() {
@@ -75,7 +58,11 @@ public class TagData {
     }
 
     public boolean isGlobal() {
-        return guild == null;
+        return global;
+    }
+
+    public void setGlobal(boolean global){
+        this.global = global;
     }
 
     public boolean isPermanent() {

@@ -7,6 +7,7 @@ import rr.industries.util.CommandInfo;
 import rr.industries.util.Entry;
 import rr.industries.util.SubCommand;
 
+import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.security.ProviderException;
 import java.util.ArrayList;
@@ -24,8 +25,8 @@ public class CommandList extends ArrayList<Command> {
     private CommandList() {
         for (Class<? extends Command> com : commandClasses) {
             try {
-                add(com.newInstance());
-            } catch (InstantiationException | IllegalAccessException ex) {
+                add(com.getConstructor().newInstance());
+            } catch (InstantiationException | IllegalAccessException | NoSuchMethodException | InvocationTargetException ex) {
                 LOG.error("Unable to Instantiate Command Class " + com.getCanonicalName(), ex);
             }
         }

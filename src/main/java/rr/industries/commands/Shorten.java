@@ -3,6 +3,7 @@ package rr.industries.commands;
 import com.mashape.unirest.http.HttpResponse;
 import com.mashape.unirest.http.Unirest;
 import com.mashape.unirest.http.exceptions.UnirestException;
+import reactor.core.publisher.Mono;
 import rr.industries.exceptions.BotException;
 import rr.industries.exceptions.ServerError;
 import rr.industries.pojos.urlshortener.URLResponse;
@@ -15,7 +16,7 @@ import rr.industries.util.*;
 public class Shorten implements Command {
 
     @SubCommand(name = "", Syntax = {@Syntax(helpText = "Gives you a shortened version of the link", args = {@Argument(description = "Video Link", value = Validate.LINK)})})
-    public void execute(CommContext cont) throws BotException {
+    public Mono<Void> execute(CommContext cont) throws BotException {
         String url = cont.getArgs().get(1);
         try {
             HttpResponse<String> response = Unirest.post("https://www.googleapis.com/urlshortener/v1/url").header("Content-Type", "application/json")
@@ -28,10 +29,9 @@ public class Shorten implements Command {
                 }
                 throw new ServerError(error.toString());
             }
-            cont.getActions().channels().sendMessage(cont.builder().appendContent(cont.getMessage().getAuthor().mention())
-                    .appendContent(": ").appendContent(shorten.id));
+            return Mono.justOrEmpty(cont.getMessage().getMessage().getAuthor()).flatMap(v -> cont.getChannel().createMessage(v.getMention() + ": " + shorten.id).then());
         } catch (UnirestException ex) {
-            throw BotException.returnException(ex);
+            throw new ServerError("Unirest Exception", ex);
         }
     }
 }

@@ -4,6 +4,7 @@ import com.mashape.unirest.http.HttpResponse;
 import com.mashape.unirest.http.Unirest;
 import com.mashape.unirest.http.exceptions.UnirestException;
 import org.apache.commons.io.IOUtils;
+import reactor.core.publisher.Mono;
 import rr.industries.exceptions.BotException;
 import rr.industries.exceptions.ServerError;
 import rr.industries.pojos.CatRequest;
@@ -29,17 +30,18 @@ public class Cat implements Command {
     Pattern link = Pattern.compile("<url>(.*)</url>");
 
     @SubCommand(name = "", Syntax = {@Syntax(helpText = "Sends a random picture of a cat in a text channel", args = {})})
-    public void execute(CommContext cont) throws BotException {
+    public Mono<Void> execute(CommContext cont) throws BotException {
         try {
             HttpResponse<String> response = Unirest.get("http://thecatapi.com/api/images/get").queryString("format", "xml").asString();
             Matcher m = link.matcher(response.getBody());
             if(!m.find())
                 throw new IOException("Could not find link in XML");
-            cont.getActions().channels().sendMessage(cont.builder().withContent(cont.getMessage().getAuthor().mention() + " " + m.group(1)));
+            return cont.getMessage().getMessage().getChannel().zipWith(Mono.justOrEmpty(cont.getMessage().getMember())).flatMap(v -> v.getT1().createMessage(v.getT2().getMention() + " " + m.group(1))).then();
         } catch (IOException ex) {
             throw new ServerError("IOException in Cat command", ex);
         } catch (UnirestException e) {
             e.printStackTrace();
         }
+        return Mono.empty();
     }
 }

@@ -4,13 +4,12 @@ import com.twitter.Autolink;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.*;
-import java.nio.charset.StandardCharsets;
-import java.util.Scanner;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
+import java.io.ByteArrayInputStream;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.io.UnsupportedEncodingException;
 
-import static org.apache.commons.lang3.StringEscapeUtils.escapeHtml4;
+import static  org.apache.commons.text.StringEscapeUtils.escapeHtml4;
 
 public class MarkdownEngine {
     private static final Autolink linker = new Autolink();

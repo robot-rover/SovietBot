@@ -1,17 +1,22 @@
 package rr.industries.commands;
 
+import discord4j.core.object.entity.Guild;
+import discord4j.core.object.entity.Member;
+import discord4j.core.object.entity.User;
+import discord4j.core.object.util.Snowflake;
 import org.jooq.Record2;
+import reactor.core.publisher.Flux;
+import reactor.core.publisher.Mono;
 import rr.industries.exceptions.BotException;
 import rr.industries.exceptions.IncorrectArgumentsException;
 import rr.industries.exceptions.MissingPermsException;
+import rr.industries.exceptions.PMNotSupportedException;
 import rr.industries.util.*;
 import rr.industries.util.sql.PermTable;
-import sx.blah.discord.handle.obj.IRole;
-import sx.blah.discord.handle.obj.IUser;
-import sx.blah.discord.util.MessageBuilder;
 
 import java.util.List;
 import java.util.function.Predicate;
+import java.util.stream.Collectors;
 
 /**
  * @author robot_rover
@@ -22,63 +27,56 @@ import java.util.function.Predicate;
         helpText = "Gets and Sets permissions for users of a server")
 public class Perms implements Command {
     @SubCommand(name = "", Syntax = {@Syntax(helpText = "Shows your permission level", args = {})})
-    public void execute(CommContext cont) throws BotException {
-        cont.getActions().channels().sendMessage(new MessageBuilder(cont.getClient()).withChannel(cont.getMessage().getChannel())
-                .withContent(cont.getMessage().getAuthor().mention() + " is a" + BotUtils.startsWithVowel(cont.getCallerPerms().title, "n ", " ", false) + cont.getCallerPerms().formatted));
+    public Mono<Void> execute(CommContext cont) throws BotException {
+        return Mono.justOrEmpty(cont.getMessage().getMember())
+                .map(User::getMention)
+                .flatMap(v -> cont.getChannel().createMessage(v + " is a" + BotUtils.startsWithVowel(cont.getCallerPerms().title, "n ", " ", false) + cont.getCallerPerms().formatted))
+                .then();
     }
 
     @SubCommand(name = "all", Syntax = {@Syntax(helpText = "Lists all permissions for the server", args = {})})
-    public void all(CommContext cont) throws BotException {
-        List<Record2<String, Integer>> list = cont.getActions().getTable(PermTable.class).getAllPerms(cont.getMessage().getGuild());
-        MessageBuilder message = cont.builder().withContent("```markdown\n");
-            message.appendContent("# Permissions for " + cont.getMessage().getGuild().getName() + " #\n");
-        for (Record2<String, Integer> entry : list) {
-                message.appendContent(String.format("%-15s", "<" + BotUtils.toPerms(entry.component2()).title + ">") + cont.getClient().getUserByID(Long.parseLong(entry.component1())).getDisplayName(cont.getMessage().getGuild()) + "\n");
-            }
-        cont.getActions().channels().sendMessage(message.appendContent("```"));
+    public Mono<Void> all(CommContext cont) throws PMNotSupportedException {
+        Snowflake guildId = cont.getMessage().getGuildId().orElseThrow(PMNotSupportedException::new);
+        List<Record2<Long, Integer>> list = cont.getActions().getTable(PermTable.class).getAllPerms(guildId);
+        StringBuilder message = new StringBuilder("```markdown\n");
+        Mono<StringBuilder> content = cont.getMessage().getGuild().map(Guild::getName).map(v -> message.append("# Permissions for ").append(v).append(" #\n"));
+
+        for (Record2<Long, Integer> entry : list) {
+            content = content.then(cont.getClient().getUserById(Snowflake.of(entry.component1()))
+                    .flatMap(v -> v.asMember(guildId))
+                    .map(Member::getDisplayName)
+                    .map(v -> message.append(String.format("%-15s", "<" + BotUtils.toPerms(entry.component2()).title + ">")).append(v).append("\n")));
+        }
+        content = content.map(v -> v.append("```"));
+        return content.flatMap(v -> cont.getChannel().createMessage(v.toString())).then();
     }
 
     @SubCommand(name = "set", Syntax = {
-            @Syntax(helpText = "Sets the Permissions of the user(s) @\u200Bmentioned", args = {@Argument(Validate.MENTION), @Argument(description = "Permission Level", value = Validate.NUMBER, options = {"0 - Normal", "1 - Regular", "2 - Moderator", "3 - Admin"})}),
-            @Syntax(helpText = "Sets the Permissions of all users with the Role(s) @\u200Bmentioned", args = {@Argument(Validate.MENTIONROLE), @Argument(description = "Permission Level", value = Validate.NUMBER, options = {"0 - Normal", "1 - Regular", "2 - Moderator", "3 - Admin"})})
+            @Syntax(helpText = "Sets the Permissions of the user(s) @\u200Bmentioned", args = {@Argument(Validate.MENTION), @Argument(description = "Permission Level", value = Validate.NUMBER, options = {"0 - Normal", "1 - Regular", "2 - Moderator", "3 - Admin"})})
     })
-    public void set(CommContext cont) throws BotException {
-        MessageBuilder message = cont.builder();
+    public Mono<Void> set(CommContext cont) throws BotException {
+        Snowflake guildId = cont.getMessage().getGuildId().orElseThrow(PMNotSupportedException::new);
+        StringBuilder message = new StringBuilder();
         Permissions setPerm = BotUtils.toPerms(Integer.parseInt(cont.getArgs().get(cont.getArgs().size() - 1)));
             //check if the caller is at least as high as the perm he is setting
         if (cont.getCallerPerms().level < setPerm.level) {
             throw new MissingPermsException("Set Perms to level " + setPerm.level, setPerm);
 
             //check if there are @mentions to set perms of
-        } else if (cont.getMessage().getMentions().size() > 0) {
-
-            //iterate through all of the @mentions
-            for (IUser user : cont.getMessage().getMentions()) {
+        } else if (cont.getMessage().getMessage().getUserMentionIds().size() > 0) {
+            Flux<User> mentions = cont.getMessage().getMessage().getUserMentions();
+             return mentions.flatMap(v -> {
                 //make sure the @mention is the lower perms than the caller
-                if (cont.getCallerPerms().level <= cont.getActions().getTable(PermTable.class).getPerms(user, cont.getMessage()).level) {
-                    message.appendContent("Did not change " + user.getDisplayName(cont.getMessage().getGuild()) + "'s perms because your level is not higher than theirs (" + cont.getActions().getTable(PermTable.class).getPerms(user, cont.getMessage()).formatted + ")\n");
-                } else {
-                    //and finally, change their perms
-                    cont.getActions().getTable(PermTable.class).setPerms(cont.getMessage().getGuild(), user, setPerm);
-                    message.appendContent("Changing " + user.mention() + " to a" + BotUtils.startsWithVowel(setPerm.title, "n ", " ", false) + setPerm.formatted + "\n");
-                }
-            }
-            cont.getActions().channels().sendMessage(message);
-        } else if (cont.getMessage().getRoleMentions().size() > 0) {
-            for (IRole role : cont.getMessage().getRoleMentions()) {
-                //iterate through all of the users
-                for (IUser user : cont.getMessage().getGuild().getUsersByRole(role)) {
-                    if (cont.getCallerPerms().level <= cont.getActions().getTable(PermTable.class).getPerms(cont.getMessage().getAuthor(), cont.getMessage()).level) {
-                        message.appendContent("Did not change " + user.getDisplayName(cont.getMessage().getGuild()) + "'s perms because your level is not higher than theirs ("
-                                + cont.getActions().getTable(PermTable.class).getPerms(user, cont.getMessage()).formatted + ")\n");
+                return cont.getActions().getTable(PermTable.class).getPerms(v, cont.getMessage().getMessage()).map(u -> {
+                    if (cont.getCallerPerms().level <= u.level) {
+                        return "Did not change " + v.getMention() + "'s perms because your level is not higher than theirs (" + u.formatted + ")\n";
                     } else {
                         //and finally, change their perms
-                        cont.getActions().getTable(PermTable.class).setPerms(cont.getMessage().getGuild(), user, setPerm);
-                        message.appendContent("Changing " + user.mention() + " to a" + BotUtils.startsWithVowel(setPerm.title, "n ", " ", false) + setPerm.formatted + "\n");
+                        cont.getActions().getTable(PermTable.class).setPerms(guildId, v.getId(), setPerm);
+                        return "Changing " + v.getMention() + " to a" + BotUtils.startsWithVowel(setPerm.title, "n ", " ", false) + setPerm.formatted + "\n";
                     }
-                }
-            }
-            cont.getActions().channels().sendMessage(message);
+                });
+            }).collect(Collectors.joining()).flatMap(v -> cont.getChannel().createMessage(v)).then();
         } else {
             throw new IncorrectArgumentsException("You didn't mention any users or roles!");
         }

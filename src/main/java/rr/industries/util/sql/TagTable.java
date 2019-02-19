@@ -1,117 +1,114 @@
 package rr.industries.util.sql;
 
-import org.jooq.*;
-import org.jooq.impl.DSL;
+import discord4j.core.object.util.Snowflake;
+import org.jooq.DSLContext;
+import org.jooq.Record5;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import rr.industries.exceptions.BotException;
 import rr.industries.exceptions.MissingPermsException;
 import rr.industries.util.Permissions;
 import rr.industries.util.TagData;
-import sx.blah.discord.handle.obj.IGuild;
 
-import javax.naming.ConfigurationException;
-import java.sql.Connection;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.sql.Statement;
-import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 import java.util.stream.Collectors;
 
-import static rr.industries.jooq.Tables.*;
+import static rr.industries.jooq.Tables.TAGS;
 
 //todo: add check for permanent in remove tag
 
 /**
  * @author Sam
  */
-public class TagTable implements ITable {
+public class TagTable extends Table {
     private static Permissions globalPerm = Permissions.BOTOPERATOR;
     private static Permissions permanentPerm = Permissions.ADMIN;
     private static Permissions overwritePerm = Permissions.MOD;
     private static Logger LOG = LoggerFactory.getLogger(TagTable.class);
     Table localTags;
     Table globalTags;
-    private DSLContext database;
 
     public TagTable(DSLContext connection) throws BotException {
-        this.database = connection;
-        localTags = new Table(TAGS, database,
-                new Field[]{TAGS.GUILDID, TAGS.TAGCONTENT, TAGS.TAGNAME, TAGS.ISPERMANENT},
-                new Constraint[]{});
-/*        database.alterTable(localTags.table).alterColumn(TAGS.GUILDID).setNotNull().execute();
-        database.alterTable(localTags.table).alterColumn(TAGS.TAGNAME).setNotNull().execute();
-        database.alterTable(localTags.table).alterColumn(TAGS.ISPERMANENT).setNotNull().execute();*/
-        globalTags = new Table(GLOBALTAGS, database,
-                new Field[]{GLOBALTAGS.TAGNAME, GLOBALTAGS.TAGCONTENT},
-                new Constraint[]{DSL.constraint("TAGNAME_UK").unique(GLOBALTAGS.TAGNAME)});
-        /*database.alterTable(globalTags.table).alterColumn(GLOBALTAGS.TAGNAME).setNotNull().execute();*/
+        super(TAGS, connection);
     }
 
     /**
-     * @return the old tag, if it could be found
+     * Changes if an existing tag is permanent
+     * @param guild The id of the guild
+     * @param name The name of the tag
+     * @param global Should the tag be global
+     * @param perm The permission level of the user
+     * @return if the tag was found
+     * @throws MissingPermsException if the user isn't authorized to modify an existing tag
      */
-    public Optional<TagData> setGlobal(IGuild guild, String name, boolean global, Permissions perm) throws BotException {
-        Optional<TagData> tag = getTag(guild, name);
-        if (tag.isPresent()) {
-            deleteTag(guild, name, perm);
-            makeTag((global ? null : guild), name, tag.get().getContent(), tag.get().isPermanent(), perm);
-        }
-        return tag;
+    public boolean setGlobal(Snowflake guild, String name, boolean global, Permissions perm) throws BotException {
+        TagData tag = getTag(guild, name);
+        if(tag == null)
+            return false;
+        tag.setGlobal(true);
+        checkTagOverwritePerms(tag, perm);
+        database.update(TAGS).set(TAGS.ISGLOBAL, global ? 1 : 0).where(TAGS.GUILDID.eq(guild.asLong())).and(TAGS.TAGNAME.eq(name)).execute();
+        return true;
     }
 
     /**
-     * @return the tag changed, if it was found
+     * Changes if an existing tag is permanent
+     * @param guild The id of the guild
+     * @param name The name of the tag
+     * @param permanent Should the tag be permanent
+     * @param perm The permission level of the user
+     * @return if the tag was found
+     * @throws MissingPermsException if the user isn't authorized to modify an existing tag
      */
-    public Optional<TagData> setPermanent(IGuild guild, String name, boolean permanent, Permissions perm) throws BotException {
-        Optional<TagData> tag = getTag(guild, name);
-        if (tag.isPresent()) {
-            deleteTag(guild, name, perm);
-            makeTag(guild, name, tag.get().getContent(), permanent, perm);
-        }
-        return tag;
+    public boolean setPermanent(Snowflake guild, String name, boolean permanent, Permissions perm) throws MissingPermsException {
+        TagData tag = getTag(guild, name);
+        if(tag == null)
+            return false;
+        tag.setPermanent(true);
+        checkTagOverwritePerms(tag, perm);
+        database.update(TAGS).set(TAGS.ISPERMANENT, permanent ? 1 : 0).where(TAGS.GUILDID.eq(guild.asLong())).and(TAGS.TAGNAME.eq(name)).execute();
+        return true;
     }
 
-
     /**
-     * @return the previous tag, if it existed
+     * Creates a new tag
+     * @param guild The id of the guild
+     * @param name The name of the tag
+     * @param content The content of the tag
+     * @param perm The permission level of the user
+     * @return The previous tag that was deleted, if any
+     * @throws MissingPermsException if the user isn't authorized to modify an existing tag
      */
-    public Optional<TagData> makeTag(IGuild guild, String name, String content, boolean permanent, Permissions perm) throws BotException {
-        Optional<TagData> previous = getTag(guild, name);
-        if (previous.isPresent()) {
-            checkTag(previous.get(), perm);
-        }
-        if (permanent && perm.level < permanentPerm.level)
-            throw new MissingPermsException("Edit a Permanent Tag", permanentPerm);
-        if (guild != null) {
-            if(previous.isPresent())
-                database.update(localTags.table).set(TAGS.TAGCONTENT, content).set(TAGS.ISPERMANENT, permanent).where(TAGS.GUILDID.eq(guild.getStringID()).and(TAGS.TAGNAME.eq(name))).execute();
-            else
-                database.insertInto(localTags.table).columns(TAGS.GUILDID, TAGS.TAGNAME, TAGS.ISPERMANENT, TAGS.TAGCONTENT).values(guild.getStringID(), name, permanent, content).execute();
-        } else {
-            if(previous.isPresent())
-                database.update(globalTags.table).set(GLOBALTAGS.TAGCONTENT, content).where(TAGS.TAGNAME.eq(name)).execute();
-            else
-                database.insertInto(globalTags.table).columns(TAGS.TAGNAME, TAGS.TAGCONTENT).values(name, content).execute();
-        }
+    public TagData makeTag(Snowflake guild, String name, String content, Permissions perm) throws MissingPermsException {
+        TagData previous = deleteTag(guild, name, perm);
+        database.insertInto(TAGS).columns(TAGS.GUILDID, TAGS.TAGNAME, TAGS.TAGCONTENT).values(guild.asLong(), name, content).execute();
         return previous;
     }
 
-    public Optional<TagData> deleteTag(IGuild guild, String name, Permissions perm) throws BotException {
-        Optional<TagData> tag = getTag(guild, name);
-        if (tag.isPresent()) {
-            checkTag(tag.get(), perm);
-            if (tag.get().isGlobal() || guild == null)
-                database.deleteFrom(globalTags.table).where(GLOBALTAGS.TAGNAME.eq(name)).execute();
-            else
-                database.deleteFrom(localTags.table).where(TAGS.GUILDID.eq(guild.getStringID()).and(TAGS.TAGNAME.eq(name))).execute();
+    /**
+     * Deletes a tag
+     * @param guild The id of the guild
+     * @param name The name of the tag
+     * @param perm The permission level of the user
+     * @return The tag that was deleted, if any
+     * @throws MissingPermsException if the user isn't authorized to modify the given tag
+     */
+    public TagData deleteTag(Snowflake guild, String name, Permissions perm) throws MissingPermsException {
+        TagData tag = getTag(guild, name);
+        if (tag != null) {
+            checkTagOverwritePerms(tag, perm);
+            database.deleteFrom(TAGS).where(TAGS.GUILDID.eq(guild.asLong()).and(TAGS.TAGNAME.eq(name))).execute();
         }
         return tag;
     }
 
-    private void checkTag(TagData tag, Permissions perm) throws MissingPermsException {
+    /**
+     * Asserts that a user can modify a tag
+     * @param tag The tag to be modified
+     * @param perm The permission level of the user
+     * @throws MissingPermsException If the user is not authorized to modify the given tag
+     */
+    private void checkTagOverwritePerms(TagData tag, Permissions perm) throws MissingPermsException {
         if (tag.isGlobal() && perm.level < globalPerm.level)
             throw new MissingPermsException("Edit Global Tags", globalPerm);
         else if (tag.isPermanent() && perm.level < permanentPerm.level)
@@ -121,23 +118,51 @@ public class TagTable implements ITable {
     }
 
 
-    public Optional<TagData> getTag(IGuild guild, String name) throws BotException {
-        if (guild != null){
-            Record4<String, String, Integer, String> record = database.select(TAGS.GUILDID, TAGS.TAGNAME, TAGS.ISPERMANENT, TAGS.TAGCONTENT).from(localTags.table).where(TAGS.GUILDID.eq(guild.getStringID()).and(TAGS.TAGNAME.eq(name))).fetchAny();
-            if (record != null)
-                return Optional.of(new TagData(record));
+    /**
+     * Gets an tag by name in the context of a guild, preferring global tags
+     * @param guild The id of the guild
+     * @param name The name of the tag
+     * @return The tag, or null if none were found
+     */
+    public TagData getTag(Snowflake guild, String name) {
+        Record5<Long, String, Integer, Integer, String> matchingGlobal = database.select(TAGS.GUILDID, TAGS.TAGNAME, TAGS.ISPERMANENT, TAGS.ISGLOBAL, TAGS.TAGCONTENT).from(TAGS).where(TAGS.ISGLOBAL.eq(1)).and(TAGS.TAGNAME.eq(name)).fetchAny();
+        if(matchingGlobal != null) {
+            return TagData.of(matchingGlobal);
         }
-        Record2<String, String> record = database.select(GLOBALTAGS.TAGNAME, GLOBALTAGS.TAGCONTENT).from(globalTags.table).where(GLOBALTAGS.TAGNAME.eq(name)).fetchAny();
-        if (record != null)
-            return Optional.of(new TagData(record.component1(), record.component2()));
-        return Optional.empty();
+        Record5<Long, String, Integer, Integer, String> matchingLocal = database.select(TAGS.GUILDID, TAGS.TAGNAME, TAGS.ISPERMANENT, TAGS.ISGLOBAL, TAGS.TAGCONTENT).from(TAGS).where(TAGS.GUILDID.eq(guild.asLong())).and(TAGS.TAGNAME.eq(name)).fetchAny();
+        if(matchingLocal != null)
+            return TagData.of(matchingLocal);
+        return null;
     }
 
-    public List<TagData> getGlobalTags() throws BotException {
-        return database.select(GLOBALTAGS.TAGNAME, GLOBALTAGS.TAGCONTENT).from(globalTags.table).fetch().stream().map(TagData::new).collect(Collectors.toList());
+    /**
+     * Gets all global tags
+     * @return List of all global tags
+     */
+    public List<TagData> getGlobalTags() {
+        return database.select(TAGS.GUILDID, TAGS.TAGNAME, TAGS.ISPERMANENT, TAGS.ISGLOBAL, TAGS.TAGCONTENT)
+                .from(TAGS)
+                .where(TAGS.ISGLOBAL.eq(1))
+                .fetch()
+                .stream()
+                .map(TagData::of)
+                .collect(Collectors.toList());
     }
 
-    public List<TagData> getAllTags(IGuild guild) throws BotException {
-        return database.select(TAGS.GUILDID, TAGS.TAGNAME, TAGS.ISPERMANENT, TAGS.TAGCONTENT).from(localTags.table).where(TAGS.GUILDID.eq(guild.getStringID())).fetch().stream().map(TagData::new).collect(Collectors.toList());
+    /**
+     * Gets every tag applicable to the context of the guild
+     * Does not include global tags!
+     * @param guild The id of the guild
+     * @return A list of every applicable tag
+     */
+    public List<TagData> getAllTags(Snowflake guild) {
+        return database.select(TAGS.GUILDID, TAGS.TAGNAME, TAGS.ISPERMANENT, TAGS.ISGLOBAL, TAGS.TAGCONTENT)
+                .from(TAGS)
+                .where(TAGS.ISGLOBAL.eq(0))
+                .and(TAGS.GUILDID.eq(guild.asLong()))
+                .fetch()
+                .stream()
+                .map(TagData::of)
+                .collect(Collectors.toList());
     }
 }

@@ -1,14 +1,10 @@
 package rr.industries.exceptions;
 
-import com.mashape.unirest.http.exceptions.UnirestException;
+import discord4j.core.object.entity.Channel;
+import discord4j.core.object.entity.MessageChannel;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import sx.blah.discord.util.DiscordException;
-import sx.blah.discord.util.MissingPermissionsException;
-import sx.blah.discord.util.RateLimitException;
-
-import java.sql.SQLException;
-import java.util.Optional;
+import reactor.core.publisher.Mono;
 
 
 /**
@@ -16,30 +12,28 @@ import java.util.Optional;
  */
 public abstract class BotException extends Exception {
     protected Logger LOG = LoggerFactory.getLogger(BotException.class);
+    protected Channel channel;
     protected BotException(String message) {
         super(message);
     }
 
-    public abstract Optional<String> criticalMessage();
+    public void setChannel(Channel channel) {
+        this.channel = channel;
+    }
+
+    public abstract boolean shouldLog();
+
+    public Mono<Void> handle() {
+        if(MessageChannel.class.isAssignableFrom(channel.getClass())) {
+            MessageChannel mc = (MessageChannel) channel;
+            return mc.createMessage(this.getMessage()).then();
+        }
+        LOG.warn("Exception created on Non-Message Channel {}", channel);
+        return Mono.empty();
+    }
 
     @Override
     public String toString() {
         return getMessage();
-    }
-
-    public static BotException returnException(Exception ex) {
-        if (ex instanceof DiscordException) {
-            return new DiscordError((DiscordException) ex);
-        } else if (ex instanceof RateLimitException) {
-            return new ServerError("A RateLimitException was not handled!", ex);
-        } else if (ex instanceof MissingPermissionsException) {
-            return new BotMissingPermsException(((MissingPermissionsException) ex).getErrorMessage());
-        } else if (ex instanceof UnirestException) {
-            return new ServerError("Unirest Exception", ex);
-        } else if (ex instanceof SQLException) {
-            return new ServerError("SQLError", ex);
-        } else {
-            throw new UnsupportedOperationException(ex.getClass().getName() + " is not a supported exception", ex);
-        }
     }
 }

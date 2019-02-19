@@ -1,75 +1,66 @@
 package rr.industries.util.sql;
 
-import org.jooq.*;
-import org.jooq.impl.DSL;
+import discord4j.core.object.entity.Guild;
+import discord4j.core.object.entity.Message;
+import discord4j.core.object.entity.User;
+import discord4j.core.object.util.Snowflake;
+import org.jooq.DSLContext;
+import org.jooq.Record1;
+import org.jooq.Record2;
+import reactor.core.publisher.Mono;
 import rr.industries.Configuration;
-import rr.industries.exceptions.BotException;
 import rr.industries.util.BotUtils;
-import rr.industries.util.Entry;
 import rr.industries.util.Permissions;
-import sx.blah.discord.handle.obj.IGuild;
-import sx.blah.discord.handle.obj.IMessage;
-import sx.blah.discord.handle.obj.IUser;
 
-import java.sql.Connection;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.sql.Statement;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
-import java.util.stream.Collectors;
 
-import static rr.industries.jooq.Tables.*;
+import static rr.industries.jooq.Tables.PERMS;
 
 /**
  * @author robot_rover
  */
-public class PermTable extends Table implements ITable {
+public class PermTable extends Table {
     private Configuration config;
 
-    public PermTable(DSLContext connection, Configuration config) throws BotException {
-        super(PERMS, connection,
-                new Field[]{PERMS.GUILDID, PERMS.USERID, PERMS.PERM},
-                new Constraint[]{}
-        );
-        /*database.alterTable(table).alterColumn(PERMS.GUILDID).setNotNull().execute();
-        database.alterTable(table).alterColumn(PERMS.USERID).setNotNull().execute();
-        database.alterTable(table).alterColumn(PERMS.PERM).setNotNull().execute();*/
+    public PermTable(DSLContext connection, Configuration config) {
+        super(PERMS, connection);
         this.config = config;
     }
 
-    private Permissions getPerms(IUser user, IGuild guild) throws BotException {
-        if (Arrays.asList(config.operators).contains(user.getStringID()))
+    private Permissions getPerms(User user, Guild guild) {
+
+        if (config.isOperator(user.getId()))
             return Permissions.BOTOPERATOR;
-        if (guild == null) {
-            return Permissions.REGULAR;
-        }
-        if (guild.getOwner().equals(user))
+        if (guild.getOwnerId().equals(user.getId()))
             return Permissions.SERVEROWNER;
-        Record1<Integer> perm = database.select(PERMS.PERM).from(table).where(PERMS.GUILDID.eq(guild.getStringID()).and(PERMS.USERID.eq(user.getStringID()))).fetchAny();
-        if(perm != null)
+        Record1<Integer> perm = database.select(PERMS.PERM).from(PERMS).where(PERMS.GUILDID.eq(guild.getId().asLong()).and(PERMS.USERID.eq(user.getId().asLong()))).fetchAny();
+        if(perm != null) {
             return BotUtils.toPerms(perm.value1());
+        }
         else
             return Permissions.NORMAL;
     }
 
-    public Permissions getPerms(IUser user, IMessage e) throws BotException {
-        if (e.getChannel().isPrivate())
-            return getPerms(user, (IGuild) null);
-        else
-            return getPerms(user, e.getGuild());
+    public Mono<Permissions> getPerms(User user, Message e) {
+        return e.getGuild().hasElement().flatMap(v -> {
+            if(v) {
+                return e.getGuild().map(g -> getPerms(user, g));
+            } else {
+                return Mono.just(Permissions.SERVEROWNER);
+            }
+        });
     }
 
-    public void setPerms(IGuild guild, IUser user, Permissions permissions) throws BotException {
+    public void setPerms(Snowflake guild, Snowflake user, Permissions permissions) {
         if (permissions == Permissions.NORMAL)
-            database.deleteFrom(table).where(PERMS.GUILDID.eq(guild.getStringID()).and(PERMS.USERID.eq(user.getStringID()))).execute();
-        else if(database.update(table).set(PERMS.PERM, permissions.level).where(PERMS.GUILDID.eq(guild.getStringID()).and(PERMS.USERID.eq(user.getStringID()))).execute() == 0){
-            database.insertInto(table).set(PERMS.PERM, permissions.level).set(PERMS.GUILDID, guild.getStringID()).set(PERMS.USERID, user.getStringID()).execute();
+            database.deleteFrom(PERMS).where(PERMS.GUILDID.eq(guild.asLong()).and(PERMS.USERID.eq(user.asLong()))).execute();
+        else if(database.update(PERMS).set(PERMS.PERM, permissions.level).where(PERMS.GUILDID.eq(guild.asLong()).and(PERMS.USERID.eq(user.asLong()))).execute() == 0){
+            database.insertInto(PERMS).set(PERMS.PERM, permissions.level).set(PERMS.GUILDID, guild.asLong()).set(PERMS.USERID, user.asLong()).execute();
         }
     }
 
-    public List<Record2<String, Integer>> getAllPerms(IGuild guild) {
-        return new ArrayList<>(database.select(PERMS.USERID, PERMS.PERM).from(table).where(PERMS.GUILDID.eq(guild.getStringID())).orderBy(PERMS.PERM.desc()).fetch());
+    public List<Record2<Long, Integer>> getAllPerms(Snowflake guild) {
+        return new ArrayList<>(database.select(PERMS.USERID, PERMS.PERM).from(PERMS).where(PERMS.GUILDID.eq(guild.asLong())).orderBy(PERMS.PERM.desc()).fetch());
     }
 }

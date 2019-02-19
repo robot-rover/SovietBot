@@ -1,21 +1,6 @@
 language: java
 jdk:
-- oraclejdk8
+- oraclejdk11
 notifications:
   webhooks:
   - https://www.sovietbot.xyz:2053/travis
-addons:
-  apt:
-    packages:
-    - sshpass
-  ssh_known_hosts:
-    secure: aiRNbMY+Oo30gWEhNxO9iilHkzn7im3LpLjXeBu30k67BfDKSkZaCV72MiK9+vZRd3QqbodWNC0N32LpB0s7xUANZh72smAe7hDWpA1V1q1CS6PEP6tbjM3x1Mi5a/8dz39iaDPBL9k/m4irWOCTXfngM6nkGWqDtFzUOAB4jDJFgKxKzSOkbW/SbwuQtWM+eNyMkbqTwdTZlcQY/tn3VXcTvqc0vjkYvP791/3QtzkWMnQhRZlTnmbjN1w3jhs+SngEjVtJM7XvuPIdWwJomZmjW8QI7zR0TDnNRTTg/cAHwOfnS8tXpoxyoHmM2JrpVEAzLcKPqyoB5WHvQ9srbf2htHPOJ3uwRXjHNzVhTIO04OsWXnMs1UYU/5pkzHKZGzLeW8eFL1F6RASb62SfCyVf9ND3LYcwFn89GBbbxA4JJpnO30oJwOHbdTfCcApc9/8VeRPYJ+pIfPeRwwQIxXPr+Vemn4m3KxhAb/J8OCj4VD7R+EREsoDZZZkLXdPUJwwx4+pxApsT412c+JNx8aoWkh8BsXiDySDh/FPH8GPeTg4SS2jkL4/o0DfJJC9CF1Kfq1MsIB2UcSgla2YlQlPuYpRPokpWoYD1eaZrt0+le6YC1MruF7QREr5r45R2h/QAiqOWt8wc6xHrMQktDCZ148PZpc9WT+CFDsZdP3E=
-#deploy:
-#  provider: script
-#  script: "./travisDeploy.sh"
-#  skip_cleanup: true
-before_deploy:
-- openssl aes-256-cbc -K $encrypted_b924725bccf1_key -iv $encrypted_b924725bccf1_iv -in deploy_rsa.enc -out deploy_rsa -d
-- eval "$(ssh-agent -s)"
-- chmod 600 deploy_rsa
-- ssh-add deploy_rsa

@@ -1,11 +1,14 @@
 package rr.industries.commands;
 
-import org.apache.commons.lang3.text.WordUtils;
+import discord4j.core.object.entity.Member;
+import discord4j.core.object.entity.Role;
+import discord4j.core.object.presence.Presence;
+import discord4j.core.object.util.Snowflake;
+import org.apache.commons.text.WordUtils;
+import reactor.core.publisher.Mono;
 import rr.industries.exceptions.BotException;
+import rr.industries.exceptions.PMNotSupportedException;
 import rr.industries.util.*;
-import sx.blah.discord.handle.obj.IRole;
-import sx.blah.discord.handle.obj.IUser;
-import sx.blah.discord.util.MessageBuilder;
 
 import java.time.ZoneOffset;
 import java.time.format.DateTimeFormatter;
@@ -23,29 +26,44 @@ public class WhoIs implements Command {
             @Syntax(helpText = "Tells you information about yourself", args = {}),
             @Syntax(helpText = "Tells you information about the mentioned user", args = {@Argument(Validate.MENTION)})
     })
-    public void execute(CommContext cont) throws BotException {
-        IUser examine;
-        if (cont.getMessage().getMentions().size() > 0) {
-            examine = cont.getMessage().getMentions().get(0);
-        } else {
-            examine = cont.getMessage().getAuthor();
-        }
-        MessageBuilder message = new MessageBuilder(cont.getClient()).withChannel(cont.getMessage().getChannel());
-        message.appendContent(examine.getName() + "`#" + examine.getDiscriminator() + "`");
-        String nick = examine.getNicknameForGuild(cont.getMessage().getGuild());
-        if (nick != null) {
-            message.appendContent(" aka *" + nick + "*");
-        }
-        if (examine.isBot()) {
-            message.appendContent(" - `|BOT|`");
-        }
-        message.appendContent("\n**--------------**\n");
-        message.appendContent("ID: " + examine.getStringID() + "\n");
-        message.appendContent("Joined: " + DateTimeFormatter.ofLocalizedDateTime(FormatStyle.MEDIUM).withZone(ZoneOffset.UTC).format(examine.getCreationDate()) + "\n");
-        message.appendContent("Status: " + WordUtils.capitalizeFully(examine.getPresence().getStatus().name()) + "\n");
-        message.appendContent("Roles: " + examine.getRolesForGuild(cont.getMessage().getGuild()).stream().filter(v -> !v.isEveryoneRole()).map(IRole::getName).collect(Collectors.joining(", ")) + "\n");
-        if (examine.getAvatar() != null)
-            message.appendContent("Avatar: " + examine.getAvatarURL() + "\n");
-        cont.getActions().channels().sendMessage(message);
+    public Mono<Void> execute(CommContext cont) throws BotException {
+        Snowflake guildId = cont.getGuildId();
+        Member author = cont.getMember();
+        Mono<Member> examine = cont.getMessage().getMessage().getUserMentions().next()
+                .flatMap(v -> v.asMember(guildId))
+                .defaultIfEmpty(author).cache();
+        return Mono.zip(examine, getRoles(examine), formatPresence(examine)).flatMap(v -> {
+            Member target = v.getT1();
+            String roles = v.getT2();
+            String presence = v.getT3();
+
+            StringBuilder message = new StringBuilder();
+            message.append("`" + target.getUsername() + "#" + target.getDiscriminator() + "`");
+            target.getNickname().ifPresent(u -> message.append(" aka *").append(u).append("*"));
+            if (target.isBot()) {
+                message.append(" - `|BOT|`");
+            }
+            message.append("\n**--------------**\n");
+            message.append("ID: " + target.getId().asString() + "\n");
+            message.append("Joined: " + DateTimeFormatter.ofLocalizedDateTime(FormatStyle.MEDIUM).withZone(ZoneOffset.UTC).format(target.getJoinTime()) + "\n");
+            message.append("Roles: " + roles + "\n");
+            message.append("Status: " + presence + "\n");
+            message.append("Avatar: " + target.getAvatarUrl() + "\n");
+            return cont.getChannel().createMessage(message.toString()).then();
+        });
+    }
+
+    private Mono<String> getRoles(Mono<Member> target) {
+        return target
+                .flatMapMany(Member::getRoles)
+                .filter(u -> !u.isEveryone())
+                .map(Role::getName)
+                .collect(Collectors.joining(", "));
+    }
+
+    private Mono<String> formatPresence(Mono<Member> target) {
+        return target
+                .flatMap(Member::getPresence)
+                .map(p -> WordUtils.capitalizeFully(p.getStatus().getValue()) + p.getActivity().map(a -> " - " + WordUtils.capitalizeFully(a.getType().name()) + " " + a.getName()).orElse(""));
     }
 }

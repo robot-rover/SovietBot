@@ -1,14 +1,11 @@
 package rr.industries.commands;
 
+import discord4j.core.object.entity.Guild;
+import discord4j.core.object.entity.Member;
+import reactor.core.publisher.Mono;
 import rr.industries.exceptions.BotException;
-import rr.industries.exceptions.IncorrectArgumentsException;
+import rr.industries.exceptions.PMNotSupportedException;
 import rr.industries.util.*;
-import sx.blah.discord.handle.obj.IRole;
-import sx.blah.discord.util.DiscordException;
-import sx.blah.discord.util.MissingPermissionsException;
-import sx.blah.discord.util.RateLimitException;
-
-import java.util.List;
 
 /**
  * @author Sam
@@ -17,14 +14,9 @@ import java.util.List;
 @CommandInfo(commandName = "role", helpText = "Lets the Awesome BotOperator screw around", permLevel = Permissions.BOTOPERATOR)
 public class Role implements Command {
     @SubCommand(name = "add", Syntax = @Syntax(helpText = "Adds a role named this", args = {@Argument(description = "Role Name", value = Validate.TEXT)}))
-    public void execute(CommContext cont) throws BotException {
-        List<IRole> role = cont.getMessage().getGuild().getRolesByName(cont.getArgs().get(2));
-        if (role.size() == 0)
-            throw new IncorrectArgumentsException("The role \"" + cont.getArgs().get(2) + "\" was not found");
-        try {
-            cont.getMessage().getAuthor().addRole(role.get(0));
-        } catch (MissingPermissionsException | RateLimitException | DiscordException ex) {
-            throw BotException.returnException(ex);
-        }
+    public Mono<Void> execute(CommContext cont) throws BotException {
+        Mono<discord4j.core.object.entity.Role> role = cont.getMessage().getGuild().flatMapMany(Guild::getRoles).filter(v -> v.getName().equals(cont.getArgs().get(2))).next();
+        Member member = cont.getMember();
+        return role.flatMap(v -> member.addRole(v.getId()));
     }
 }

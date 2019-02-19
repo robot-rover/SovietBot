@@ -1,6 +1,6 @@
 package rr.industries.exceptions;
 
-import java.util.Optional;
+import discord4j.core.object.entity.Channel;
 
 /**
  * @author Sam
@@ -15,7 +15,7 @@ public class PMNotSupportedException extends BotException {
     }
 
     @Override
-    public Optional<String> criticalMessage() {
-        return Optional.empty();
+    public boolean shouldLog() {
+        return false;
     }
 }

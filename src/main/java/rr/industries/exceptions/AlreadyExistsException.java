@@ -9,7 +9,6 @@ import java.util.Optional;
  * @author Sam
  */
 public class AlreadyExistsException extends BotException {
-    private Permissions neededPerm;
 
     /**
      * A(n) (type) named (name) already exists, and was not overwritten because (reason)
@@ -23,7 +22,6 @@ public class AlreadyExistsException extends BotException {
      */
     public AlreadyExistsException(String name, String type, Permissions neededPerm) {
         super("A" + BotUtils.startsWithVowel(type, "n ", " ", true) + " named `" + name + "` already exists, and was not overwritten because you are not a " + neededPerm.formatted);
-        this.neededPerm = neededPerm;
     }
 
     /**
@@ -33,15 +31,8 @@ public class AlreadyExistsException extends BotException {
         super("A" + BotUtils.startsWithVowel(type, "n ", " ", true) + " named `" + name + "` already exists");
     }
 
-    /**
-     * The perm needed to complete the action. May be null
-     */
-    public Permissions getNeededPerm() {
-        return neededPerm;
-    }
-
     @Override
-    public Optional<String> criticalMessage() {
-        return Optional.empty();
+    public boolean shouldLog() {
+        return false;
     }
 }

@@ -1,29 +1,22 @@
 package rr.industries.modules;
 
 import com.google.gson.Gson;
-import com.google.gson.JsonSyntaxException;
-import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.commons.io.FilenameUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import rr.industries.Information;
 import rr.industries.SovietBot;
 import rr.industries.Website;
-import rr.industries.exceptions.BotException;
-import rr.industries.pojos.RestartPost;
 import rr.industries.pojos.travisciwebhooks.TravisWebhook;
 import rr.industries.util.BotActions;
-import rr.industries.util.ChannelActions;
 import spark.Request;
 import spark.Response;
 import spark.Service;
 import spark.Spark;
 import spark.utils.IOUtils;
-import sx.blah.discord.util.MessageBuilder;
 
 import javax.servlet.http.HttpServletResponse;
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.IOException;
 import java.net.URLDecoder;
 import java.nio.file.Files;
@@ -31,7 +24,6 @@ import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.time.format.FormatStyle;
-import java.util.stream.Collectors;
 
 /**
  * Credit to Chrislo for the basis and the POJOs
@@ -216,7 +208,7 @@ public class Webserver implements Module {
 
     private void sendMessageToChannels(String event, String content) {
         LOG.info("Sent a webhook message to channels for event " + event);
-        actions.channels().messageOwner(content, false);
+        actions.messageOwner(content).subscribe();
     }
 
 }

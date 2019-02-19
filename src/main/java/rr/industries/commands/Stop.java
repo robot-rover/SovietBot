@@ -1,5 +1,6 @@
 package rr.industries.commands;
 
+import reactor.core.publisher.Mono;
 import rr.industries.exceptions.BotException;
 import rr.industries.util.*;
 
@@ -11,7 +12,8 @@ import rr.industries.util.*;
 )
 public class Stop implements Command {
     @SubCommand(name = "", Syntax = {@Syntax(helpText = "Stops the process running the bot", args = {})})
-    public void execute(CommContext cont) throws BotException {
-        cont.getActions().channels().terminate();
+    public Mono<Void> execute(CommContext cont) throws BotException {
+        cont.getActions().terminate();
+        return Mono.empty();
     }
 }

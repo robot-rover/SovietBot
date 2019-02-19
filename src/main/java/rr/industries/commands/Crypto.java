@@ -3,23 +3,20 @@ package rr.industries.commands;
 import com.google.gson.reflect.TypeToken;
 import com.mashape.unirest.http.Unirest;
 import com.mashape.unirest.http.exceptions.UnirestException;
-import rr.industries.SovietBot;
+import discord4j.core.spec.EmbedCreateSpec;
+import reactor.core.publisher.Mono;
 import rr.industries.exceptions.BotException;
 import rr.industries.exceptions.ServerError;
 import rr.industries.pojos.CryptoCurrency;
 import rr.industries.util.*;
-import sx.blah.discord.util.EmbedBuilder;
-import sx.blah.discord.util.MessageBuilder;
 
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.time.Instant;
-import java.time.LocalDateTime;
 import java.time.ZoneOffset;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.time.format.FormatStyle;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
@@ -27,37 +24,33 @@ import java.util.List;
 public class Crypto implements Command {
 
     List<CryptoCurrency> cache;
-    TypeToken<List<CryptoCurrency>> cacheTypeToken = new TypeToken<List<CryptoCurrency>>() {};
+    TypeToken<List<CryptoCurrency>> cacheTypeToken = new TypeToken<>() {
+    };
     long lastRefresh = 0L;
     long refreshDelay = 1000 * 60 * 60; // 1 hour
 
     @SubCommand(name = "", Syntax = {@Syntax(helpText = "Finds the info on this cryptocurrency", args = @Argument(value = Validate.TEXT, description = "Name"))})
-    public void execute(CommContext cont) throws BotException{
+    public Mono<Void> execute(CommContext cont) throws BotException{
         String term = cont.getArgs().get(1);
         CryptoCurrency find = searchCache(term);
         if(find == null && updateCache()){
             find = searchCache(term);
         }
         if(find == null){
-            cont.getActions().channels().sendMessage(cont.builder().withContent("The currency " + term + " cannot be found"));
+            return cont.getMessage().getMessage().getChannel().flatMap(v -> v.createMessage("The currency " + term + " cannot be found")).then();
         } else {
-            try {
                 CryptoCurrency currency = getCurrency(find.id).get(0);
-                EmbedBuilder builder = new EmbedBuilder();
-                builder.withTitle(currency.name);
-                builder.withDescription("$" + currency.priceUsd);
-                StringBuilder percentChange = new StringBuilder();
-                percentChange.append("1 Hour: ").append(currency.percentChange1h).append("%\n");
-                percentChange.append("1 Day:  ").append(currency.percentChange24h).append("%\n");
-                percentChange.append("7 Days: ").append(currency.percentChange7d).append("%\n");
-                builder.appendField("Percent Change -", percentChange.toString(), false);
-                Instant instant = Instant.ofEpochSecond(Long.parseLong(currency.lastUpdated));
-                ZonedDateTime time = ZonedDateTime.ofInstant(instant, ZoneOffset.UTC);
-                builder.withFooterText(time.format(DateTimeFormatter.ofLocalizedTime(FormatStyle.FULL)));
-                cont.getActions().channels().sendMessage(cont.builder().withEmbed(builder.build()));
-            } catch (IndexOutOfBoundsException e){
-                cont.getActions().channels().sendMessage(cont.builder().withContent("The currency " + term + " cannot be found"));
-            }
+                return cont.getMessage().getMessage().getChannel().flatMap(channel -> channel.createMessage(messageSpec -> messageSpec.setEmbed(embedSpec -> {
+                    embedSpec.setTitle(currency.name);
+                    embedSpec.setDescription("$" + currency.priceUsd);
+                    String percentChange = "1 Hour: " + currency.percentChange1h + "%\n" +
+                            "1 Day:  " + currency.percentChange24h + "%\n" +
+                            "7 Days: " + currency.percentChange7d + "%\n";
+                    embedSpec.addField("Percent Change -", percentChange, false);
+                    Instant instant = Instant.ofEpochSecond(Long.parseLong(currency.lastUpdated));
+                    ZonedDateTime time = ZonedDateTime.ofInstant(instant, ZoneOffset.UTC);
+                    embedSpec.setFooter(time.format(DateTimeFormatter.ofLocalizedTime(FormatStyle.FULL)), null);
+                }))).then();
         }
     }
 

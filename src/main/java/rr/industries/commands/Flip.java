@@ -1,5 +1,6 @@
 package rr.industries.commands;
 
+import reactor.core.publisher.Mono;
 import rr.industries.exceptions.BotException;
 import rr.industries.util.*;
 
@@ -9,7 +10,7 @@ import java.util.Map;
 @CommandInfo(commandName = "flip", helpText = "flips text upside-down", pmSafe = true)
 public class Flip implements Command {
     @SubCommand(name = "", Syntax = {@Syntax(helpText = "flips the supplied text", args = {@Argument(description = "Text", value = Validate.LONGTEXT)})})
-    public void execute(CommContext cont) throws BotException {
+    public Mono<Void> execute(CommContext cont) throws BotException {
         char[] inputChars = cont.getConcatArgs(1).toCharArray();
         StringBuilder response = new StringBuilder();
         for(int i = inputChars.length - 1; i >= 0; i--) {
@@ -20,8 +21,7 @@ public class Flip implements Command {
             }
             response.append(outputChar);
         }
-
-        cont.getActions().channels().sendMessage(cont.builder().withContent(response.toString()));
+        return cont.getMessage().getMessage().getChannel().flatMap(v -> v.createMessage(response.toString())).then();
     }
 
     private Map<Character, String> mapObject = new HashMap<>();

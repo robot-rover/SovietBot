@@ -8,6 +8,9 @@ import com.github.adamint.Responses.Guild;
 import com.github.adamint.Settings.BotSettings;
 import com.github.adamint.Settings.OAuthSettings;
 import com.mashape.unirest.http.exceptions.UnirestException;
+import discord4j.core.object.entity.Member;
+import discord4j.core.object.util.Image;
+import discord4j.core.object.util.Snowflake;
 import org.apache.commons.io.FilenameUtils;
 import org.jooq.Record2;
 import org.json.JSONException;
@@ -23,8 +26,6 @@ import rr.industries.util.sql.PermTable;
 import rr.industries.util.sql.TagTable;
 import spark.Request;
 import spark.Response;
-import sx.blah.discord.handle.obj.IGuild;
-import sx.blah.discord.handle.obj.IUser;
 
 import javax.servlet.http.HttpServletResponse;
 import java.io.File;
@@ -37,13 +38,14 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 import static java.util.Comparator.comparing;
-import static org.apache.commons.lang3.StringEscapeUtils.escapeHtml4;
+import static org.apache.commons.text.StringEscapeUtils.escapeHtml4;
 
 /**
  *
  */
 //todo: add class description
 public class Website {
+    public String botId;
     public String index;
     public String help;
     public HashMap<String, String> commands = new HashMap<>();
@@ -109,13 +111,15 @@ public class Website {
     }
 
     public Website(BotActions actions) throws IOException {
+        this.botId = actions.getClient().getSelfId().orElseThrow(() -> new RuntimeException("Bot Not Logged in Yet")).asString();
         this.actions = actions;
         engine = new PageEngine().setDefaultURL("template.txt");
         engine.addEnvTag("invite-link", getInviteLink());
         engine.addEnvTag("oauth-link", getOAuthLink());
         engine.addEnvTag("main-icon", "/avatar.png");
         OAuthSettings oAuthSettings = new OAuthSettings("SovietBot", actions.getConfig().url, actions.getConfig().url + "dashboard", "1.0 BETA");
-        BotSettings botSettings = new BotSettings(actions.getClient().getApplicationClientID(), actions.getConfig().discordSecret, actions.getClient().getToken().substring(4));
+        BotSettings botSettings = new BotSettings(botId,
+                actions.getConfig().discordSecret, Launcher.token);
         manager = new OAuthManager(oAuthSettings, botSettings);
         LOG.info("OAuth Link: {}", getOAuthLink());
         Page indexPage = engine.newPage();
@@ -184,7 +188,7 @@ public class Website {
     }
 
     private String getOAuthLink(){
-        return "https://discordapp.com/oauth2/authorize?client_id=" + actions.getClient().getApplicationClientID() + "&scope=identify+guilds&redirect_uri=" + actions.getConfig().url + "dashboard&response_type=code";
+        return "https://discordapp.com/oauth2/authorize?client_id=" + botId + "&scope=identify+guilds&redirect_uri=" + actions.getConfig().url + "dashboard&response_type=code";
     }
 
     public String redirectToOAuth(Request request, Response response){
@@ -214,7 +218,7 @@ public class Website {
             StringBuilder content = new StringBuilder();
             content.append("<ul class=\"guilds\">");
             for(Guild guild : guilds){
-                if((guild.getPermissions() & 0x00000020) == 0 && actions.getClient().getGuildByID(Long.parseLong(guild.getId())) == null)
+                if((guild.getPermissions() & 0x00000020) == 0/* && actions.getClient().get.getGuildByID(Long.parseLong(guild.getId())) == null*/)
                     continue;
                 content.append("<a href=\"/guilds/").append(guild.getId()).append("\"><li><img src=\"").append(getGuildIcon(guild.getId(), guild.getIcon())).append("\">");
                 content.append("<p>").append(guild.getName()).append("</p></li></a>");
@@ -244,9 +248,9 @@ public class Website {
         response.type("text/html");
         int length;
         try {
-            long guildID = Long.parseLong(request.pathInfo().substring("/guilds/".length()));
+            Snowflake guildID = Snowflake.of(request.pathInfo().substring("/guilds/".length()));
             LOG.info("Guild ID: {}", guildID);
-            IGuild guild = actions.getClient().getGuildByID(guildID);
+            discord4j.core.object.entity.Guild guild = actions.getClient().getGuildById(guildID).block();
             if(guild == null){
                 response.redirect("/invite/" + guildID);
                 return "Redirecting...";
@@ -258,12 +262,12 @@ public class Website {
             page.setTag("title", "SovietBot - " + guild.getName());
             page.setTag("header", "Dashboard");
             page.setTag("description", guild.getName());
-            page.setTag("main-icon", getGuildIcon(guild.getStringID(), guild.getIcon()));
+            page.setTag("main-icon", guild.getIconUrl(Image.Format.PNG).orElse(""));
             StringBuilder content = new StringBuilder();
             //Tags Section
             content.append("<button class=\"accordion\" onclick=\"toggleAccordion(this)\">").append("Tags").append("</button><div class=\"panel\"><ul>");
             length = content.length();
-            List<TagData> tags = actions.getTable(TagTable.class).getAllTags(guild);
+            List<TagData> tags = actions.getTable(TagTable.class).getAllTags(guild.getId());
             for(TagData tag : tags){
                 content.append("<li><b>").append(escapeHtml4(tag.getName())).append("</b> - ").append(MarkdownEngine.generate(tag.getContent())).append("</li>\n");
             }
@@ -281,17 +285,17 @@ public class Website {
                 content.append("<p><i>None</i><p>");
             content.append("</ul></div>");
             //User Perms Section
-            List<Record2<String, Integer>> perms = actions.getTable(PermTable.class).getAllPerms(guild);
+            List<Record2<Long, Integer>> perms = actions.getTable(PermTable.class).getAllPerms(guild.getId());
             content.append("<button class=\"accordion\" onclick=\"toggleAccordion(this)\">").append("User Permissions").append("</button><div class=\"panel\"><ul>");
             content.append("<h2>").append(Permissions.SERVEROWNER.title).append("</h2>\n");
-            IUser owner = guild.getOwner();
-            content.append("<li>").append(escapeHtml4(owner.getDisplayName(guild))).append("</li>\n");
+            Member owner = guild.getOwner().block();
+            content.append("<li>").append(escapeHtml4(owner.getDisplayName())).append("</li>\n");
             for(int[] i = {Permissions.ADMIN.level}; i[0] >= Permissions.NORMAL.level; i[0]--){
                 StringBuilder level = new StringBuilder();
                 perms.stream().filter(v -> v.component2() == i[0]).forEach(v -> {
-                    IUser user = actions.getClient().getUserByID(Long.parseLong(v.component1()));
+                    Member user = guild.getMemberById(Snowflake.of(v.component1())).block();
                     if(user != null && user != owner)
-                        level.append("<li>").append(escapeHtml4(user.getDisplayName(guild))).append("</li>\n");
+                        level.append("<li>").append(escapeHtml4(user.getDisplayName())).append("</li>\n");
                 });
                 if(level.length() != 0){
                     content.append("<h2>").append(BotUtils.toPerms(i[0]).title).append("</h2>");
@@ -300,13 +304,16 @@ public class Website {
             }
             content.append("</ul></div>");
             //Server Greeting Section
+            //todo: include greeting channel
 
             content.append("<button class=\"accordion\" onclick=\"toggleAccordion(this)\">").append("Server Greetings").append("</button><div class=\"panel\"><ul>");
             length = content.length();
-            actions.getTable(GreetingTable.class).getJoinMessage(guild).ifPresent(
-                    v -> content.append("<h2>Leave:</h2><li>").append(escapeHtml4(v).replace("%user", "<code>%user</code>")).append("</li>\n"));
-            actions.getTable(GreetingTable.class).getLeaveMessage(guild).ifPresent(
-                    v -> content.append("<h2>Join:</h2><li>").append(escapeHtml4(v).replace("%user", "<code>%user</code>")).append("</li>\n"));
+            Entry<String, Long> join = actions.getTable(GreetingTable.class).getJoinMessage(guild.getId());
+            if(join != null && join.first() != null)
+                    content.append("<h2>Leave:</h2><li>").append(escapeHtml4(join.first()).replace("%user", "<code>%user</code>")).append("</li>\n");
+            Entry<String, Long> leave = actions.getTable(GreetingTable.class).getLeaveMessage(guild.getId());
+            if(leave != null && leave.first() != null)
+                    content.append("<h2>Join:</h2><li>").append(escapeHtml4(leave.first()).replace("%user", "<code>%user</code>")).append("</li>\n");
             if(length == content.length())
                 content.append("<p><i>None</i><p>");
             content.append("</ul></div>");
