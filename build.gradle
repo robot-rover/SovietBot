@@ -29,7 +29,7 @@ repositories {
 
 dependencies {
     // Youtube Library
-    compile group: 'com.sedmelluq', name: 'lavaplayer', version:'1.3.7'
+    compile group: 'com.sedmelluq', name: 'lavaplayer', version:'1.3.46'
 
     // SQLite Database Driver
     compile group: 'org.xerial', name: 'sqlite-jdbc', version:'3.8.11.2'
@@ -41,7 +41,7 @@ dependencies {
     compile group: 'com.mashape.unirest', name: 'unirest-java', version:'1.4.9'
 
     // Discord API
-    compile 'com.discord4j.discord4j:discord4j-core:3.0.0.M4'
+    compile 'com.discord4j.discord4j:discord4j-core:3.0.9'
 
     // File Download
     compile group: 'commons-io', name: 'commons-io', version:'2.6'
